@@ -2,7 +2,7 @@
 
 ## Projeto e estado inicial
 
-A proprietária identificou `ange line's Project` (`fxbivwcfwqdvotohzrwg`) como o projeto a usar. A inspeção feita em outra conversa informou PostgreSQL 17.11, estado `ACTIVE_HEALTHY`, schema `public` sem tabelas, nenhuma Edge Function e ausência de `protected-me`. Esses dados ainda precisam de confirmação de leitura nesta sessão antes de qualquer aplicação. Não criar outro projeto.
+A proprietária identificou `ange line's Project` (`fxbivwcfwqdvotohzrwg`) como o projeto a usar. A inspeção feita em outra conversa informou PostgreSQL 17.11, estado `ACTIVE_HEALTHY`, schema `public` sem tabelas, nenhuma Edge Function e histórico `supabase_migrations.schema_migrations` ausente. Esses dados ainda precisam de confirmação de leitura nesta sessão antes de qualquer aplicação. Não criar outro projeto.
 
 Tratar o projeto existente como ambiente de desenvolvimento durante a validação. Confirmar plano e recursos disponíveis, histórico de migrations, grants padrão da Data API, configuração Auth e backup antes de promover o uso para produção. Uma mudança externa feita entre a inspeção e a aplicação exige nova revisão do diff.
 
@@ -42,13 +42,13 @@ RLS aplica `auth.uid()` e vínculos por canal, além dos grants. O frontend rece
 ## Aplicação e gate de testes
 
 1. Confirmar leitura do projeto, histórico de migrations, objetos existentes e configurações. Fazer backup/ensaio de restauração conforme o plano disponível.
-2. Usar a Supabase CLI para validar a configuração, conferir a lista de migrations e aplicar os arquivos em ambiente de desenvolvimento. Descobrir flags com `--help` da versão instalada; não aplicar por SQL avulso sem registrar histórico.
-3. Verificar `pg_class.relrowsecurity`, `pg_policies`, grants efetivos, FKs, checks e índices. Executar Security Advisor e corrigir achados aplicáveis.
+2. Usar a Supabase CLI 2.122.0 fixada em `package.json`. Após login autorizado na CLI, executar `npx supabase link --project-ref fxbivwcfwqdvotohzrwg`, `npx supabase migration list --linked` e `npx supabase db push --linked --dry-run --skip-vault`. Conferir que somente as três migrations esperadas aparecem; se o remoto tiver novos objetos, interromper e revisar o diff. Aplicar com `npx supabase db push --linked --skip-vault` e repetir `migration list --linked`. Não usar `db reset --linked`, `migration repair` ou SQL avulso para substituir o histórico.
+3. Executar `tests/security/verify-schema.sql` em conexão administrativa para conferir seis tabelas com RLS, 14 políticas e grants críticos; verificar também FKs, checks e índices. Executar Security Advisor no Dashboard e registrar resultados/correções.
 4. Executar `tests/security/rls.sql` em ambiente de desenvolvimento com duas contas Auth reais: dono, outro usuário e role anônima. O script usa transação com `ROLLBACK` e deve passar leitura e escrita permitidas/negadas nas seis tabelas.
 5. Exercitar a Data API com chave publicável e sessões reais: login, cadastro e pausa de canal, estados de vídeo, tentativa cruzada e ausência de sessão. Confirmar erros 403/42501 esperados e persistência após novo login.
 6. Registrar comandos, resultados, versão da CLI e evidência no relatório. Só depois configurar Variables/Secrets e prosseguir para coleta e Pages.
 
-As três migrations foram aplicadas apenas em PostgreSQL 16.14 temporário e descartável, com um stub local de `auth`. A consulta local confirmou seis tabelas com RLS e 14 políticas; `tests/security/rls.sql` passou com dois usuários simulados e `anon`. O PostgreSQL 17.11 e a Data API do projeto hospedado ainda não foram testados nesta sessão. O stub de `tests/security/bootstrap-local.sql` nunca deve ser executado no Supabase hospedado.
+As três migrations foram aplicadas apenas em PostgreSQL 16.14 temporário e descartável, com um stub local de `auth`. A consulta local confirmou seis tabelas com RLS e 14 políticas; `tests/security/rls.sql` passou com dois usuários simulados e `anon`. A CLI 2.122.0 foi instalada e seus comandos consultados via `--help`; `projects list` retornou `AccessTokenRequiredError`. O PostgreSQL 17.11 e a Data API do projeto hospedado ainda não foram testados nesta sessão. O stub de `tests/security/bootstrap-local.sql` nunca deve ser executado no Supabase hospedado.
 
 ## Fontes verificadas
 
