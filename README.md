@@ -14,7 +14,7 @@ O build usa a base `/replay/` para GitHub Pages. `npm run build` cria `dist/`. `
 
 ## Primeira instalação
 
-1. Crie projeto Supabase dedicado em uma conta da proprietária e confirme o plano e custos antes de ativar recursos pagos.
+1. Escolha um projeto Supabase dedicado ao RePlay na conta da proprietária ou crie um novo; confirme plano e custos antes de ativar recursos pagos.
 2. Aplique as migrations versionadas em `supabase/migrations/` primeiro em desenvolvimento, com a CLI Supabase, e execute os testes RLS com duas contas e sessão anônima.
 3. Desative cadastro público no Supabase Auth. Crie o primeiro usuário autorizado por convite administrativo e insira seu `user_id` em `public.profiles` via interface administrativa segura.
 4. Configure o URL de redirecionamento `https://angeline1986.github.io/replay/` no Auth.
