@@ -16,9 +16,9 @@ O conector GitHub leu o repositório e mostrou permissão declarada de escrita, 
 
 Arquivos: `index.html`, `vite.config.ts`, `tsconfig.json`, `package.json`, `package-lock.json`, `src/app/*`, `src/features/*`, `src/shared/*`, `src/styles/*`, `scripts/*`, `.github/workflows/ci.yml`, `.gitignore`, `.env.example`.
 
-Testes executados: `npm ci --offline`, `npm run check`, `curl -I http://127.0.0.1:5173/replay/` com Vite local. Resultado: instalação reproduzível; 19 testes unitários e de interação DOM aprovados; lint básico, typecheck, limite de 200 linhas, checagem de segredos e build aprovados; rota `/replay/` retornou HTTP 200. `npm audit` após atualização para Vite 8.3.5 reportou zero vulnerabilidades. Busca no build não encontrou dados fictícios nem padrões de chave de serviço. A [execução remota do CI](https://github.com/angeline1986/replay/actions/runs/41260936797) passou com `npm ci`, auditoria e `npm run check`.
+Testes executados: `npm ci --offline`, `npm run check`, `curl -I http://127.0.0.1:5173/replay/` com Vite local. Resultado: instalação reproduzível; 19 testes unitários e de interação DOM aprovados; lint básico, typecheck, limite de 200 linhas, checagem de segredos e build aprovados; rota `/replay/` retornou HTTP 200. `npm audit` após atualização para Vite 8.3.5 reportou zero vulnerabilidades. Busca no build não encontrou dados fictícios nem padrões de chave de serviço. [CI da branch](https://github.com/angeline1986/replay/actions/runs/41261138629) passou com `npm ci`, auditoria e `npm run check`.
 
-Pendências: navegação visual e interações em navegador real não verificadas. O CI citado corresponde ao commit `da145bf`; alterações posteriores exigem nova execução. O lint é básico, focado em espaços finais, CRLF e marcadores de conflito.
+Pendências: navegação visual e interações em navegador real não verificadas. Cada novo commit precisa de sua própria execução CI verde. O lint é básico, focado em espaços finais, CRLF e marcadores de conflito.
 
 ## M2 — Supabase (código preparado; gate bloqueado)
 

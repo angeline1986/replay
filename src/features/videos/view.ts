@@ -91,7 +91,9 @@ function videoCard(
   link.href = validVideoUrl(video.youtube_video_id)
   link.target = '_blank'
   link.rel = 'noopener noreferrer'
-  body.append(meta, title, link)
+  body.append(meta)
+  if (!video.state) body.append(element('span', 'new-badge', 'Novo'))
+  body.append(title, link)
   const actions = element('div', 'card-actions')
   actions.append(
     button(video.state?.is_favorite ? '★ Favorito' : '☆ Favoritar', () => onToggle(video, 'is_favorite')),

@@ -47,6 +47,7 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
     onLoadMore: () => events.push('more')
   })
   assert.equal(view.querySelectorAll('.video-card').length, 1)
+  assert.equal(view.querySelector('.new-badge')?.textContent, 'Novo')
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /<script>alert\(1\)<\/script>/)
   assert.equal(view.querySelector<HTMLAnchorElement>('.video-link')?.hostname, 'www.youtube.com')
