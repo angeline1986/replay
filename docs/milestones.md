@@ -2,7 +2,7 @@
 
 ## M0 — inventário
 
-Estado: arquitetura definida; acesso GitHub verificado; Supabase pendente de conexão e plano. O contrato anexo autoriza esta arquitetura. Acesso ao serviço externo e ações destrutivas continuam sujeitos a verificação explícita.
+Estado: arquitetura definida; Git local com push autorizado; conector GitHub sem permissão de escrita pela API. A proprietária confirmou que ainda não existe projeto Supabase. Plano e conexão pendentes. O contrato anexo autoriza esta arquitetura. Ações destrutivas continuam sujeitas a aprovação explícita.
 
 ## M1 — base web e CI
 

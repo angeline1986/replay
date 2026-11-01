@@ -8,7 +8,7 @@ Verificações: `git status`, `git remote -v`, API do GitHub, `node --version`, 
 
 Resultado: repositório público vazio, `main` padrão, escrita GitHub disponível, Node 22.23.3 e npm 10.9.9. `gh` e CLI Supabase ausentes. Não há conexão Supabase confirmada nem teste de banco executado.
 
-Pendências: conectar Supabase, confirmar projeto/plano e autorizar provisionamento se necessário. Pages está desativado.
+Pendências: a proprietária confirmou que ainda não existe projeto Supabase. Falta conectar o serviço, confirmar plano e provisionar projeto de desenvolvimento. Pages está desativado.
 
 O conector GitHub leu o repositório e mostrou permissão declarada de escrita, mas a tentativa de criar arquivo retornou HTTP 403. O Git local conseguiu enviar o commit inicial `4d7c696` à `main` vazia. A implementação fica em `feature/replay-mvp`.
 
@@ -26,7 +26,7 @@ Arquivos: `supabase/config.toml`, `supabase/migrations/202610310001_schema.sql`,
 
 Testes executados: apenas typecheck e build do cliente; o teste SQL RLS foi escrito, não executado. Resultado: schema e políticas versionados localmente. Não há prova de migrations aplicadas, CRUD autenticado ou isolamento real.
 
-Pendências: conexão Supabase, plano e projeto de desenvolvimento, aplicação via CLI, duas contas de teste, teste anônimo e verificação de Auth/RLS. Não havia URL nem chave Supabase no ambiente.
+Pendências: criação e conexão de projeto Supabase, confirmação do plano, aplicação via CLI, duas contas de teste, teste anônimo e verificação de Auth/RLS. Não havia URL nem chave Supabase no ambiente.
 
 ## M3 — coleta (código preparado; gate bloqueado)
 
