@@ -1,0 +1,26 @@
+{
+  "name": "replay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/unit/*.test.ts",
+    "check:lines": "node scripts/check-file-length.mjs",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "lint": "node scripts/lint.mjs",
+    "check": "npm run check:lines && npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run build",
+    "collect": "node --experimental-strip-types collector/jobs/main.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.57.0",
+    "fast-xml-parser": "5.11.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "typescript": "6.0.3",
+    "vite": "8.3.5"
+  }
+}
