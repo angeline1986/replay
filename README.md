@@ -4,7 +4,7 @@ RePlay mostra somente vídeos dos canais do YouTube escolhidos pelo usuário. O 
 
 ## Estado
 
-O código está preparado localmente. Projeto Supabase, migrations aplicadas, Secrets, execução real da coleta e Pages publicado exigem conexão e validação. Veja [relatório](docs/report.md) e [marcos](docs/milestones.md).
+O código está na branch `feature/replay-mvp`. Projeto Supabase, migrations aplicadas, Secrets, execução real da coleta e Pages publicado exigem conexão e validação. Veja [relatório](docs/report.md) e [marcos](docs/milestones.md).
 
 ## Desenvolvimento
 

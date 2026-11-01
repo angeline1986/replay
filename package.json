@@ -19,7 +19,9 @@
     "fast-xml-parser": "5.11.1"
   },
   "devDependencies": {
+    "@types/jsdom": "21.1.7",
     "@types/node": "22.15.30",
+    "jsdom": "26.1.0",
     "typescript": "6.0.3",
     "vite": "8.3.5"
   }

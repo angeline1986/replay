@@ -21,7 +21,7 @@ O navegador autentica no Supabase com chave publicável. Todas as consultas e al
 ## Limites e riscos conhecidos
 
 - O repositório remoto foi verificado vazio em 31/10/2026, com `main` padrão e Pages desativado.
-- A sessão tem permissão de escrita no GitHub pelo conector. O Git local precisou de permissão ampliada para gravar em `.git`.
+- O Git local enviou commits ao GitHub. O conector leu o repositório, mas recusou escrita e criação de PR com HTTP 403.
 - A proprietária confirmou que não existe projeto Supabase. Plano, provisionamento, Auth, migrations e RLS ainda não foram verificados.
 - Agendamentos do GitHub Actions podem atrasar; RSS pode omitir vídeos antigos e não serve como inventário completo.
 - O protótipo HTML não foi fornecido; a interface será original, baseada na descrição recebida.

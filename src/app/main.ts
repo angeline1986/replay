@@ -8,6 +8,7 @@ import { channelView } from '../features/channels/view.ts'
 import { videoView } from '../features/videos/view.ts'
 import { supabase } from '../shared/api.ts'
 import { makeActions } from './actions.ts'
+import { channelRoute, routeFromHash } from './route.ts'
 
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
@@ -150,7 +151,7 @@ function render(): void {
       onRemove: (channel) => { void actions.deleteChannel(channel) },
       onOpen: (channel) => {
         state.filter.channelId = channel.id
-        location.hash = `#videos/${channel.id}`
+        location.hash = channelRoute(channel.id)
       }
     }))
   }
@@ -159,8 +160,9 @@ function render(): void {
 }
 
 window.addEventListener('hashchange', () => {
-  state.page = location.hash.startsWith('#channels') ? 'channels' : 'videos'
-  state.filter.channelId = location.hash.match(/^#videos\/([a-f0-9-]{36})$/)?.[1] ?? ''
+  const route = routeFromHash(location.hash)
+  state.page = route.page
+  state.filter.channelId = route.channelId
   render()
 })
 

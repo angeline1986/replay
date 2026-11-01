@@ -1,5 +1,6 @@
 import type { Channel, ChannelRequest, Video, VideoFilter } from '../shared/model.ts'
 import { demoChannels, demoVideos } from '../shared/demo.ts'
+import { routeFromHash } from './route.ts'
 
 export interface AppState {
   channels: Channel[]
@@ -19,8 +20,8 @@ export const state: AppState = {
   requests: [],
   videos: import.meta.env.VITE_DEMO === 'true' ? structuredClone(demoVideos) : [],
   hasMore: false,
-  filter: { query: '', status: 'all', channelId: location.hash.match(/^#videos\/([a-f0-9-]{36})$/)?.[1] ?? '' },
-  page: location.hash.startsWith('#channels') ? 'channels' : 'videos',
+  filter: { query: '', status: 'all', channelId: routeFromHash(location.hash).channelId },
+  page: routeFromHash(location.hash).page,
   busy: false,
   error: '',
   demo: import.meta.env.VITE_DEMO === 'true',

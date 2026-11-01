@@ -6,19 +6,19 @@ Arquivos: `docs/architecture.md`, `docs/milestones.md`, `docs/report.md`.
 
 Verificações: `git status`, `git remote -v`, API do GitHub, `node --version`, `npm --version`, busca da CLI Supabase e de `gh`.
 
-Resultado: repositório público vazio, `main` padrão, escrita GitHub disponível, Node 22.23.3 e npm 10.9.9. `gh` e CLI Supabase ausentes. Não há conexão Supabase confirmada nem teste de banco executado.
+Resultado: repositório público inicialmente vazio, `main` padrão, push Git local disponível, Node 22.23.3 e npm 10.9.9. `gh` e CLI Supabase ausentes. Não há conexão Supabase confirmada nem teste de banco executado.
 
 Pendências: a proprietária confirmou que ainda não existe projeto Supabase. Falta conectar o serviço, confirmar plano e provisionar projeto de desenvolvimento. Pages está desativado.
 
-O conector GitHub leu o repositório e mostrou permissão declarada de escrita, mas a tentativa de criar arquivo retornou HTTP 403. O Git local conseguiu enviar o commit inicial `4d7c696` à `main` vazia. A implementação fica em `feature/replay-mvp`.
+O conector GitHub leu o repositório e mostrou permissão declarada de escrita, mas criar arquivo e PR retornou HTTP 403. O Git local enviou o commit inicial `4d7c696` à `main` vazia. A implementação está em `feature/replay-mvp`; PR não criado.
 
 ## M1 — base web e CI (preparado; gate pendente)
 
 Arquivos: `index.html`, `vite.config.ts`, `tsconfig.json`, `package.json`, `package-lock.json`, `src/app/*`, `src/features/*`, `src/shared/*`, `src/styles/*`, `scripts/*`, `.github/workflows/ci.yml`, `.gitignore`, `.env.example`.
 
-Testes executados: `npm ci --offline`, `npm run check`, `curl -I http://127.0.0.1:5173/replay/` com Vite local. Resultado: instalação reproduzível; 14 testes unitários aprovados; lint básico, typecheck, limite de 200 linhas, checagem de segredos e build aprovados; rota `/replay/` retornou HTTP 200. `npm audit` após atualização para Vite 8.3.5 reportou zero vulnerabilidades. Busca no build não encontrou dados fictícios nem padrões de chave de serviço.
+Testes executados: `npm ci --offline`, `npm run check`, `curl -I http://127.0.0.1:5173/replay/` com Vite local. Resultado: instalação reproduzível; 19 testes unitários e de interação DOM aprovados; lint básico, typecheck, limite de 200 linhas, checagem de segredos e build aprovados; rota `/replay/` retornou HTTP 200. `npm audit` após atualização para Vite 8.3.5 reportou zero vulnerabilidades. Busca no build não encontrou dados fictícios nem padrões de chave de serviço. A [execução remota do CI](https://github.com/angeline1986/replay/actions/runs/41260936797) passou com `npm ci`, auditoria e `npm run check`.
 
-Pendências: navegação visual e interações em navegador não verificadas; CI remoto ainda não executado. O lint é básico, focado em espaços finais, CRLF e marcadores de conflito.
+Pendências: navegação visual e interações em navegador real não verificadas. O CI citado corresponde ao commit `da145bf`; alterações posteriores exigem nova execução. O lint é básico, focado em espaços finais, CRLF e marcadores de conflito.
 
 ## M2 — Supabase (código preparado; gate bloqueado)
 
@@ -40,6 +40,6 @@ Pendências: canal escolhido e cadastrado, chave opcional da YouTube Data API pa
 
 Arquivos: `src/features/videos/view.ts`, `src/features/channels/view.ts`, `src/features/auth/view.ts`, `src/app/*`, `.github/workflows/deploy-pages.yml`, `docs/operations.md`, `README.md`.
 
-Testes executados: build estático, HTTP 200 local e testes unitários de filtros/URLs. Resultado: interface e rotas hash preparadas, ações Supabase implementadas. Nenhuma sessão real, persistência entre sessões, Pages ou acessibilidade em navegador foi comprovada.
+Testes executados: build estático, HTTP 200 local, testes de filtros/URLs/rotas e interações DOM de canais, vídeos e login. Resultado: interface e rotas hash preparadas, ações Supabase implementadas. Nenhuma sessão real, persistência entre sessões, Pages ou acessibilidade em navegador foi comprovada.
 
 Pendências: CI verde remoto, Pages ativado/publicado, teste de teclado/contraste/responsividade em navegador, Auth real, coleta real e URL final verificada. Busca e filtros operam sobre as páginas já carregadas; carregar mais busca lotes adicionais de 50 vídeos.
