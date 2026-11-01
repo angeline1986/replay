@@ -8,7 +8,7 @@ Verificações: `git status`, `git remote -v`, API do GitHub, `node --version`, 
 
 Resultado: repositório público inicialmente vazio, `main` padrão, push Git local disponível, Node 22.23.3 e npm 10.9.9. `gh` e CLI Supabase ausentes. Não há conexão Supabase confirmada nem teste de banco executado.
 
-Pendências: a proprietária escolheu usar o projeto Supabase existente mostrado em outra conversa. Falta disponibilizar a integração nesta conversa, inspecionar plano, esquema, Auth e a possível função `protected-me`. Pages está desativado.
+Pendências: a proprietária escolheu usar o projeto Supabase existente `fxbivwcfwqdvotohzrwg`. Relatou estado saudável, `public` vazio e nenhuma Edge Function; a integração ainda não está acessível nesta conversa para confirmação independente. Faltam plano e Auth remotos. Pages está desativado.
 
 O conector GitHub leu o repositório e mostrou permissão declarada de escrita, mas criar arquivo e PR retornou HTTP 403. O Git local enviou o commit inicial `4d7c696` à `main` vazia. A implementação está em `feature/replay-mvp`; PR não criado.
 
@@ -22,11 +22,11 @@ Pendências: navegação visual e interações em navegador real não verificada
 
 ## M2 — Supabase (código preparado; gate bloqueado)
 
-Arquivos: `supabase/config.toml`, `supabase/migrations/202610310001_schema.sql`, `202610310002_rls.sql`, `202610310003_channel_requests.sql`, `src/shared/api.ts`, `tests/security/rls.sql`.
+Arquivos: `supabase/config.toml`, `supabase/migrations/202610310001_schema.sql`, `202610310002_rls.sql`, `202610310003_channel_requests.sql`, `src/shared/api.ts`, `src/app/main.ts`, `tests/security/rls.sql`, `tests/security/bootstrap-local.sql`, `docs/supabase-plan.md`, `README.md`.
 
-Testes executados: apenas typecheck e build do cliente; o teste SQL RLS foi escrito, não executado. Resultado: schema e políticas versionados localmente. Não há prova de migrations aplicadas, CRUD autenticado ou isolamento real.
+Testes executados nesta revisão: `npm run check` aprovou 19 testes locais, typecheck, lint básico, verificador de linhas, segredos e build. Em PostgreSQL 16.14 temporário, o stub `bootstrap-local.sql` e as três migrations executaram com `ON_ERROR_STOP=1`; a consulta mostrou seis tabelas com RLS e 14 políticas. `tests/security/rls.sql` passou com dois usuários simulados e `anon`. A primeira tentativa do teste usou IDs diferentes dos da fixture e falhou na FK; a repetição com os IDs corretos passou. Resultado: RLS, grants e isolamento local verificados; Auth, Data API e PostgreSQL 17.11 hospedados ainda sem prova.
 
-Pendências: acessar o projeto Supabase existente escolhido, confirmar o plano e objetos atuais, aplicar via CLI, testar duas contas e sessão anônima e verificar Auth/RLS. Não havia URL nem chave Supabase no ambiente; as ferramentas Supabase ainda não aparecem nesta conversa.
+Pendências: acessar nesta conversa o projeto Supabase escolhido, confirmar plano, objetos e Auth, validar migrations em desenvolvimento, aplicar via CLI, testar duas contas e sessão anônima e verificar Data API/RLS. Não havia URL nem chave Supabase no ambiente; as ferramentas Supabase ainda não aparecem nesta conversa.
 
 ## M3 — coleta (código preparado; gate bloqueado)
 
@@ -42,4 +42,4 @@ Arquivos: `src/features/videos/view.ts`, `src/features/channels/view.ts`, `src/f
 
 Testes executados: build estático, HTTP 200 local, testes de filtros/URLs/rotas e interações DOM de canais, vídeos e login. Resultado: interface e rotas hash preparadas, ações Supabase implementadas. Nenhuma sessão real, persistência entre sessões, Pages ou acessibilidade em navegador foi comprovada.
 
-Pendências: CI verde remoto, Pages ativado/publicado, teste de teclado/contraste/responsividade em navegador, Auth real, coleta real e URL final verificada. Busca e filtros operam sobre as páginas já carregadas; carregar mais busca lotes adicionais de 50 vídeos.
+Pendências: CI verde para o commit final, Pages ativado/publicado, teste de teclado/contraste/responsividade em navegador, Auth real, coleta real e URL final verificada. Busca e filtros operam sobre as páginas já carregadas; carregar mais busca lotes adicionais de 50 vídeos.

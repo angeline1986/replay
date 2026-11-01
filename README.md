@@ -4,7 +4,7 @@ RePlay mostra somente vídeos dos canais do YouTube escolhidos pelo usuário. O 
 
 ## Estado
 
-O código está na branch `feature/replay-mvp`. Projeto Supabase, migrations aplicadas, Secrets, execução real da coleta e Pages publicado exigem conexão e validação. Veja [relatório](docs/report.md) e [marcos](docs/milestones.md).
+O código está na branch `feature/replay-mvp`. A proprietária escolheu um projeto Supabase existente; migrations, Secrets, coleta real e Pages ainda exigem aplicação e validação. Veja [plano Supabase](docs/supabase-plan.md), [relatório](docs/report.md) e [marcos](docs/milestones.md).
 
 ## Desenvolvimento
 
@@ -14,7 +14,7 @@ O build usa a base `/replay/` para GitHub Pages. `npm run build` cria `dist/`. `
 
 ## Primeira instalação
 
-1. Escolha um projeto Supabase dedicado ao RePlay na conta da proprietária ou crie um novo; confirme plano e custos antes de ativar recursos pagos.
+1. Use o projeto Supabase existente `fxbivwcfwqdvotohzrwg`, escolhido pela proprietária. Confirme o estado e o plano antes de aplicar migrations ou ativar recursos pagos; não crie outro projeto.
 2. Aplique as migrations versionadas em `supabase/migrations/` primeiro em desenvolvimento, com a CLI Supabase, e execute os testes RLS com duas contas e sessão anônima.
 3. Desative cadastro público no Supabase Auth. Crie o primeiro usuário autorizado por convite administrativo e insira seu `user_id` em `public.profiles` via interface administrativa segura.
 4. Configure o URL de redirecionamento `https://angeline1986.github.io/replay/` no Auth.

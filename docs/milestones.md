@@ -10,7 +10,7 @@ Entregar layout responsivo, navegação, modo demonstração isolado, build Page
 
 ## M2 — Supabase
 
-Entregar migrations, RLS, Auth, cliente e CRUD. Gate: projeto de desenvolvimento conectado, migrations aplicadas e isolamento testado com dono, outro usuário e anônimo.
+Entregar migrations, RLS, Auth, cliente e CRUD. O plano de aplicação está em [supabase-plan.md](supabase-plan.md). Gate: projeto de desenvolvimento conectado, migrations aplicadas e isolamento testado com dono, outro usuário e anônimo.
 
 ## M3 — coleta
 

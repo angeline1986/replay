@@ -41,7 +41,9 @@ async function bootstrap(): Promise<void> {
     }
     if (!listening) {
       listening = true
-      supabase?.auth.onAuthStateChange(() => { void bootstrap() })
+      supabase?.auth.onAuthStateChange(() => {
+        setTimeout(() => { void bootstrap() }, 0)
+      })
     }
   }
   render()

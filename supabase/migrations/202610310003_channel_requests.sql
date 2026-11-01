@@ -20,3 +20,8 @@ create policy requests_owner_insert on public.channel_requests for insert to aut
 with check (owner_id = (select auth.uid()) and status = 'pending' and error_message is null);
 create policy requests_owner_delete on public.channel_requests for delete to authenticated
 using (owner_id = (select auth.uid()));
+
+revoke all on table public.channel_requests from public, anon, authenticated, service_role;
+grant select, delete on public.channel_requests to authenticated;
+grant insert (owner_id, handle) on public.channel_requests to authenticated;
+grant select, update on public.channel_requests to service_role;

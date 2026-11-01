@@ -4,6 +4,20 @@ alter table public.videos enable row level security;
 alter table public.user_video_state enable row level security;
 alter table public.sync_runs enable row level security;
 
+revoke all on table public.profiles, public.channels, public.videos,
+  public.user_video_state, public.sync_runs from public, anon, authenticated, service_role;
+grant usage on schema public to authenticated, service_role;
+grant select on public.profiles, public.videos, public.sync_runs to authenticated;
+grant select, delete on public.channels to authenticated;
+grant insert (owner_id, youtube_channel_id, name, is_active)
+  on public.channels to authenticated;
+grant update (is_active) on public.channels to authenticated;
+grant select, insert, update, delete on public.user_video_state to authenticated;
+
+grant select on public.profiles to service_role;
+grant select, insert, update on public.channels, public.videos to service_role;
+grant select, insert, delete on public.sync_runs to service_role;
+
 create policy profiles_owner_read on public.profiles for select to authenticated
 using (user_id = (select auth.uid()));
 

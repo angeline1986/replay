@@ -18,8 +18,12 @@ function unwrap<T>(result: { data: T | null; error: { message: string } | null }
 }
 
 export async function currentUser(): Promise<{ id: string; email: string } | null> {
+  const session = await client().auth.getSession()
+  if (session.error) throw new Error(session.error.message)
+  if (!session.data.session) return null
   const { data, error } = await client().auth.getUser()
-  if (error || !data.user) return null
+  if (error) throw new Error(error.message)
+  if (!data.user) return null
   const result = await client().from('profiles').select('user_id').eq('user_id', data.user.id).maybeSingle()
   if (result.error) throw new Error(result.error.message)
   const profile = result.data

@@ -1,5 +1,3 @@
-create extension if not exists pgcrypto;
-
 create table public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   role text not null default 'owner' check (role in ('owner', 'admin')),
@@ -64,6 +62,7 @@ create index videos_channel_published_idx on public.videos(channel_id, published
 create index videos_published_idx on public.videos(published_at desc);
 create index sync_runs_channel_started_idx on public.sync_runs(channel_id, started_at desc);
 create index user_video_state_user_favorite_idx on public.user_video_state(user_id, is_favorite);
+create index user_video_state_video_id_idx on public.user_video_state(video_id);
 
 create function public.set_updated_at() returns trigger language plpgsql
 set search_path = '' as $$
@@ -81,3 +80,9 @@ create trigger videos_updated_at before update on public.videos
 for each row execute function public.set_updated_at();
 create trigger user_video_state_updated_at before update on public.user_video_state
 for each row execute function public.set_updated_at();
+
+alter table public.profiles enable row level security;
+alter table public.channels enable row level security;
+alter table public.videos enable row level security;
+alter table public.user_video_state enable row level security;
+alter table public.sync_runs enable row level security;
