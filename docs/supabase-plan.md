@@ -2,11 +2,11 @@
 
 ## Projeto e estado inicial
 
-A proprietária identificou `ange line's Project` (`fxbivwcfwqdvotohzrwg`) como o projeto a usar. A inspeção feita em outra conversa informou PostgreSQL 17.11, estado `ACTIVE_HEALTHY`, schema `public` sem tabelas, nenhuma Edge Function e histórico `supabase_migrations.schema_migrations` ausente. A CLI vinculada confirmou o ID, o histórico sem migrations aplicadas e o `dry-run` com apenas os três arquivos esperados. A exportação do esquema não foi possível sem Docker/Podman; confirmar os objetos antes do push. Não criar outro projeto.
+A proprietária identificou `ange line's Project` (`fxbivwcfwqdvotohzrwg`) como o projeto a usar. As três migrations foram aplicadas em 01/11/2026 após aprovação, e a CLI confirmou seis tabelas e o histórico remoto. O Auth privado foi configurado e a primeira conta recebeu convite em 03/11/2026. O M2 segue pendente dos testes reais de sessão, Data API autenticada e isolamento entre contas. Não criar outro projeto. O estado do Auth está em [auth-rollout.md](auth-rollout.md).
 
 Tratar o projeto existente como ambiente de desenvolvimento durante a validação. Confirmar plano e recursos disponíveis, histórico de migrations, grants padrão da Data API, configuração Auth e backup antes de promover o uso para produção. Uma mudança externa feita entre a inspeção e a aplicação exige nova revisão do diff.
 
-## Sequência das migrations ainda não aplicadas
+## Sequência das migrations aplicadas
 
 | Arquivo | Responsabilidade | Segurança |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ RLS aplica `auth.uid()` e vínculos por canal, além dos grants. O frontend rece
 5. Exercitar a Data API com chave publicável e sessões reais: login, cadastro e pausa de canal, estados de vídeo, tentativa cruzada e ausência de sessão. Confirmar erros 403/42501 esperados e persistência após novo login.
 6. Registrar comandos, resultados, versão da CLI e evidência no relatório. Só depois configurar Variables/Secrets e prosseguir para coleta e Pages.
 
-As três migrations foram aplicadas apenas em PostgreSQL 16.14 temporário e descartável, com um stub local de `auth`. A consulta local confirmou seis tabelas com RLS e 14 políticas; `tests/security/rls.sql` passou com dois usuários simulados e `anon`. A CLI 2.122.0 está vinculada ao projeto informado: `migration list --linked` mostrou três versões somente locais, e `db push --linked --dry-run --skip-vault` não aplicou SQL. O PostgreSQL 17.11 e a Data API do projeto hospedado ainda não foram testados. A proprietária pediu aprovação antes da aplicação. O stub de `tests/security/bootstrap-local.sql` nunca deve ser executado no Supabase hospedado.
+No PostgreSQL 17.11 hospedado, a CLI registrou as três versões; `verify-schema.sql` confirmou RLS, grants, constraints e índices. O Security Advisor não encontrou problemas, e a Data API recusou consultas anônimas nas seis tabelas. Auth, consultas autenticadas e isolamento entre contas permanecem sem teste real. O stub de `tests/security/bootstrap-local.sql` nunca deve ser executado no Supabase hospedado.
 
 ## Fontes verificadas
 

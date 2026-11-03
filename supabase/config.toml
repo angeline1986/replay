@@ -9,9 +9,10 @@ major_version = 17
 [auth]
 enabled = true
 site_url = "https://angeline1986.github.io/replay/"
-additional_redirect_urls = ["http://localhost:5173/replay/"]
+additional_redirect_urls = ["https://angeline1986.github.io/replay/", "http://localhost:5173/replay/"]
 enable_signup = false
+enable_anonymous_sign_ins = false
 
 [auth.email]
-enable_signup = false
+enable_signup = true
 enable_confirmations = true

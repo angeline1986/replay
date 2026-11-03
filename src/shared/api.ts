@@ -4,7 +4,9 @@ import type { Channel, ChannelRequest, Video, VideoState } from './model.ts'
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 export const configured = Boolean(url && key)
-export const supabase: SupabaseClient | null = configured ? createClient(url, key) : null
+export const supabase: SupabaseClient | null = configured ? createClient(url, key, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+}) : null
 
 function client(): SupabaseClient {
   if (!supabase) throw new Error('Supabase ainda não configurado.')
@@ -27,7 +29,16 @@ export async function currentUser(): Promise<{ id: string; email: string } | nul
   const result = await client().from('profiles').select('user_id').eq('user_id', data.user.id).maybeSingle()
   if (result.error) throw new Error(result.error.message)
   const profile = result.data
-  return profile ? { id: data.user.id, email: data.user.email ?? '' } : null
+  if (!profile) {
+    await signOut()
+    throw new Error('Seu e-mail ainda não está autorizado no RePlay.')
+  }
+  return { id: data.user.id, email: data.user.email ?? '' }
+}
+
+export async function signOut(): Promise<void> {
+  const { error } = await client().auth.signOut({ scope: 'local' })
+  if (error) throw new Error(error.message)
 }
 
 export async function sendMagicLink(email: string): Promise<void> {

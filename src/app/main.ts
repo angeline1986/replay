@@ -2,7 +2,7 @@ import '../styles/base.css'
 import '../styles/content.css'
 import { state } from './state.ts'
 import { button, clear, element, notice } from '../shared/dom.ts'
-import { configured, currentUser, loadDashboard, loadVideoPage, sendMagicLink } from '../shared/api.ts'
+import { configured, currentUser, loadDashboard, loadVideoPage, sendMagicLink, signOut } from '../shared/api.ts'
 import { authView } from '../features/auth/view.ts'
 import { channelView } from '../features/channels/view.ts'
 import { videoView } from '../features/videos/view.ts'
@@ -26,6 +26,8 @@ async function bootstrap(): Promise<void> {
         userId = user.id
         state.userEmail = user.email
         await refresh()
+        state.error = ''
+        authMessage = ''
       } else {
         userId = ''
         state.userEmail = ''
@@ -104,7 +106,9 @@ function render(): void {
   if (state.userEmail) {
     const actions = element('div', 'top-actions')
     actions.append(element('span', 'user-email', state.userEmail))
-    actions.append(button('Sair', () => { void supabase?.auth.signOut().then(() => location.reload()) }, 'ghost'))
+    actions.append(button('Sair', () => {
+      void act(async () => { await signOut(); location.reload() }, false)
+    }, 'ghost'))
     header.append(actions)
   }
   shell.append(header)
