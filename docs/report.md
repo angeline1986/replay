@@ -58,7 +58,9 @@ Verificação local após a correção: `npm run check` passou integralmente, co
 
 Falha observada: após atualizar o painel em uma janela normal do Brave, a proprietária voltou ao formulário de login, sem erro visível. A persistência da sessão **não passou**. `@supabase/supabase-js` foi atualizado de 2.57.0 para 2.118.0; `npm install` reportou zero vulnerabilidades e `npm run check` passou novamente (19 testes, typecheck, lint, segredos, limite de linhas e build). Ainda não houve novo teste de sessão no Brave após a atualização. O limite de e-mails do SMTP padrão impede repetir imediatamente o login por link.
 
-Pendências: diagnosticar e validar a persistência após novo login, logout e ausência de sessão após outra atualização, Data API autenticada com resultado verificável e isolamento entre contas reais. Não foi criada segunda conta. M2 segue **PENDENTE**; M3 não foi iniciado.
+Pendências: diagnosticar e validar a persistência após novo login no Brave, logout e ausência de sessão após outra atualização, além do isolamento entre contas reais. Não foi criada segunda conta. M2 segue **PENDENTE**; M3 não foi iniciado.
+
+Teste administrativo adicional, sem envio de e-mail nem criação de usuário: `generateLink` de Magic Link para a conta existente e `verifyOtp` produziram sessão com o mesmo ID do convite. Uma segunda instância do cliente restaurou a sessão de armazenamento de teste. A Data API autenticada consultou as seis tabelas sem erro: `profiles` retornou 1 e as demais 0. `signOut({ scope: 'local' })` limpou a sessão desse armazenamento. Resultado: Auth, Data API e logout passaram no processo de teste; persistência e logout no Brave continuam sem validação após a atualização do cliente. O isolamento entre duas contas reais segue pendente.
 
 Segurança operacional: a listagem `projects api-keys` da CLI exibiu o valor completo da chave legacy `service_role` na saída da ferramenta, mesmo sem `--reveal`. A chave não foi adicionada ao repositório nem repetida neste relatório. Antes de produção, sua rotação/desativação deve ser planejada e autorizada; nenhuma rotação foi feita nesta etapa.
 
