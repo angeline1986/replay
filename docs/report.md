@@ -70,6 +70,16 @@ Arquivos alterados: `src/app/auth-gate.ts` (novo controlador de estado e seriali
 
 Verificações: `npm run check` passou na versão final com 24 testes, incluindo sessão válida, sessão ausente, login durante recuperação, logout com resultado atrasado e falha de rede com retry. Typecheck, lint, verificador de segredos, limite de 200 linhas e build também passaram. Duas capturas fornecidas pela proprietária mostram “Restaurando sessão…” seguido do dashboard autenticado, sem formulário de login intermediário. O refresh visual no Brave passou; logout no Brave e isolamento entre contas reais seguem pendentes para o M2.
 
+### Preparação da migração para GitHub OAuth — 03/11/2026
+
+Leitura remota, sem mutação: o projeto `fxbivwcfwqdvotohzrwg` está ativo. A consulta a `auth.users`, `auth.identities` e `public.profiles` confirmou `angeline.fm@gmail.com`, e-mail verificado, `user_id = b53f859e-178e-4abb-b4f4-9e17f0bd08f8`, perfil `owner` e somente identidade `email`. O conector GitHub retornou login `angeline1986` e ID `44986789`. Ainda não existe identidade GitHub para comprovar vínculo.
+
+Arquivos locais: `src/shared/api.ts` inicia `signInWithOAuth` para GitHub com `redirectTo` exato `https://angeline1986.github.io/replay/` em produção; `src/features/auth/view.ts` mostra GitHub como botão principal e mantém Magic Link como recuperação; `src/app/main.ts`, CSS e teste de UI foram ajustados. `npm run check` passou: 24 testes, lint, typecheck, verificador de segredos, limite de 200 linhas e build. A sessão real de OAuth não foi testada.
+
+Gate: a proprietária autorizou a criação do OAuth App e a habilitação do provedor GitHub, preservando `user_id`, `owner`, cadastro fechado, Magic Link e RLS. Os conectores disponíveis não criam OAuth Apps nem editam Auth; foram enviados passos para registrar o app com callback `https://fxbivwcfwqdvotohzrwg.supabase.co/auth/v1/callback` e inserir ID/segredo diretamente no painel Supabase, sem expor o segredo ao frontend, logs ou conversa. A intervenção da proprietária está pendente. No primeiro login, consultar novamente identidades e perfil e comparar o `user_id` e o GitHub ID acima. Se divergirem, parar; nenhum perfil ou dado será criado/transferido. Login, refresh, logout e recuperação no Brave, além da comparação de permissões, continuam pendentes. Nenhuma migration ou política RLS foi alterada; M3 não foi iniciado.
+
+Após confirmação da proprietária, leitura de `/auth/v1/settings` com a chave publicável local retornou `external.github: true`, `external.email: true`, `disable_signup: true` e `external.anonymous_users: false`. O Client Secret não foi lido. Nova consulta remota somente leitura confirmou `user_id = b53f859e-178e-4abb-b4f4-9e17f0bd08f8`, `owner` e nenhuma identidade GitHub antes do primeiro login. `npm run check` repetiu 24 testes aprovados, typecheck, lint, verificador de segredos, limite de 200 linhas e build. O app ainda não foi publicado nem testado com OAuth neste ponto.
+
 ## M3 — coleta (código preparado; gate bloqueado)
 
 Arquivos: `collector/feeds/*`, `collector/youtube/resolve.ts`, `collector/persistence/store.ts`, `collector/jobs/*`, `.github/workflows/monitor.yml`, `tests/unit/feed.test.ts`, `fetch.test.ts`, `resolve.test.ts`.

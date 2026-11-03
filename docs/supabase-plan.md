@@ -34,7 +34,7 @@ RLS aplica `auth.uid()` e vínculos por canal, além dos grants. O frontend rece
 1. Confirmar no projeto remoto: autenticação por e-mail habilitada, novos cadastros e login anônimo desabilitados, confirmação de e-mail ativa.
 2. Configurar Site URL e redirect permitido `https://angeline1986.github.io/replay/`; para desenvolvimento, permitir `http://localhost:5173/replay/`.
 3. Convidar administrativamente o primeiro usuário autorizado e registrar o `user_id` em `public.profiles` por canal administrativo. Não solicitar senha ou token na conversa.
-4. O cliente usa `signInWithOtp` com `shouldCreateUser: false`, verifica usuário com `getUser()`, exige perfil e mantém sessão pelo cliente Supabase. Consultas após eventos Auth são agendadas fora do callback.
+4. O cliente oferece GitHub OAuth como login principal e mantém `signInWithOtp` com `shouldCreateUser: false` para recuperação até a vinculação ser validada. Verifica usuário com `getUser()`, exige perfil e mantém sessão pelo cliente Supabase. Consultas após eventos Auth são agendadas fora do callback. Confirmar que a identidade GitHub pertence ao `user_id` original antes de considerar a migração concluída.
 5. Conferir o template de Magic Link. O serviço de e-mail padrão do Supabase é limitado e serve apenas para testes com membros da equipe; definir SMTP próprio antes de uso fora desse escopo.
 
 `supabase/config.toml` configura o ambiente local da CLI; não altera automaticamente as configurações Auth do projeto hospedado. As opções remotas precisam ser lidas e ajustadas separadamente.

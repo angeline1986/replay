@@ -49,6 +49,14 @@ export async function sendMagicLink(email: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+export async function signInWithGitHub(): Promise<void> {
+  const redirectTo = `${location.origin}/replay/`
+  const { error } = await client().auth.signInWithOAuth({
+    provider: 'github', options: { redirectTo }
+  })
+  if (error) throw new Error(error.message)
+}
+
 export async function loadDashboard(userId: string): Promise<{
   channels: Channel[]; requests: ChannelRequest[]; videos: Video[]; hasMore: boolean
 }> {

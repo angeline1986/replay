@@ -1,5 +1,15 @@
 # M2 — Auth privado
 
+## Migração planejada para GitHub OAuth — 03/11/2026
+
+A conta existente tem `user_id = b53f859e-178e-4abb-b4f4-9e17f0bd08f8`, e `public.profiles.role = owner`. A consulta somente leitura a `auth.users`, `auth.identities` e `public.profiles` encontrou apenas a identidade `email` para essa conta; ainda não há vínculo GitHub. O conector GitHub identificou `angeline1986` com ID `44986789`. O e-mail da conta GitHub não foi usado como prova de vínculo.
+
+O frontend local oferece GitHub como ação principal com retorno exato a `/replay/`. O Magic Link fica disponível como recuperação até concluir o login real e a conferência de identidade. A proprietária autorizou a sequência de criação e configuração; a criação do OAuth App e a inserção direta do segredo nos painéis GitHub/Supabase aguardam sua intervenção. O teste no Brave está pendente; nenhuma configuração remota foi alterada nesta etapa.
+
+Para a primeira autenticação, conferir imediatamente que `auth.identities.provider = github` e `provider_id = 44986789` pertencem ao `user_id` acima, que há somente o perfil `owner` esperado e que a sessão autenticada usa o mesmo ID. Se qualquer valor divergir ou a vinculação automática falhar, interromper os testes e manter o Magic Link para entrar na conta original. O procedimento seguro é autenticar nessa conta, habilitar vinculação manual apenas após revisão da configuração e usar `linkIdentity({ provider: 'github' })`; conferir novamente as duas identidades e o ID antes de usar GitHub como acesso normal. Não criar perfil alternativo ou mover dados.
+
+Após a proprietária confirmar a configuração nos painéis, uma leitura de `/auth/v1/settings` com chave publicável retornou `external.github: true`, `external.email: true` e `disable_signup: true`. Nova consulta somente leitura ao banco confirmou o mesmo `user_id`, `owner` e zero identidades GitHub antes do primeiro login. O Client Secret não foi lido nem registrado. O vínculo e a sessão no Brave seguem pendentes.
+
 Projeto: `fxbivwcfwqdvotohzrwg`. Estado em 03/11/2026: configuração remota aplicada; convite enviado; login no navegador confirmado; recuperação da sessão exibia o login temporariamente no Brave.
 
 ## Configuração remota

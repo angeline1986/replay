@@ -57,9 +57,14 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   assert.deepEqual(events, ['is_favorite', 'is_watched'])
 }))
 
-test('tela de login envia e-mail autorizado à ação', () => withDocument((window) => {
+test('tela de login prioriza GitHub e mantém recuperação por e-mail', () => withDocument((window) => {
   let sent = ''
-  const view = authView((email) => { sent = email })
+  let github = 0
+  const view = authView(() => { github++ }, (email) => { sent = email })
+  const githubButton = view.querySelector<HTMLButtonElement>('.auth-github')!
+  assert.equal(githubButton.textContent, 'Entrar com GitHub')
+  githubButton.click()
+  assert.equal(github, 1)
   view.querySelector('input')!.value = 'pessoa@example.com'
   view.querySelector('form')!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
   assert.equal(sent, 'pessoa@example.com')

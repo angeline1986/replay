@@ -2,7 +2,7 @@ import '../styles/base.css'
 import '../styles/content.css'
 import { state } from './state.ts'
 import { button, clear, element, notice } from '../shared/dom.ts'
-import { configured, currentUser, loadDashboard, loadVideoPage, sendMagicLink, signOut } from '../shared/api.ts'
+import { configured, currentUser, loadDashboard, loadVideoPage, sendMagicLink, signInWithGitHub, signOut } from '../shared/api.ts'
 import { authView } from '../features/auth/view.ts'
 import { channelView } from '../features/channels/view.ts'
 import { videoView } from '../features/videos/view.ts'
@@ -107,7 +107,7 @@ function render(): void {
   } else if (!state.demo && auth.phase === 'error') {
     shell.append(button('Tentar novamente', () => { state.error = ''; void auth.retry() }, 'ghost'))
   } else if (!state.demo && auth.phase === 'signed_out') {
-    shell.append(authView((email) => {
+    shell.append(authView(() => { void act(signInWithGitHub, false) }, (email) => {
       void act(async () => {
         await sendMagicLink(email)
         authMessage = 'Se o e-mail estiver autorizado, o link chegará em instantes.'

@@ -65,6 +65,7 @@
 .auth-form { display: grid; gap: 14px; }
 .auth-form label { font-weight: 650; }
 .auth-form button { padding: 12px; border-radius: 10px; }
+.auth-github { width: 100%; padding: 12px; border-radius: 10px; }
 @media (max-width: 900px) { .video-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .channel-card { flex-wrap: wrap; } }
 @media (max-width: 600px) {
   .topbar { padding: 16px 20px; }
