@@ -56,13 +56,19 @@ Teste remoto executado: `auth.signUp` público para endereço inválido retornou
 
 Verificação local após a correção: `npm run check` passou integralmente, com limite de 200 linhas, verificador de segredos, lint básico, typecheck, 19 testes e build. O painel aberto sugere que as consultas autenticadas de `profiles`, `channels`, `channel_requests` e `videos` passaram, pois o bootstrap chama todas antes de renderizar o feed; faltam evidências independentes de status/resposta da Data API.
 
-Falha observada: após atualizar o painel em uma janela normal do Brave, a proprietária voltou ao formulário de login, sem erro visível. A persistência da sessão **não passou**. `@supabase/supabase-js` foi atualizado de 2.57.0 para 2.118.0; `npm install` reportou zero vulnerabilidades e `npm run check` passou novamente (19 testes, typecheck, lint, segredos, limite de linhas e build). Ainda não houve novo teste de sessão no Brave após a atualização. O limite de e-mails do SMTP padrão impede repetir imediatamente o login por link.
+Observação inicial: após atualizar o painel em uma janela normal do Brave, o formulário apareceu sem erro. O diagnóstico posterior da proprietária confirmou a chave de sessão, access token e refresh token no `localStorage`, access token não expirado e retorno automático do dashboard sem novo login. Assim, o problema era a exibição transitória do login, sem prova de perda persistente da sessão. `@supabase/supabase-js` havia sido atualizado de 2.57.0 para 2.118.0; isso não foi estabelecido como causa nem solução. `npm install` reportou zero vulnerabilidades e o `npm run check` da época passou com 19 testes.
 
-Pendências: diagnosticar e validar a persistência após novo login no Brave, logout e ausência de sessão após outra atualização, além do isolamento entre contas reais. Não foi criada segunda conta. M2 segue **PENDENTE**; M3 não foi iniciado.
+Pendências: validar a nova renderização durante refresh no Brave, testar logout nesse navegador e isolamento entre contas reais. Não foi criada segunda conta. M2 segue **PENDENTE**; M3 não foi iniciado.
 
 Teste administrativo adicional, sem envio de e-mail nem criação de usuário: `generateLink` de Magic Link para a conta existente e `verifyOtp` produziram sessão com o mesmo ID do convite. Uma segunda instância do cliente restaurou a sessão de armazenamento de teste. A Data API autenticada consultou as seis tabelas sem erro: `profiles` retornou 1 e as demais 0. `signOut({ scope: 'local' })` limpou a sessão desse armazenamento. Resultado: Auth, Data API e logout passaram no processo de teste; persistência e logout no Brave continuam sem validação após a atualização do cliente. O isolamento entre duas contas reais segue pendente.
 
 Segurança operacional: a listagem `projects api-keys` da CLI exibiu o valor completo da chave legacy `service_role` na saída da ferramenta, mesmo sem `--reveal`. A chave não foi adicionada ao repositório nem repetida neste relatório. Antes de produção, sua rotação/desativação deve ser planejada e autorizada; nenhuma rotação foi feita nesta etapa.
+
+### Correção pontual da inicialização Auth — 03/11/2026
+
+Arquivos alterados: `src/app/auth-gate.ts` (novo controlador de estado e serialização), `src/app/main.ts` (renderização por fase), `tests/unit/auth-gate.test.ts` (refresh e concorrência), `docs/auth-rollout.md` e `docs/report.md`. Nenhuma configuração remota, migration ou política RLS foi alterada; M3 não foi iniciado.
+
+Verificações: `npm run check` passou na versão final com 24 testes, incluindo sessão válida, sessão ausente, login durante recuperação, logout com resultado atrasado e falha de rede com retry. Typecheck, lint, verificador de segredos, limite de 200 linhas e build também passaram. O resultado visual no Brave ainda depende de confirmação da proprietária.
 
 ## M3 — coleta (código preparado; gate bloqueado)
 

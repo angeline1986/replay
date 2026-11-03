@@ -1,6 +1,6 @@
 # M2 — Auth privado
 
-Projeto: `fxbivwcfwqdvotohzrwg`. Estado em 03/11/2026: configuração remota aplicada; convite enviado; login no navegador confirmado; persistência da sessão falhou no Brave.
+Projeto: `fxbivwcfwqdvotohzrwg`. Estado em 03/11/2026: configuração remota aplicada; convite enviado; login no navegador confirmado; recuperação da sessão exibia o login temporariamente no Brave.
 
 ## Configuração remota
 
@@ -20,10 +20,12 @@ Uma tentativa real de `signUp` público retornou HTTP 422, código `signup_disab
 
 Após o primeiro login, o painel mostrava um erro anterior `email rate limit exceeded`; o estado do erro era preservado indevidamente. O bootstrap foi corrigido para limpar esse aviso quando a sessão e os dados carregam com sucesso. A correção ainda precisa de confirmação visual após atualização da página.
 
-A proprietária atualizou a página no Brave, em janela normal: o formulário de login apareceu novamente, sem erro. O cliente `@supabase/supabase-js` foi atualizado de 2.57.0 para 2.118.0, versão disponível na data, mas a correção ainda não foi validada no Brave. Não solicitar novo link enquanto o limite de e-mails estiver ativo.
+A proprietária confirmou no Brave que a chave da sessão, o access token e o refresh token permaneciam no `localStorage`, com access token ainda válido. Após o refresh, o formulário aparecia temporariamente e o dashboard voltava sem novo login. Portanto, a falha observada era de inicialização/renderização, sem evidência de perda persistente da sessão. A atualização anterior de `@supabase/supabase-js` para 2.118.0 não foi estabelecida como causa ou solução.
 
 Um teste administrativo gerou um Magic Link para a conta existente **sem enviar e-mail**. A verificação do token criou uma sessão com o mesmo ID do convite; outra instância do cliente restaurou a sessão de um armazenamento de teste. A Data API autenticada respondeu sem erro nas seis tabelas: `profiles` retornou uma linha, e as outras cinco retornaram zero. O logout local removeu a sessão desse armazenamento. Isso comprova o fluxo do serviço e do cliente em processo de teste, mas não comprova persistência ou logout no Brave.
 
-Faltam persistência da sessão e logout no Brave. O isolamento entre duas contas reais requer uma segunda conta autorizada; nenhuma foi criada. As políticas RLS e o bloqueio anônimo foram verificados anteriormente no banco hospedado, e o teste de isolamento com dois usuários simulados passou no banco local. M2 permanece **PENDENTE**.
+O frontend agora usa um estado explícito `initializing`, `signed_in`, `signed_out` ou `error`. Exibe “Restaurando sessão…” até concluir a recuperação, só mostra login após resultado nulo e preserva o dashboard em `TOKEN_REFRESHED`. Eventos `SIGNED_IN` durante a recuperação são serializados; `INITIAL_SESSION` e login repetido do mesmo usuário não reiniciam a carga. Um resultado atrasado não reabre o dashboard após `SIGNED_OUT`.
+
+Falta confirmar visualmente o refresh no Brave após esta correção, além do logout nesse navegador. O isolamento entre duas contas reais requer uma segunda conta autorizada; nenhuma foi criada. As políticas RLS e o bloqueio anônimo foram verificados anteriormente no banco hospedado, e o teste de isolamento com dois usuários simulados passou no banco local. M2 permanece **PENDENTE**.
 
 Fontes: [configuração Auth](https://supabase.com/docs/guides/auth/general-configuration), [Magic Link](https://supabase.com/docs/guides/auth/auth-email-passwordless), [redirects](https://supabase.com/docs/guides/auth/redirect-urls), [convites](https://supabase.com/docs/guides/auth/users), [SMTP](https://supabase.com/docs/guides/auth/auth-smtp).

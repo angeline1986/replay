@@ -9,47 +9,32 @@ import { videoView } from '../features/videos/view.ts'
 import { supabase } from '../shared/api.ts'
 import { makeActions } from './actions.ts'
 import { channelRoute, routeFromHash } from './route.ts'
+import { createAuthGate } from './auth-gate.ts'
 
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
 let authMessage = ''
-let listening = false
 const actions = makeActions({ render, act, userId: () => userId })
 
-async function bootstrap(): Promise<void> {
-  if (!state.demo && configured) {
-    state.busy = true
-    render()
-    try {
-      const user = await currentUser()
-      if (user) {
-        userId = user.id
-        state.userEmail = user.email
-        await refresh()
-        state.error = ''
-        authMessage = ''
-      } else {
-        userId = ''
-        state.userEmail = ''
-        state.channels = []
-        state.videos = []
-        state.hasMore = false
-        state.requests = []
-      }
-    } catch (error) {
-      state.error = message(error)
-    } finally {
-      state.busy = false
-    }
-    if (!listening) {
-      listening = true
-      supabase?.auth.onAuthStateChange(() => {
-        setTimeout(() => { void bootstrap() }, 0)
-      })
-    }
-  }
-  render()
-}
+const auth = createAuthGate({
+  load: async () => {
+    const user = await currentUser()
+    if (!user) return null
+    return { ...user, dashboard: await loadDashboard(user.id) }
+  },
+  commit: (value) => {
+    userId = value?.id ?? ''
+    state.userEmail = value?.email ?? ''
+    state.channels = value?.dashboard.channels ?? []
+    state.requests = value?.dashboard.requests ?? []
+    state.videos = value?.dashboard.videos ?? []
+    state.hasMore = value?.dashboard.hasMore ?? false
+    state.error = ''
+    authMessage = ''
+  },
+  onError: (error) => { state.error = message(error) },
+  onChange: render
+})
 
 async function refresh(): Promise<void> {
   if (state.demo || !userId) return
@@ -117,7 +102,11 @@ function render(): void {
   if (state.busy) shell.append(notice('Carregando…'))
   if (!state.demo && !configured) {
     shell.append(notice('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY.'))
-  } else if (!state.demo && !userId) {
+  } else if (!state.demo && auth.phase === 'initializing') {
+    shell.append(notice('Restaurando sessão…'))
+  } else if (!state.demo && auth.phase === 'error') {
+    shell.append(button('Tentar novamente', () => { state.error = ''; void auth.retry() }, 'ghost'))
+  } else if (!state.demo && auth.phase === 'signed_out') {
     shell.append(authView((email) => {
       void act(async () => {
         await sendMagicLink(email)
@@ -172,4 +161,6 @@ window.addEventListener('hashchange', () => {
   render()
 })
 
-void bootstrap()
+supabase?.auth.onAuthStateChange((event, session) => auth.handle(event, session?.user.id))
+if (!state.demo && configured) void auth.start()
+else render()
