@@ -56,7 +56,11 @@ Teste remoto executado: `auth.signUp` público para endereço inválido retornou
 
 Verificação local após a correção: `npm run check` passou integralmente, com limite de 200 linhas, verificador de segredos, lint básico, typecheck, 19 testes e build. O painel aberto sugere que as consultas autenticadas de `profiles`, `channels`, `channel_requests` e `videos` passaram, pois o bootstrap chama todas antes de renderizar o feed; faltam evidências independentes de status/resposta da Data API.
 
-Pendências: persistência após atualizar a página, logout e ausência de sessão após outra atualização, Data API autenticada com resultado verificável e isolamento entre contas reais. Não foi criada segunda conta. M2 segue **PENDENTE**; M3 não foi iniciado.
+Falha observada: após atualizar o painel em uma janela normal do Brave, a proprietária voltou ao formulário de login, sem erro visível. A persistência da sessão **não passou**. `@supabase/supabase-js` foi atualizado de 2.57.0 para 2.118.0; `npm install` reportou zero vulnerabilidades e `npm run check` passou novamente (19 testes, typecheck, lint, segredos, limite de linhas e build). Ainda não houve novo teste de sessão no Brave após a atualização. O limite de e-mails do SMTP padrão impede repetir imediatamente o login por link.
+
+Pendências: diagnosticar e validar a persistência após novo login, logout e ausência de sessão após outra atualização, Data API autenticada com resultado verificável e isolamento entre contas reais. Não foi criada segunda conta. M2 segue **PENDENTE**; M3 não foi iniciado.
+
+Segurança operacional: a listagem `projects api-keys` da CLI exibiu o valor completo da chave legacy `service_role` na saída da ferramenta, mesmo sem `--reveal`. A chave não foi adicionada ao repositório nem repetida neste relatório. Antes de produção, sua rotação/desativação deve ser planejada e autorizada; nenhuma rotação foi feita nesta etapa.
 
 ## M3 — coleta (código preparado; gate bloqueado)
 

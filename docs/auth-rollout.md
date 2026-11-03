@@ -1,6 +1,6 @@
 # M2 — Auth privado
 
-Projeto: `fxbivwcfwqdvotohzrwg`. Estado em 03/11/2026: configuração remota aplicada; convite enviado; login no navegador confirmado; testes de sessão pendentes.
+Projeto: `fxbivwcfwqdvotohzrwg`. Estado em 03/11/2026: configuração remota aplicada; convite enviado; login no navegador confirmado; persistência da sessão falhou no Brave.
 
 ## Configuração remota
 
@@ -20,6 +20,6 @@ Uma tentativa real de `signUp` público retornou HTTP 422, código `signup_disab
 
 Após o primeiro login, o painel mostrava um erro anterior `email rate limit exceeded`; o estado do erro era preservado indevidamente. O bootstrap foi corrigido para limpar esse aviso quando a sessão e os dados carregam com sucesso. A correção ainda precisa de confirmação visual após atualização da página.
 
-Ainda faltam atualização da página com sessão persistida, logout, nova atualização sem sessão e teste da Data API autenticada com resultado verificável. O isolamento entre duas contas reais requer uma segunda conta autorizada; nenhuma foi criada. As políticas RLS e o bloqueio anônimo foram verificados anteriormente no banco hospedado, e o teste de isolamento com dois usuários simulados passou no banco local. M2 permanece **PENDENTE**.
+A proprietária atualizou a página no Brave, em janela normal: o formulário de login apareceu novamente, sem erro. O cliente `@supabase/supabase-js` foi atualizado de 2.57.0 para 2.118.0, versão disponível na data, mas a correção ainda não foi validada no Brave. Não solicitar novo link enquanto o limite de e-mails estiver ativo. Faltam persistência da sessão, logout, nova atualização sem sessão e teste da Data API autenticada com resultado verificável. O isolamento entre duas contas reais requer uma segunda conta autorizada; nenhuma foi criada. As políticas RLS e o bloqueio anônimo foram verificados anteriormente no banco hospedado, e o teste de isolamento com dois usuários simulados passou no banco local. M2 permanece **PENDENTE**.
 
 Fontes: [configuração Auth](https://supabase.com/docs/guides/auth/general-configuration), [Magic Link](https://supabase.com/docs/guides/auth/auth-email-passwordless), [redirects](https://supabase.com/docs/guides/auth/redirect-urls), [convites](https://supabase.com/docs/guides/auth/users), [SMTP](https://supabase.com/docs/guides/auth/auth-smtp).
