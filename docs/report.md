@@ -68,7 +68,7 @@ Segurança operacional: a listagem `projects api-keys` da CLI exibiu o valor com
 
 Arquivos alterados: `src/app/auth-gate.ts` (novo controlador de estado e serialização), `src/app/main.ts` (renderização por fase), `tests/unit/auth-gate.test.ts` (refresh e concorrência), `docs/auth-rollout.md` e `docs/report.md`. Nenhuma configuração remota, migration ou política RLS foi alterada; M3 não foi iniciado.
 
-Verificações: `npm run check` passou na versão final com 24 testes, incluindo sessão válida, sessão ausente, login durante recuperação, logout com resultado atrasado e falha de rede com retry. Typecheck, lint, verificador de segredos, limite de 200 linhas e build também passaram. O resultado visual no Brave ainda depende de confirmação da proprietária.
+Verificações: `npm run check` passou na versão final com 24 testes, incluindo sessão válida, sessão ausente, login durante recuperação, logout com resultado atrasado e falha de rede com retry. Typecheck, lint, verificador de segredos, limite de 200 linhas e build também passaram. Duas capturas fornecidas pela proprietária mostram “Restaurando sessão…” seguido do dashboard autenticado, sem formulário de login intermediário. O refresh visual no Brave passou; logout no Brave e isolamento entre contas reais seguem pendentes para o M2.
 
 ## M3 — coleta (código preparado; gate bloqueado)
 
