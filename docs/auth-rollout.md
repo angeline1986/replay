@@ -10,6 +10,14 @@ Para a primeira autenticação, conferir imediatamente que `auth.identities.prov
 
 Após a proprietária confirmar a configuração nos painéis, uma leitura de `/auth/v1/settings` com chave publicável retornou `external.github: true`, `external.email: true` e `disable_signup: true`. Nova consulta somente leitura ao banco confirmou o mesmo `user_id`, `owner` e zero identidades GitHub antes do primeiro login. O Client Secret não foi lido nem registrado. O vínculo e a sessão no Brave seguem pendentes.
 
+No primeiro login GitHub, a proprietária confirmou que o dashboard abriu em `/replay/` no Brave. A consulta imediata a `auth.identities` mostrou `email` e `github` (`provider_id = 44986789`) vinculados ao `user_id = b53f859e-178e-4abb-b4f4-9e17f0bd08f8` e perfil `owner`. Havia um usuário Auth, um perfil e 14 políticas `public`, quantidade já registrada antes da migração. O bootstrap do frontend exige `getUser()` e perfil correspondente antes de abrir o dashboard; com um único perfil, esse resultado comprova que a sessão GitHub usa a conta original. Refresh, reabertura e logout no Brave ainda serão conferidos.
+
+A proprietária confirmou no Brave que fechar e reabrir a aba restaurou o dashboard autenticado, e que clicar em Sair apresentou a tela de login. A atualização da página e a nova entrada por GitHub após o logout ainda estão em teste.
+
+A segunda entrada com GitHub após o logout abriu o dashboard. Nova consulta remota somente leitura encontrou um usuário Auth, um perfil `owner` e uma identidade GitHub `44986789` na conta original. A atualização da página no Brave ainda aguarda confirmação.
+
+A proprietária confirmou que atualizar a página com a sessão GitHub ativa voltou ao dashboard sem pedir login. Assim, primeiro login, novo login após logout, atualização da página, reabertura da aba e logout passaram no Brave. A rotação automática do token por expiração não foi forçada nesse teste. A migração de acesso normal para GitHub OAuth está validada. O Magic Link continua na interface e o provedor de e-mail permanece habilitado para recuperação; sua retirada da interface será proposta separadamente. Nenhuma migration ou política RLS foi alterada; M3 não foi iniciado.
+
 Projeto: `fxbivwcfwqdvotohzrwg`. Estado em 03/11/2026: configuração remota aplicada; convite enviado; login no navegador confirmado; recuperação da sessão exibia o login temporariamente no Brave.
 
 ## Configuração remota
