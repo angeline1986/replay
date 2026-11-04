@@ -105,3 +105,9 @@ Arquivos: `src/features/videos/view.ts`, `src/features/channels/view.ts`, `src/f
 Testes executados: build estático, HTTP 200 local, testes de filtros/URLs/rotas e interações DOM de canais, vídeos e login. Resultado: interface e rotas hash preparadas, ações Supabase implementadas. Nenhuma sessão real, persistência entre sessões, Pages ou acessibilidade em navegador foi comprovada.
 
 Pendências: CI verde para o commit final, Pages ativado/publicado, teste de teclado/contraste/responsividade em navegador, Auth real, coleta real e URL final verificada. Busca e filtros operam sobre as páginas já carregadas; carregar mais busca lotes adicionais de 50 vídeos.
+
+## Ajuste de layout com protótipo — 03/11/2026
+
+Referência visual fornecida pela proprietária: `replay_prototipo (1).html`. O frontend passou a usar tema claro, barra lateral com Favoritos/Canais/Últimos lançamentos, cabeçalhos e cartões de resumo, grade de vídeos e lista de canais no estilo do protótipo. A rota inicial abre Favoritos; busca, filtros e ordenação A–Z usam os vídeos reais já carregados. O botão de inclusão leva a Canais, ação já suportada. O cadastro manual de vídeos e os dados locais fictícios do protótipo não foram incorporados.
+
+Verificações: `npm run check` passou com 25 testes, typecheck, lint, segredos, limite de 200 linhas e build. Playwright renderizou o protótipo e a versão local em 1440 × 900 e 390 × 844; foram inspecionados Favoritos, Últimos lançamentos, Canais e login. A inspeção visual revelou e levou à correção do texto vazio no filtro de canal, agora exibindo “Todos os canais”. Nenhuma configuração Supabase, migration, política RLS ou dado remoto foi alterado. O Magic Link continua disponível; M3 não foi iniciado.

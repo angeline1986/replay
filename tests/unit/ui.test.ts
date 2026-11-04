@@ -40,9 +40,11 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   const malicious = { ...demoVideos[0], title: '<script>alert(1)</script>' }
   const events: string[] = []
   const view = videoView({
+    mode: 'videos', sort: 'recent',
     videos: [malicious, demoVideos[1]], channels: demoChannels,
     filter: { query: 'script', status: 'all', channelId: '' }, hasMore: false,
     onFilter: () => events.push('filter'),
+    onSort: () => events.push('sort'),
     onToggle: (_video, key) => events.push(key),
     onLoadMore: () => events.push('more')
   })
@@ -51,10 +53,27 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /<script>alert\(1\)<\/script>/)
   assert.equal(view.querySelector<HTMLAnchorElement>('.video-link')?.hostname, 'www.youtube.com')
+  assert.equal(view.querySelector<HTMLSelectElement>('select[aria-label="Filtrar vídeos por canal"]')?.selectedOptions[0].textContent, 'Todos os canais')
   const actions = [...view.querySelectorAll<HTMLButtonElement>('.card-actions button')]
   actions[0].click()
   actions[1].click()
   assert.deepEqual(events, ['is_favorite', 'is_watched'])
+}))
+
+test('página de favoritos mostra somente marcados e ordena pelo título', () => withDocument(() => {
+  const videos = [
+    { ...demoVideos[0], title: 'Zebra', state: { video_id: 'demo-v1', is_favorite: true, is_watched: false } },
+    { ...demoVideos[1], title: 'Sem favorito' },
+    { ...demoVideos[1], id: 'demo-v3', title: 'Amora', state: { video_id: 'demo-v3', is_favorite: true, is_watched: true } }
+  ]
+  const view = videoView({
+    mode: 'favorites', sort: 'az', videos, channels: demoChannels,
+    filter: { query: '', status: 'all', channelId: '' }, hasMore: false,
+    onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onLoadMore: () => {}
+  })
+  const titles = [...view.querySelectorAll('.video-card h2')].map((title) => title.textContent)
+  assert.deepEqual(titles, ['Amora', 'Zebra'])
+  assert.match(view.textContent ?? '', /Seus favoritos2/)
 }))
 
 test('tela de login prioriza GitHub e mantém recuperação por e-mail', () => withDocument((window) => {

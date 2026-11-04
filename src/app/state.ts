@@ -8,7 +8,8 @@ export interface AppState {
   videos: Video[]
   hasMore: boolean
   filter: VideoFilter
-  page: 'videos' | 'channels'
+  page: 'favorites' | 'videos' | 'channels'
+  sort: 'recent' | 'az'
   busy: boolean
   error: string
   demo: boolean
@@ -22,6 +23,7 @@ export const state: AppState = {
   hasMore: false,
   filter: { query: '', status: 'all', channelId: routeFromHash(location.hash).channelId },
   page: routeFromHash(location.hash).page,
+  sort: 'recent',
   busy: false,
   error: '',
   demo: import.meta.env.VITE_DEMO === 'true',

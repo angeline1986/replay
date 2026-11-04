@@ -1,7 +1,7 @@
 import { element, notice } from '../../shared/dom.ts'
 
 export function authView(onGitHub: () => void, onSubmit: (email: string) => void, message = ''): HTMLElement {
-  const wrap = element('main', 'auth-wrap')
+  const wrap = element('section', 'auth-wrap')
   wrap.append(element('p', 'eyebrow', 'BEM-VINDA AO REPLAY'))
   wrap.append(element('h1', '', 'Entre na sua coleção'))
   wrap.append(element('p', 'muted', 'Entre com sua conta GitHub autorizada.'))

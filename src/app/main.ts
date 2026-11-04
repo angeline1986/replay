@@ -10,6 +10,7 @@ import { supabase } from '../shared/api.ts'
 import { makeActions } from './actions.ts'
 import { channelRoute, routeFromHash } from './route.ts'
 import { createAuthGate } from './auth-gate.ts'
+import { accountBar, sidebarView } from './shell.ts'
 
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
@@ -83,49 +84,37 @@ async function act(operation: () => Promise<void>, reload = true): Promise<void>
 function render(): void {
   clear(root)
   const shell = element('div', 'app-shell')
-  const header = element('header', 'topbar')
-  const brand = element('a', 'brand')
-  brand.href = '#videos'
-  brand.append(element('span', 'brand-icon', '▶'), element('span', '', 'RePlay'))
-  header.append(brand)
-  if (state.userEmail) {
-    const actions = element('div', 'top-actions')
-    actions.append(element('span', 'user-email', state.userEmail))
-    actions.append(button('Sair', () => {
-      void act(async () => { await signOut(); location.reload() }, false)
-    }, 'ghost'))
-    header.append(actions)
-  }
-  shell.append(header)
-  if (state.demo) shell.append(element('p', 'demo-banner', 'Modo demonstração — dados fictícios, sem conexão com Supabase.'))
-  if (state.error) shell.append(notice(state.error, 'error'))
-  if (state.busy) shell.append(notice('Carregando…'))
+  const signedIn = state.demo || auth.phase === 'signed_in'
+  shell.append(sidebarView(state.page, signedIn))
+  const workspace = element('div', 'workspace')
+  workspace.append(accountBar(state.userEmail, () => {
+    void act(async () => { await signOut(); location.reload() }, false)
+  }))
+  const main = element('main', 'workspace-main')
+  workspace.append(main)
+  shell.append(workspace)
+  if (state.demo) main.append(element('p', 'demo-banner', 'Modo demonstração — dados fictícios, sem conexão com Supabase.'))
+  if (state.error) main.append(notice(state.error, 'error'))
+  if (state.busy) main.append(notice('Carregando…'))
   if (!state.demo && !configured) {
-    shell.append(notice('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY.'))
+    main.append(notice('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY.'))
   } else if (!state.demo && auth.phase === 'initializing') {
-    shell.append(notice('Restaurando sessão…'))
+    main.append(notice('Restaurando sessão…'))
   } else if (!state.demo && auth.phase === 'error') {
-    shell.append(button('Tentar novamente', () => { state.error = ''; void auth.retry() }, 'ghost'))
+    main.append(button('Tentar novamente', () => { state.error = ''; void auth.retry() }, 'ghost'))
   } else if (!state.demo && auth.phase === 'signed_out') {
-    shell.append(authView(() => { void act(signInWithGitHub, false) }, (email) => {
+    main.append(authView(() => { void act(signInWithGitHub, false) }, (email) => {
       void act(async () => {
         await sendMagicLink(email)
         authMessage = 'Se o e-mail estiver autorizado, o link chegará em instantes.'
       })
     }, authMessage))
   } else {
-    const nav = element('nav', 'nav')
-    nav.setAttribute('aria-label', 'Navegação principal')
-    for (const [page, label] of [['videos', 'Vídeos'], ['channels', 'Canais']] as const) {
-      const link = element('a', '', label)
-      link.href = `#${page}`
-      if (state.page === page) link.setAttribute('aria-current', 'page')
-      nav.append(link)
-    }
-    shell.append(nav)
-    shell.append(state.page === 'videos' ? videoView({
-      videos: state.videos, channels: state.channels, filter: state.filter,
+    main.append(state.page !== 'channels' ? videoView({
+      mode: state.page, videos: state.videos, channels: state.channels,
+      filter: state.filter, sort: state.sort,
       hasMore: state.hasMore, onLoadMore: () => { void loadMore() },
+      onSort: (sort) => { state.sort = sort; render() },
       onFilter: (filter) => {
         const active = document.activeElement as HTMLInputElement
         const searching = active?.type === 'search'
@@ -150,14 +139,14 @@ function render(): void {
       }
     }))
   }
-  shell.append(element('footer', 'footer', 'RePlay · seus canais, no seu ritmo.'))
   root.append(shell)
 }
 
 window.addEventListener('hashchange', () => {
   const route = routeFromHash(location.hash)
   state.page = route.page
-  state.filter.channelId = route.channelId
+  state.filter = { query: '', status: 'all', channelId: route.channelId }
+  state.sort = 'recent'
   render()
 })
 

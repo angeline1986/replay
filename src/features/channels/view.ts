@@ -1,5 +1,6 @@
 import { button, element, notice } from '../../shared/dom.ts'
 import type { Channel, ChannelRequest, Video } from '../../shared/model.ts'
+import { statsView } from '../stats/view.ts'
 
 interface ChannelViewOptions {
   channels: Channel[]
@@ -13,11 +14,15 @@ interface ChannelViewOptions {
 
 export function channelView(options: ChannelViewOptions): HTMLElement {
   const root = element('section', 'content')
-  const heading = element('div', 'section-heading')
-  heading.append(element('div'))
-  heading.firstElementChild?.append(element('p', 'eyebrow', 'SUA SELEÇÃO'), element('h1', '', 'Canais monitorados'))
-  heading.append(element('p', 'muted', 'Somente os canais escolhidos por você aparecem aqui.'))
-  root.append(heading)
+  const heading = element('div', 'page-head')
+  const intro = element('div')
+  intro.append(
+    element('p', 'eyebrow', 'SEUS CANAIS'),
+    element('h1', '', 'Canais monitorados'),
+    element('p', 'subtitle', 'Veja cada canal cadastrado e seus últimos lançamentos.')
+  )
+  heading.append(intro)
+  root.append(heading, statsView(options.channels, options.videos))
   const form = element('form', 'add-channel')
   const field = element('input')
   field.name = 'channel'
@@ -43,6 +48,12 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     }
     root.append(list)
   }
+  const sectionTitle = element('div', 'section-title')
+  sectionTitle.append(
+    element('h2', '', 'Seus canais'),
+    element('span', 'result-count', `${options.channels.length} canal${options.channels.length === 1 ? '' : 'is'}`)
+  )
+  root.append(sectionTitle)
   if (!options.channels.length) {
     root.append(notice('Nenhum canal cadastrado. Adicione o primeiro para começar.'))
     return root
