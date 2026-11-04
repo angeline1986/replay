@@ -22,7 +22,8 @@ test('canais pausados não causam chamadas nem gravações', async () => {
   const db = store([])
   const fetcher = (async () => { throw new Error('rede não deveria ser usada') }) as typeof fetch
   assert.deepEqual(await runCollector('', db.value, fetcher),
-    { active: 0, failures: 0, quotaUsed: 0 })
+    { active: 0, processed: 0, videos: 0, failures: 0, quotaUsed: 0,
+      quotaStopped: false, fatalError: null })
   assert.deepEqual(db.saved, [])
   assert.deepEqual(db.runs, [])
 })
@@ -41,14 +42,17 @@ test('coleta ativa persiste uma vez e registra sucesso', async () => {
     }] })
   }) as typeof fetch
   assert.deepEqual(await runCollector('test-key', db.value, fetcher),
-    { active: 1, failures: 0, quotaUsed: 2 })
+    { active: 1, processed: 1, videos: 1, failures: 0, quotaUsed: 2,
+      quotaStopped: false, fatalError: null })
   assert.equal(db.saved[0].videos[0].youtube_video_id, 'abcdefghijk')
   assert.deepEqual(db.runs, ['success'])
 })
 
 test('canal ativo sem chave falha antes da rede', async () => {
   const db = store([channel])
-  await assert.rejects(runCollector('', db.value), /YOUTUBE_API_KEY ausente/)
+  const result = await runCollector('', db.value)
+  assert.equal(result.fatalError, 'YOUTUBE_API_KEY ausente.')
+  assert.equal(result.quotaUsed, 0)
   assert.deepEqual(db.saved, [])
 })
 
@@ -65,7 +69,8 @@ test('cota esgotada interrompe os canais seguintes sem gravar vídeos', async ()
     return Response.json({ error: { errors: [{ reason: 'quotaExceeded' }] } }, { status: 403 })
   }) as typeof fetch
   const result = await runCollector('test-key', db.value, fetcher)
-  assert.deepEqual(result, { active: 2, failures: 1, quotaUsed: 2 })
+  assert.deepEqual(result, { active: 2, processed: 1, videos: 0, failures: 1,
+    quotaUsed: 2, quotaStopped: true, fatalError: null })
   assert.equal(calls, 2)
   assert.deepEqual(db.saved, [])
   assert.deepEqual(db.runs, ['error'])
@@ -73,5 +78,17 @@ test('cota esgotada interrompe os canais seguintes sem gravar vídeos', async ()
 
 test('mais de 100 canais ativos falham antes da API', async () => {
   const db = store(Array.from({ length: 101 }, (_, i) => ({ ...channel, id: String(i) })))
-  await assert.rejects(runCollector('test-key', db.value), /100 canais ativos/)
+  const result = await runCollector('test-key', db.value)
+  assert.match(result.fatalError ?? '', /100 canais ativos/)
+  assert.equal(result.quotaUsed, 0)
+})
+
+test('falha de channels.list registra cota da chamada e interrompe sem gravar', async () => {
+  const db = store([channel])
+  const fetcher = (async () => new Response('', { status: 500 })) as typeof fetch
+  const result = await runCollector('test-key', db.value, fetcher)
+  assert.equal(result.failures, 1)
+  assert.equal(result.quotaUsed, 1)
+  assert.match(result.fatalError ?? '', /HTTP 500/)
+  assert.deepEqual(db.saved, [])
 })

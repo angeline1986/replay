@@ -14,7 +14,7 @@ Entregar migrations, RLS, Auth, cliente e CRUD. O plano de aplicação está em 
 
 ## M3 — coleta
 
-Entregar parser RSS, importação idempotente, tratamento de erros, resolução de URL/handle e workflow. Gate: coleta manual e agendada comprovadas com canal real no Supabase.
+Entregar coleta pela YouTube Data API v3, importação idempotente, tratamento de erros, resolução de URL/handle e workflow. Gate: coleta manual e agendada comprovadas com canal real no Supabase.
 
 ## M4 — entrega
 

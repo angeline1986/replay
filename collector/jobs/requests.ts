@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { QuotaError } from '../youtube/client.ts'
 import { resolveHandle } from '../youtube/resolve.ts'
+import { safeError } from './safe-error.ts'
 
 interface Request {
   id: string
@@ -33,7 +34,7 @@ export async function processRequests(): Promise<{ failures: number; calls: numb
       console.log(`Handle resolvido: ${request.id}`)
     } catch (error) {
       failures++
-      const summary = error instanceof Error ? error.message.replace(/https?:\/\/\S+/g, '[URL]') : 'Erro desconhecido'
+      const summary = safeError(error)
       const retryable = error instanceof QuotaError || /^YouTube API HTTP (429|5\d\d)$/.test(summary) ||
         error instanceof TypeError || error instanceof DOMException
       const updated = await db.from('channel_requests').update({

@@ -9,7 +9,7 @@
 | Acesso inicial | Perfil criado por administrador e lista de permissões no banco | Cadastro público não libera dados. |
 | Persistência | PostgreSQL por proprietário, RLS em toda tabela exposta | Isolamento entre contas. |
 | Vídeos | `UNIQUE(channel_id, youtube_video_id)` | IDs iguais não vazam entre proprietários. |
-| Coleta | YouTube Data API v3 no Actions, até duas vezes ao dia | Sem servidor permanente; playlist de uploads para canais ativos. |
+| Coleta | YouTube Data API v3 no Actions, 17:00 e até uma execução manual diária | Sem servidor permanente; playlist de uploads para canais ativos. |
 | Handles | Solicitação pendente e YouTube Data API `channels.list(forHandle)` no Actions | Chave fora do navegador; ID manual quando indisponível. |
 | Exclusão | Remover canal apaga vídeos e estados associados | Sem dados órfãos; exige confirmação na interface. |
 | Demonstração | Dados estáticos em modo explícito, nunca no build de produção | Não confundir demonstração com dados reais. |

@@ -1,6 +1,6 @@
 # RePlay
 
-RePlay mostra somente vídeos dos canais do YouTube escolhidos pelo usuário. O frontend estático usa Supabase Auth e PostgreSQL com RLS. Um workflow do GitHub Actions está preparado para coletar vídeos pela YouTube Data API v3 em até dois horários diários. Vídeos abrem no YouTube original.
+RePlay mostra somente vídeos dos canais do YouTube escolhidos pelo usuário. O frontend estático usa Supabase Auth e PostgreSQL com RLS. Um workflow do GitHub Actions está preparado para coletar vídeos pela YouTube Data API v3 às 17:00 em São Paulo e por acionamento manual limitado. Vídeos abrem no YouTube original.
 
 ## Estado
 
@@ -25,4 +25,4 @@ Não cole credenciais em issues, chat, commits, variáveis `VITE_` de serviço o
 
 ## Limites
 
-A coleta usa a YouTube Data API v3: resolve a playlist de uploads pelo ID canônico e lê até duas páginas de 50 vídeos públicos por canal ativo. Não apaga vídeos ausentes da resposta. O agendamento em `.github/workflows/monitor.yml` tem dois horários editáveis em `America/Sao_Paulo` e pode atrasar. ID `UC…` e URL `/channel/UC…` são cadastrados diretamente. `@handle` cria uma solicitação pendente que a coleta resolve pela API. Mantenha a chave apenas em GitHub Actions Secrets.
+A coleta usa a YouTube Data API v3: resolve a playlist de uploads pelo ID canônico e lê até duas páginas de 50 vídeos públicos por canal ativo. Não apaga vídeos ausentes da resposta. O workflow em `.github/workflows/monitor.yml` agenda 17:00 em `America/Sao_Paulo` e oferece `Run workflow`; o limite é uma execução manual e uma automática por dia, com no máximo duas coletas totais. ID `UC…` e URL `/channel/UC…` são cadastrados diretamente. `@handle` cria uma solicitação pendente que a coleta resolve pela API. Mantenha as chaves apenas em GitHub Actions Secrets.

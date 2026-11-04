@@ -1,17 +1,18 @@
 name: Monitorar canais
 on:
   schedule:
-    # Edite os horários abaixo (hora local de São Paulo). Máximo: duas coletas/dia.
-    - cron: '17 9,21 * * *'
+    - cron: '0 17 * * *'
       timezone: 'America/Sao_Paulo'
+  workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 concurrency:
-  group: replay-monitor
+  group: replay-monitor-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   collect:
-    if: github.run_attempt == 1
+    if: github.ref == 'refs/heads/main' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -20,8 +21,15 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci
+      - id: daily_gate
+        name: Verificar limite diário
+        run: node --experimental-strip-types scripts/check-daily-limit.ts
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - if: steps.daily_gate.outputs.allowed == 'true'
+        run: npm ci
       - name: Coletar vídeos públicos
+        if: steps.daily_gate.outputs.allowed == 'true'
         run: npm run collect
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
