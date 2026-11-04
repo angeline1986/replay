@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { resolveHandle } from '../../collector/youtube/resolve.ts'
+import { QuotaError } from '../../collector/youtube/client.ts'
 
 test('resolve handle pela API e valida ID retornado', async () => {
   const original = globalThis.fetch
@@ -32,5 +33,13 @@ test('erro de cota ou API indisponível fica explícito', async () => {
   const original = globalThis.fetch
   globalThis.fetch = async () => new Response('', { status: 403 })
   try { await assert.rejects(resolveHandle('meucanal', 'test-key'), /HTTP 403/) }
+  finally { globalThis.fetch = original }
+})
+
+test('cota esgotada preserva erro específico para manter handle pendente', async () => {
+  const original = globalThis.fetch
+  globalThis.fetch = async () => Response.json({ error: { errors: [{ reason: 'quotaExceeded' }] } },
+    { status: 403 })
+  try { await assert.rejects(resolveHandle('meucanal', 'test-key'), QuotaError) }
   finally { globalThis.fetch = original }
 })

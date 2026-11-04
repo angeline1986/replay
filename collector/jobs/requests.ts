@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { QuotaError } from '../youtube/client.ts'
 import { resolveHandle } from '../youtube/resolve.ts'
 
 interface Request {
@@ -7,9 +8,9 @@ interface Request {
   handle: string
 }
 
-export async function processRequests(): Promise<number> {
+export async function processRequests(): Promise<{ failures: number; calls: number }> {
   const key = process.env.YOUTUBE_API_KEY
-  if (!key) { console.log('Resolução de handles desativada: API não configurada.'); return 0 }
+  if (!key) { console.log('Resolução de handles desativada: API não configurada.'); return { failures: 0, calls: 0 } }
   const url = process.env.SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !serviceKey) throw new Error('Configuração Supabase ausente.')
@@ -18,8 +19,10 @@ export async function processRequests(): Promise<number> {
     .select('id,owner_id,handle').eq('status', 'pending').order('created_at').limit(20)
   if (error) throw new Error(error.message)
   let failures = 0
+  let calls = 0
   for (const request of (data ?? []) as Request[]) {
     try {
+      calls++
       const channel = await resolveHandle(request.handle, key)
       const saved = await db.from('channels').upsert({
         owner_id: request.owner_id, handle: `@${request.handle}`, ...channel
@@ -31,14 +34,15 @@ export async function processRequests(): Promise<number> {
     } catch (error) {
       failures++
       const summary = error instanceof Error ? error.message.replace(/https?:\/\/\S+/g, '[URL]') : 'Erro desconhecido'
-      const retryable = /^YouTube API HTTP (429|5\d\d)$/.test(summary) ||
+      const retryable = error instanceof QuotaError || /^YouTube API HTTP (429|5\d\d)$/.test(summary) ||
         error instanceof TypeError || error instanceof DOMException
       const updated = await db.from('channel_requests').update({
         status: retryable ? 'pending' : 'error', error_message: summary.slice(0, 200)
       }).eq('id', request.id)
       if (updated.error) console.error(`Falha de registro de handle: ${request.id}`)
       console.error(`Falha de resolução de handle: ${request.id}`)
+      if (error instanceof QuotaError) break
     }
   }
-  return failures
+  return { failures, calls }
 }

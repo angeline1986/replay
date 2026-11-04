@@ -1,8 +1,9 @@
 name: Monitorar canais
 on:
   schedule:
-    - cron: '*/15 * * * *'
-  workflow_dispatch:
+    # Edite os horários abaixo (hora local de São Paulo). Máximo: duas coletas/dia.
+    - cron: '17 9,21 * * *'
+      timezone: 'America/Sao_Paulo'
 permissions:
   contents: read
 concurrency:
@@ -10,6 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   collect:
+    if: github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -19,7 +21,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Coletar feeds
+      - name: Coletar vídeos públicos
         run: npm run collect
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

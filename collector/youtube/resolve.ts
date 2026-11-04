@@ -1,3 +1,5 @@
+import { ApiBudget, youtubeGet } from './client.ts'
+
 const channelPattern = /^UC[A-Za-z0-9_-]{22}$/
 
 export interface ResolvedChannel {
@@ -8,15 +10,9 @@ export interface ResolvedChannel {
 
 export async function resolveHandle(handle: string, apiKey: string): Promise<ResolvedChannel> {
   if (!/^[A-Za-z0-9_.-]{3,30}$/.test(handle)) throw new Error('Handle inválido.')
-  const url = new URL('https://www.googleapis.com/youtube/v3/channels')
-  url.searchParams.set('part', 'snippet')
-  url.searchParams.set('forHandle', handle)
-  url.searchParams.set('key', apiKey)
-  const response = await fetch(url, { signal: AbortSignal.timeout(10000) })
-  if (!response.ok) throw new Error(`YouTube API HTTP ${response.status}`)
-  const data = await response.json() as {
+  const data = await youtubeGet<{
     items?: Array<{ id?: string; snippet?: { title?: string; thumbnails?: { default?: { url?: string } } } }>
-  }
+  }>('channels', { part: 'snippet', forHandle: handle }, apiKey, new ApiBudget(1))
   const item = data.items?.[0]
   if (!item?.id || !channelPattern.test(item.id) || !item.snippet?.title) {
     throw new Error('Canal não encontrado para o handle informado.')

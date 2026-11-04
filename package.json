@@ -12,11 +12,11 @@
     "check:secrets": "node scripts/check-secrets.mjs",
     "lint": "node scripts/lint.mjs",
     "check": "npm run check:lines && npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run build",
-    "collect": "node --experimental-strip-types collector/jobs/main.ts"
+    "collect": "node --experimental-strip-types collector/jobs/main.ts",
+    "probe:youtube": "node --experimental-strip-types scripts/probe-youtube.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.118.0",
-    "fast-xml-parser": "5.11.1"
+    "@supabase/supabase-js": "2.118.0"
   },
   "devDependencies": {
     "@types/jsdom": "21.1.7",

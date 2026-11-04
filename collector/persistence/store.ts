@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { ParsedFeed } from '../feeds/parse.ts'
+import type { Uploads } from '../youtube/uploads.ts'
 
 export interface ActiveChannel {
   id: string
@@ -26,8 +26,8 @@ export async function activeChannels(): Promise<ActiveChannel[]> {
   return data ?? []
 }
 
-export async function saveFeed(channel: ActiveChannel, feed: ParsedFeed): Promise<void> {
-  const videos = feed.videos
+export async function saveUploads(channel: ActiveChannel, uploads: Uploads): Promise<void> {
+  const videos = uploads.videos
   if (videos.length) {
     const rows = videos.map((video) => ({ ...video, channel_id: channel.id }))
     const { error } = await db.from('videos').upsert(rows, {
@@ -39,7 +39,6 @@ export async function saveFeed(channel: ActiveChannel, feed: ParsedFeed): Promis
     last_checked_at: new Date().toISOString(),
     last_success_at: new Date().toISOString()
   }
-  if (feed.name) updates.name = feed.name
   const { error } = await db.from('channels').update(updates).eq('id', channel.id)
   assert(error)
 }
