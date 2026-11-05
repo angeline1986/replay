@@ -16,7 +16,7 @@
     "check": "npm run check:lines && npm run check:secrets && npm run lint && npm run typecheck && npm test && npm run build",
     "collect": "node --experimental-strip-types collector/jobs/main.ts",
     "probe:youtube": "node --experimental-strip-types scripts/probe-youtube.ts",
-    "replay": "node --experimental-strip-types cli/main.ts"
+    "replay": "node --disable-warning=ExperimentalWarning --experimental-strip-types cli/main.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.118.0"
