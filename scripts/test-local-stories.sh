@@ -20,5 +20,6 @@ psql -h "$test_dir" -p "$test_port" -d postgres -v ON_ERROR_STOP=1 \
   -f supabase/migrations/202610310002_rls.sql \
   -f supabase/migrations/202610310003_channel_requests.sql \
   -f supabase/migrations/20261105173851_tracked_stories.sql \
+  -f supabase/migrations/20261105210000_story_manual_attach.sql \
   -c 'alter role service_role bypassrls' \
   -f tests/security/story-rls.sql

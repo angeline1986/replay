@@ -152,4 +152,48 @@ begin
   end if;
 end;
 $$;
+reset role;
+set local role service_role;
+insert into public.videos(id,channel_id,youtube_video_id,title,url,thumbnail_url,published_at) values
+  ('aaaaaaaa-0000-0000-0000-000000000004','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+   'fffffffffff','Obra Distinta Parte 4','https://youtube.com/f','https://youtube.com/f',now());
+reset role;
+set local role authenticated;
+do $$
+begin
+  if public.attach_story_video('cccccccc-0000-0000-0000-000000000001',
+    'aaaaaaaa-0000-0000-0000-000000000004') <> 'confirmed' then
+    raise exception 'Associação manual não confirmou vídeo';
+  end if;
+  if public.attach_story_video('cccccccc-0000-0000-0000-000000000001',
+    'aaaaaaaa-0000-0000-0000-000000000004') <> 'already_confirmed' then
+    raise exception 'Associação manual não é idempotente';
+  end if;
+  begin
+    perform public.attach_story_video('cccccccc-0000-0000-0000-000000000001',
+      'aaaaaaaa-0000-0000-0000-000000000003');
+    raise exception 'Permitiu reabrir rejeição';
+  exception when check_violation then null;
+  end;
+  begin
+    perform public.attach_story_video('cccccccc-0000-0000-0000-000000000001',
+      'bbbbbbbb-0000-0000-0000-000000000001');
+    raise exception 'Permitiu vídeo alheio';
+  exception when insufficient_privilege then null;
+  end;
+end;
+$$;
+reset role;
+set local role anon;
+do $$
+begin
+  if has_function_privilege('anon','public.attach_story_video(uuid,uuid)','EXECUTE') then
+    raise exception 'Anon pode vincular histórias';
+  end if;
+  if has_function_privilege('anon','public.story_seed_guard()','EXECUTE') or
+    has_function_privilege('anon','public.story_match_guard()','EXECUTE') then
+    raise exception 'Anon pode executar guards';
+  end if;
+end;
+$$;
 rollback;

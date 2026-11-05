@@ -21,9 +21,20 @@ export function storyInput(name: string, aliases: string[]): {
   return { name: cleanName, canonical_key: key, aliases: cleanAliases }
 }
 
+export async function attachStoryVideo(
+  db: SupabaseClient, storyId: string, videoId: string
+): Promise<'confirmed' | 'already_confirmed'> {
+  const result = await db.rpc('attach_story_video', { p_story_id: storyId, p_video_id: videoId })
+  check(result.error)
+  if (result.data !== 'confirmed' && result.data !== 'already_confirmed') {
+    throw new Error('Associação manual não confirmada.')
+  }
+  return result.data
+}
+
 export async function followStory(
   db: SupabaseClient, ownerId: string, videoId: string, name: string, aliases: string[]
-): Promise<string> {
+): Promise<{ id: string; existing: boolean }> {
   const fields = storyInput(name, aliases)
   const current = await db.from('tracked_stories').select('id,is_followed')
     .eq('owner_id', ownerId).eq('canonical_key', fields.canonical_key).maybeSingle()
@@ -34,14 +45,14 @@ export async function followStory(
         .eq('id', current.data.id).eq('owner_id', ownerId).select('id').single()
       check(reopened.error)
     }
-    return current.data.id as string
+    return { id: current.data.id as string, existing: true }
   }
   const result = await db.from('tracked_stories').insert({
     owner_id: ownerId, seed_video_id: videoId, ...fields
   }).select('id').single()
   check(result.error)
   if (!result.data) throw new Error('História não criada.')
-  return result.data.id as string
+  return { id: result.data.id as string, existing: false }
 }
 
 export async function renameStory(
