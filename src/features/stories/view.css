@@ -1,0 +1,49 @@
+/* Histórias: mesmo grid e formato de cards do feed principal */
+.follow-heading { margin: 24px 0 15px; }
+.follow-grid { align-items: start; }
+.follow-card { display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  border: 1px solid #e0e3eb; border-radius: 15px; background: #fff; }
+.follow-hero { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9;
+  background: linear-gradient(115deg, #6675ad, #adb8db); overflow: hidden; }
+.follow-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.follow-play { position: relative; z-index: 1; padding: 8px 13px; border-radius: 100%;
+  background: #14141ab5; color: white; font-size: 17px; }
+.follow-count, .follow-alert { position: absolute; z-index: 2; padding: 5px 8px;
+  border-radius: 5px; font-size: 11px; font-weight: 700; color: #fff; }
+.follow-count { bottom: 9px; left: 10px; background: #17171cbd; }
+.follow-alert { top: 9px; right: 10px; background: #dc8a12; }
+.follow-info { padding: 13px 14px 12px; min-height: 135px; }
+.follow-info h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; margin: 0 0 9px;
+  min-height: 39px; font-size: 15px; line-height: 1.35; }
+.follow-info .video-meta { margin: 0; }
+.follow-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.follow-tag { padding: 5px 8px; border-radius: 7px; font-size: 11px;
+  color: #5545cb; background: #efedff; font-weight: 700; }
+.follow-tag.secondary { color: #536077; background: #f0f2f6; }
+
+.follow-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 12px 14px; border-top: 1px solid #edf0f5; }
+.follow-expand { cursor: pointer; padding: 0; border: 0; background: transparent;
+  font-size: 12px; color: #33435f; font-weight: 650; }
+.follow-rename { padding: 0; background: transparent; border: 0; cursor: pointer;
+  font-size: 12px; color: #94a0b2; }
+.follow-rename:hover, .follow-expand:hover { color: #5545cb; }
+.follow-open { margin-left: auto; font-size: 12px; font-weight: 700;
+  text-decoration: none; color: #5545cb; }
+.follow-sequence { padding: 10px 14px 16px; border-top: 1px solid #edf0f5; }
+.follow-sequence h3 { margin: 12px 0 9px; font-size: 13px; }
+.follow-video { padding: 9px 0; border-bottom: 1px solid #f0f1f5; overflow-wrap: anywhere; }
+.follow-video a { color: #5545cb; font-size: 12px; font-weight: 650; text-decoration: none; }
+.follow-video a:hover, .follow-open:hover { text-decoration: underline; }
+.follow-video p { margin: 5px 0 0; }
+.follow-controls button, .follow-candidate-actions button { padding: 7px 9px;
+  border: 1px solid #e0e3eb; border-radius: 8px; background: white;
+  font-size: 12px; cursor: pointer; }
+.follow-controls button, .follow-candidate-actions button:last-child { color: #bf4353; }
+.follow-candidate { padding: 8px 0; }
+.follow-candidate-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+@media (max-width: 700px) {
+  .follow-heading { align-items: flex-start; }
+  .follow-info { min-height: 0; }
+}
+.follow-sequence[hidden] { display: none; }
