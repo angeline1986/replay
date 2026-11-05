@@ -95,22 +95,27 @@ test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corri
   onRename: () => events.push('rename'), onUnfollow: () => events.push('unfollow') })
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /Obra <Nova>/)
-  assert.equal(view.querySelectorAll('.story-grid').length, 2)
-  assert.equal(view.querySelectorAll('.story-video-card').length, 2)
-  assert.equal(view.querySelectorAll('.story-video-card img').length, 2)
-  assert.equal(view.querySelectorAll('.story-video-card .video-link').length, 2)
-  assert.match(view.textContent ?? '', /Possíveis continuações/)
-  assert.match(view.textContent ?? '', /1 pendente\(s\)/)
-  const buttons = [...view.querySelectorAll('button')]
-  buttons.forEach((item) => item.click())
-  assert.deepEqual(events, ['rename', 'unfollow', 'confirmed', 'rejected'])
-  assert.match(sidebarView('stories', true, 1).textContent ?? '', /Minhas histórias \(1\)/)
+  assert.equal(view.querySelectorAll('.follow-grid').length, 1)
   assert.equal(view.querySelectorAll('.follow-card').length, 1)
   assert.equal(view.querySelectorAll('.follow-hero').length, 1)
   assert.equal(view.querySelectorAll('.follow-video').length, 2)
+  assert.match(view.textContent ?? '', /Possíveis continuações \(1\)/)
   assert.equal(view.querySelector('.follow-sequence')?.hasAttribute('hidden'), true)
+
   view.querySelector<HTMLButtonElement>('.follow-expand')!.click()
   assert.equal(view.querySelector('.follow-sequence')?.hasAttribute('hidden'), false)
+
+  view.querySelector<HTMLButtonElement>('.follow-rename')!.click()
+  view.querySelector<HTMLButtonElement>('.follow-controls button')!.click()
+
+  const decisions = view.querySelectorAll<HTMLButtonElement>(
+    '.follow-candidate-actions button'
+  )
+  decisions[0].click()
+  decisions[1].click()
+
+  assert.deepEqual(events, ['rename', 'unfollow', 'confirmed', 'rejected'])
+  assert.match(sidebarView('stories', true, 1).textContent ?? '', /Minhas histórias \(1\)/)
 }))
 
 test('página de favoritos mostra somente marcados e ordena pelo título', () => withDocument(() => {
