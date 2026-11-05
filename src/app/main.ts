@@ -11,17 +11,29 @@ import { makeActions } from './actions.ts'
 import { channelRoute, routeFromHash } from './route.ts'
 import { createAuthGate } from './auth-gate.ts'
 import { accountBar, sidebarView } from './shell.ts'
+import { loadStoryDashboard } from '../shared/stories-api.ts'
+import { makeStoryActions } from './story-actions.ts'
+import { storiesView } from '../features/stories/view.ts'
+import type { Channel } from '../shared/model.ts'
 
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
 let authMessage = ''
 const actions = makeActions({ render, act, userId: () => userId })
+const storyActions = makeStoryActions({ render, act, userId: () => userId })
+
+async function storySnapshot(id: string, channels: Channel[]) {
+  try { return { data: await loadStoryDashboard(supabase!, id, channels), error: '' } }
+  catch { return { data: { groups: [], pendingCount: 0 },
+    error: 'Minhas histórias indisponível. Confira a migration e as permissões.' } }
+}
 
 const auth = createAuthGate({
   load: async () => {
     const user = await currentUser()
     if (!user) return null
-    return { ...user, dashboard: await loadDashboard(user.id) }
+    const dashboard = await loadDashboard(user.id)
+    return { ...user, dashboard, storySnapshot: await storySnapshot(user.id, dashboard.channels) }
   },
   commit: (value) => {
     userId = value?.id ?? ''
@@ -31,6 +43,8 @@ const auth = createAuthGate({
     state.videos = value?.dashboard.videos ?? []
     state.highlights = value?.dashboard.highlights ?? []
     state.favoriteVideos = value?.dashboard.favorites ?? []
+    state.stories = value?.storySnapshot.data ?? { groups: [], pendingCount: 0 }
+    state.storiesError = value?.storySnapshot.error ?? ''
     state.hasMore = value?.dashboard.hasMore ?? false
     state.error = ''
     authMessage = ''
@@ -47,6 +61,9 @@ async function refresh(): Promise<void> {
   state.videos = data.videos
   state.highlights = data.highlights
   state.favoriteVideos = data.favorites
+  const stories = await storySnapshot(userId, data.channels)
+  state.stories = stories.data
+  state.storiesError = stories.error
   state.hasMore = data.hasMore
 }
 
@@ -89,7 +106,7 @@ function render(): void {
   clear(root)
   const shell = element('div', 'app-shell')
   const signedIn = state.demo || auth.phase === 'signed_in'
-  shell.append(sidebarView(state.page, signedIn))
+  shell.append(sidebarView(state.page, signedIn, state.stories.pendingCount))
   const workspace = element('div', 'workspace')
   workspace.append(accountBar(state.userEmail, () => {
     void act(async () => { await signOut(); location.reload() }, false)
@@ -114,7 +131,17 @@ function render(): void {
       })
     }, authMessage))
   } else {
-    main.append(state.page !== 'channels' ? videoView({
+    const trackedVideoIds = new Set(state.stories.groups.flatMap((group) => [
+      group.story.seed_video_id, ...group.confirmed.map((item) => item.video_id),
+      ...group.pending.map((item) => item.video_id)
+    ]).filter((id): id is string => !!id))
+    main.append(state.page === 'stories' ? (state.storiesError
+      ? notice(state.storiesError, 'error') : storiesView({
+        data: state.stories,
+        onDecide: (item, status) => { void storyActions.decide(item, status) },
+        onRename: (story) => { void storyActions.rename(story) },
+        onUnfollow: (story) => { void storyActions.unfollow(story) }
+      })) : state.page !== 'channels' ? videoView({
       mode: state.page, videos: state.videos, highlights: state.highlights,
       favoriteVideos: state.demo ? state.videos.filter((v) => v.state?.is_favorite) : state.favoriteVideos,
       channels: state.channels,
@@ -133,7 +160,8 @@ function render(): void {
           if (caret !== null) next?.setSelectionRange(caret, caret)
         }
       },
-      onToggle: (video, key) => { void actions.toggleVideo(video, key) }
+      onToggle: (video, key) => { void actions.toggleVideo(video, key) },
+      onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds
     }) : channelView({
       channels: state.channels, requests: state.requests, videos: state.videos,
       onAdd: (input) => { void actions.createChannel(input) },

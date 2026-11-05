@@ -14,6 +14,8 @@ interface VideoViewOptions {
   onFilter: (next: VideoFilter) => void
   onSort: (next: 'recent' | 'az') => void
   onToggle: (video: Video, key: 'is_favorite' | 'is_watched') => void
+  onFollow: (video: Video) => void
+  trackedVideoIds: Set<string>
   onLoadMore: () => void
 }
 
@@ -101,7 +103,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
       : 'Nenhum vídeo encontrado. Ajuste os filtros ou cadastre um canal.'))
   } else {
     const grid = element('div', 'video-grid')
-    for (const video of filtered) grid.append(videoCard(video, options.onToggle))
+    for (const video of filtered) grid.append(videoCard(video, options))
     root.append(grid)
   }
   if (options.hasMore && !onePerChannel && !favorites) root.append(button('Carregar mais vídeos', options.onLoadMore, 'load-more'))
@@ -110,7 +112,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
 
 function videoCard(
   video: Video,
-  onToggle: VideoViewOptions['onToggle']
+  options: VideoViewOptions
 ): HTMLElement {
   const card = element('article', 'video-card')
   const image = element('div', 'video-art')
@@ -135,9 +137,14 @@ function videoCard(
   if (!video.state) body.append(element('span', 'new-badge', 'Novo'))
   body.append(title, meta)
   const actions = element('div', 'card-actions')
+  const following = options.trackedVideoIds.has(video.id)
+  const follow = button(following ? '✓ Acompanhando' : 'Acompanhar esta história',
+    () => options.onFollow(video))
+  follow.disabled = following
   actions.append(
-    button(video.state?.is_favorite ? '★ Favorito' : '☆ Favoritar', () => onToggle(video, 'is_favorite')),
-    button(video.state?.is_watched ? '✓ Visto' : '○ Marcar visto', () => onToggle(video, 'is_watched'))
+    button(video.state?.is_favorite ? '★ Favorito' : '☆ Favoritar', () => options.onToggle(video, 'is_favorite')),
+    button(video.state?.is_watched ? '✓ Visto' : '○ Marcar visto', () => options.onToggle(video, 'is_watched')),
+    follow
   )
   actions.append(link)
   body.append(actions)

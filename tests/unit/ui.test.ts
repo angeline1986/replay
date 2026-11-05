@@ -4,6 +4,8 @@ import { JSDOM } from 'jsdom'
 import { authView } from '../../src/features/auth/view.ts'
 import { channelView } from '../../src/features/channels/view.ts'
 import { videoView } from '../../src/features/videos/view.ts'
+import { storiesView } from '../../src/features/stories/view.ts'
+import { sidebarView } from '../../src/app/shell.ts'
 import { demoChannelIds, demoChannels, demoVideos } from '../../src/shared/demo.ts'
 
 function withDocument(run: (window: JSDOM['window']) => void): void {
@@ -63,6 +65,7 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
     onFilter: () => events.push('filter'),
     onSort: () => events.push('sort'),
     onToggle: (_video, key) => events.push(key),
+    onFollow: () => events.push('follow'), trackedVideoIds: new Set(),
     onLoadMore: () => events.push('more')
   })
   assert.equal(view.querySelectorAll('.video-card').length, 1)
@@ -74,7 +77,29 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   const actions = [...view.querySelectorAll<HTMLButtonElement>('.card-actions button')]
   actions[0].click()
   actions[1].click()
-  assert.deepEqual(events, ['is_favorite', 'is_watched'])
+  actions[2].click()
+  assert.deepEqual(events, ['is_favorite', 'is_watched', 'follow'])
+}))
+
+test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corrigir nome', () => withDocument(() => {
+  const events: string[] = []
+  const story = { id: 'story', owner_id: 'owner', seed_video_id: demoVideos[0].id,
+    name: 'Obra <Nova>', canonical_key: 'obra nova', aliases: [], is_followed: true,
+    last_scanned_at: '2026-11-05T00:00:00Z', created_at: '2026-11-04T00:00:00Z' }
+  const candidate = { id: 'match', story_id: 'story', video_id: demoVideos[1].id,
+    status: 'pending' as const, score: 95, reason: 'Nome da obra; mesmo canal.',
+    detected_at: '2026-11-05T00:00:00Z', decided_at: null, video: demoVideos[1] }
+  const view = storiesView({ data: { groups: [{ story, seed: demoVideos[0],
+    confirmed: [], pending: [candidate] }], pendingCount: 1 },
+  onDecide: (_item, status) => events.push(status),
+  onRename: () => events.push('rename'), onUnfollow: () => events.push('unfollow') })
+  assert.equal(view.querySelector('script'), null)
+  assert.match(view.textContent ?? '', /Obra <Nova>/)
+  assert.match(view.textContent ?? '', /Possíveis continuações \(1\)/)
+  const buttons = [...view.querySelectorAll('button')]
+  buttons.forEach((item) => item.click())
+  assert.deepEqual(events, ['rename', 'unfollow', 'confirmed', 'rejected'])
+  assert.match(sidebarView('stories', true, 1).textContent ?? '', /Minhas histórias \(1\)/)
 }))
 
 test('página de favoritos mostra somente marcados e ordena pelo título', () => withDocument(() => {
@@ -86,7 +111,8 @@ test('página de favoritos mostra somente marcados e ordena pelo título', () =>
   const view = videoView({
     mode: 'favorites', sort: 'az', videos, channels: demoChannels,
     filter: { query: '', status: 'all', channelId: '' }, hasMore: false,
-    onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onLoadMore: () => {}
+    onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onLoadMore: () => {},
+    onFollow: () => {}, trackedVideoIds: new Set()
   })
   const titles = [...view.querySelectorAll('.video-card h2')].map((title) => title.textContent)
   assert.deepEqual(titles, ['Amora', 'Zebra'])
@@ -100,7 +126,8 @@ test('Todos os lançamentos e Todos os canais exibem só o último vídeo de cad
   const base = { mode: 'videos' as const, sort: 'recent' as const,
     videos: [latest, older, other], highlights: [latest, other], channels: demoChannels,
     filter: { query: '', status: 'all' as const, channelId: '' }, hasMore: true,
-    onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onLoadMore: () => {} }
+    onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onLoadMore: () => {},
+    onFollow: () => {}, trackedVideoIds: new Set<string>() }
   const view = videoView(base)
   assert.equal(view.querySelectorAll('.video-card').length, 2)
   assert.equal(view.querySelector('.load-more'), null)
@@ -118,7 +145,8 @@ test('favoritos fora da primeira página são exibidos sem carregar mais', () =>
     mode: 'favorites', sort: 'recent', channels: demoChannels,
     videos: [demoVideos[0]], favoriteVideos: [favorite], hasMore: true,
     filter: { query: '', status: 'all', channelId: '' },
-    onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onLoadMore: () => {}
+    onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onLoadMore: () => {},
+    onFollow: () => {}, trackedVideoIds: new Set()
   })
   assert.equal(view.querySelectorAll('.video-card').length, 1)
   assert.match(view.textContent ?? '', /Experimentos que cabem na mesa/)

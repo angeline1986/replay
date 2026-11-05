@@ -44,7 +44,7 @@ function significant(value: string): string[] {
     token.length >= 3 && !generic.has(token) && !/^\d+$/.test(token))
 }
 
-function distinctEnough(value: string): boolean {
+export function distinctEnough(value: string): boolean {
   const tokens = significant(value)
   return tokens.length >= 2 || (tokens.length === 1 && tokens[0].length >= 8)
 }

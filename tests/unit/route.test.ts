@@ -9,6 +9,7 @@ test('rota hash abre vídeos e canais, inclusive após atualização', () => {
   assert.deepEqual(routeFromHash('#favorites'), { page: 'favorites', channelId: '' })
   assert.deepEqual(routeFromHash('#videos'), { page: 'videos', channelId: '' })
   assert.deepEqual(routeFromHash('#channels'), { page: 'channels', channelId: '' })
+  assert.deepEqual(routeFromHash('#stories'), { page: 'stories', channelId: '' })
   assert.deepEqual(routeFromHash(channelRoute(id)), { page: 'videos', channelId: id })
 })
 

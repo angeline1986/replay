@@ -1,6 +1,6 @@
-# Proposta — Acompanhar histórias (v1)
+# Acompanhar histórias (v1) — implementação local
 
-Status: **aguardando aprovação da interface e da migration**. Nenhum esquema, RLS remoto, workflow ou dado foi alterado por esta proposta. Branch: `feature/story-tracking`, criada a partir de `main`.
+Status: **implementado na branch `feature/story-tracking` para revisão**. A migration existe apenas no repositório; nenhum esquema, RLS ou dado hospedado foi alterado. A publicação e a aplicação no Supabase exigem autorização separada.
 
 ## Base inspecionada
 
@@ -16,7 +16,9 @@ Status: **aguardando aprovação da interface e da migration**. Nenhum esquema, 
 
 O módulo puro [story-match.ts](../src/shared/story-match.ts) e seus testes já estão na branch para revisar esses critérios. Não consulta YouTube nem grava no Supabase.
 
-## Migration proposta (ainda não criada)
+## Migration local
+
+Arquivo: [`20261105173851_tracked_stories.sql`](../supabase/migrations/20261105173851_tracked_stories.sql). Gerado com `supabase migration new` e executado somente em PostgreSQL temporário local.
 
 | Tabela | Campos principais | Função |
 | --- | --- | --- |
@@ -28,12 +30,12 @@ O vídeo inicial é representado por `tracked_stories.seed_video_id`; os demais 
 ### Acessos e integridade
 
 - Habilitar RLS nas duas tabelas novas. Nenhuma política das tabelas existentes muda.
-- `tracked_stories`: `SELECT` do próprio `owner_id`; `INSERT` somente com `owner_id=auth.uid()` e `seed_video_id` cujo `videos.channel_id` pertence a canal do mesmo usuário; `UPDATE` somente de `is_followed`, com `USING` e `WITH CHECK` do proprietário. Sem `DELETE` para `authenticated` na v1.
+- `tracked_stories`: `SELECT` do próprio `owner_id`; `INSERT` somente com `owner_id=auth.uid()` e `seed_video_id` cujo `videos.channel_id` pertence a canal do mesmo usuário; `UPDATE` somente de `name`, `canonical_key`, `aliases` e `is_followed`, com `USING` e `WITH CHECK` do proprietário. Alterar o nome ou aliases limpa o cursor para rever os vídeos já guardados. Sem `DELETE` para `authenticated` na v1.
 - `story_matches`: `SELECT` somente quando a história **e** o vídeo pertencem ao usuário; `UPDATE` somente das colunas `status` e `decided_at`, exigindo estado anterior `pending` e novo estado `confirmed` ou `rejected`. Sem `INSERT`/`DELETE` para `authenticated`; o coletor insere candidatos via a Secret API Key que já usa, após conferir o proprietário de história e vídeo.
-- Conceder privilégios mínimos a `authenticated` e `service_role`; `anon` continua sem acesso. Testar leitura e escrita permitidas/negadas com dois usuários e `anon`, inclusive tentativa de ligar vídeo de outro proprietário. Verificar exposição das tabelas novas na Data API, pois ela não é automática para todos os projetos.
+- Conceder privilégios mínimos a `authenticated` e `service_role`; `anon` continua sem acesso. Os gatilhos verificam a titularidade mesmo para o coletor e impedem alterar os pares história/vídeo. O ensaio local cobre dois usuários, `anon`, decisão alheia, colunas protegidas e rejeição permanente. A exposição das tabelas na Data API ainda precisará de confirmação após aprovação para aplicar a migration.
 - Índices propostos: `tracked_stories(owner_id, is_followed)`, `story_matches(story_id, status, detected_at DESC)`, `story_matches(video_id)` e índice parcial para pendentes, além das `UNIQUE` acima. As FKs e índices não alteram `videos` nem `user_video_state`.
 
-Antes de criar o arquivo SQL, a migration será gerada com `supabase migration new`, conforme a CLI v2 fixada no projeto. Ela terá no máximo 200 linhas e será validada em PostgreSQL local; **aplicar no projeto hospedado exigirá autorização separada**.
+A migration tem menos de 200 linhas e foi validada em PostgreSQL local; **aplicar no projeto hospedado exigirá autorização separada**.
 
 ## Fluxo após a coleta
 
@@ -46,10 +48,10 @@ Adicionar uma etapa depois de `runCollector`, sem mudar `saveUploads` nem a dedu
 | Cartão do vídeo | Botão **Acompanhar esta história**. Abre confirmação do nome sugerido e aliases opcionais; para obra já acompanhada, abre a história existente. Favorito e Visto permanecem independentes. |
 | Navegação | **Minhas histórias** com número de candidatos `pending` de histórias ativas. |
 | Minhas histórias | Cada história exibe vídeo inicial e vídeos `confirmed` por data/parte; área separada mostra candidatos com confiança, motivo, canal e botões **Confirmar**/**Rejeitar**. |
-| Ação da história | **Deixar de acompanhar** solicita confirmação e apenas marca `is_followed=false`. |
+| Ação da história | **Corrigir nome** permite editar nome da obra e aliases. **Deixar de acompanhar** solicita confirmação e apenas marca `is_followed=false`. |
 
 Estados vazios: nenhuma história; história sem continuação; nenhuma sugestão pendente. A primeira verificação de uma história nova ocorrerá após a próxima execução do coletor; a página informa isso. O frontend jamais recebe Secret API Key.
 
 ## Critérios de validação
 
-Testes unitários: partes sequenciais, faixa de partes, títulos de chamada diferentes com obra explícita, outro canal, duplicata/parte antiga, nome genérico e ausência de correspondência. Depois da aprovação: testes RLS de dois proprietários e `anon`, idempotência após duas varreduras, decisão persistida, contador, confirmação/rejeição e preservação de favoritos/vistos. `npm run check`, limite de 200 linhas e CI da branch antes de qualquer merge ou publicação.
+Testes unitários cobrem partes sequenciais, faixa de partes, títulos de chamada diferentes com obra explícita, outro canal, duplicata/parte antiga, nome genérico, duas varreduras, falha de persistência, contador e comandos da interface. `tests/security/story-rls.sql` cobre RLS, titulares, confirmação/rejeição e upsert após rejeição em banco local. `npm run check`, limite de 200 linhas e CI da branch antecedem qualquer merge ou publicação.

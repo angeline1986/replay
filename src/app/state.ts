@@ -1,6 +1,7 @@
 import type { Channel, ChannelRequest, Video, VideoFilter } from '../shared/model.ts'
 import { demoChannels, demoVideos } from '../shared/demo.ts'
 import { routeFromHash } from './route.ts'
+import type { StoryDashboard } from '../shared/story-model.ts'
 
 export interface AppState {
   channels: Channel[]
@@ -8,9 +9,11 @@ export interface AppState {
   videos: Video[]
   highlights: Video[]
   favoriteVideos: Video[]
+  stories: StoryDashboard
+  storiesError: string
   hasMore: boolean
   filter: VideoFilter
-  page: 'favorites' | 'videos' | 'channels'
+  page: 'favorites' | 'videos' | 'channels' | 'stories'
   sort: 'recent' | 'az'
   busy: boolean
   error: string
@@ -24,6 +27,8 @@ export const state: AppState = {
   videos: import.meta.env.VITE_DEMO === 'true' ? structuredClone(demoVideos) : [],
   highlights: import.meta.env.VITE_DEMO === 'true' ? structuredClone(demoVideos) : [],
   favoriteVideos: [],
+  stories: { groups: [], pendingCount: 0 },
+  storiesError: '',
   hasMore: false,
   filter: { query: '', status: 'all', channelId: routeFromHash(location.hash).channelId },
   page: routeFromHash(location.hash).page,

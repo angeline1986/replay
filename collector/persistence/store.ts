@@ -12,7 +12,7 @@ function required(name: string): string {
   return value
 }
 
-const db = createClient(required('SUPABASE_URL'), required('SUPABASE_SERVICE_ROLE_KEY'), {
+export const db = createClient(required('SUPABASE_URL'), required('SUPABASE_SERVICE_ROLE_KEY'), {
   auth: { autoRefreshToken: false, persistSession: false }
 })
 
