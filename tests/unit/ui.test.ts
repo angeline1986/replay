@@ -36,6 +36,23 @@ test('tela de canais dispara cadastro, pausa e abertura', () => withDocument((wi
   ])
 }))
 
+test('seletor de canais localiza o cartão sem cadastrar outro canal', () => withDocument((window) => {
+  const added: string[] = []
+  const view = channelView({
+    channels: demoChannels, requests: [], videos: demoVideos,
+    onAdd: (input) => added.push(input),
+    onToggle: () => {}, onRemove: () => {}, onOpen: () => {}
+  })
+  const select = view.querySelector<HTMLSelectElement>('.channel-jump')!
+  assert.equal(select.options.length, 3)
+  select.value = demoChannelIds[1]
+  select.dispatchEvent(new window.Event('change'))
+  const cards = [...view.querySelectorAll('.channel-card')]
+  assert.equal(cards[0].classList.contains('channel-card-selected'), false)
+  assert.equal(cards[1].classList.contains('channel-card-selected'), true)
+  assert.deepEqual(added, [])
+}))
+
 test('tela de vídeos filtra e escapa título externo', () => withDocument(() => {
   const malicious = { ...demoVideos[0], title: '<script>alert(1)</script>' }
   const events: string[] = []
@@ -74,6 +91,39 @@ test('página de favoritos mostra somente marcados e ordena pelo título', () =>
   const titles = [...view.querySelectorAll('.video-card h2')].map((title) => title.textContent)
   assert.deepEqual(titles, ['Amora', 'Zebra'])
   assert.match(view.textContent ?? '', /Seus favoritos2/)
+}))
+
+test('Todos os lançamentos e Todos os canais exibem só o último vídeo de cada canal', () => withDocument(() => {
+  const latest = { ...demoVideos[0], id: 'newest', published_at: '2026-11-05T12:00:00Z' }
+  const older = { ...demoVideos[0], id: 'older', published_at: '2026-11-01T12:00:00Z' }
+  const other = { ...demoVideos[1], id: 'other', published_at: '2026-11-04T12:00:00Z' }
+  const base = { mode: 'videos' as const, sort: 'recent' as const,
+    videos: [latest, older, other], highlights: [latest, other], channels: demoChannels,
+    filter: { query: '', status: 'all' as const, channelId: '' }, hasMore: true,
+    onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onLoadMore: () => {} }
+  const view = videoView(base)
+  assert.equal(view.querySelectorAll('.video-card').length, 2)
+  assert.equal(view.querySelector('.load-more'), null)
+  assert.deepEqual([...view.querySelectorAll('.video-card h2')].map((node) => node.textContent),
+    [latest.title, other.title])
+  const byChannel = videoView({ ...base, filter: { ...base.filter, channelId: demoChannelIds[0] } })
+  assert.equal(byChannel.querySelectorAll('.video-card').length, 2)
+  assert.notEqual(byChannel.querySelector('.load-more'), null)
+}))
+
+test('favoritos fora da primeira página são exibidos sem carregar mais', () => withDocument(() => {
+  const favorite = { ...demoVideos[1], id: 'favorite-from-old-page',
+    state: { video_id: 'favorite-from-old-page', is_favorite: true, is_watched: true } }
+  const view = videoView({
+    mode: 'favorites', sort: 'recent', channels: demoChannels,
+    videos: [demoVideos[0]], favoriteVideos: [favorite], hasMore: true,
+    filter: { query: '', status: 'all', channelId: '' },
+    onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onLoadMore: () => {}
+  })
+  assert.equal(view.querySelectorAll('.video-card').length, 1)
+  assert.match(view.textContent ?? '', /Experimentos que cabem na mesa/)
+  assert.equal(view.querySelector('.load-more'), null)
+  assert.match(view.textContent ?? '', /Seus favoritos1/)
 }))
 
 test('tela de login prioriza GitHub e mantém recuperação por e-mail', () => withDocument((window) => {

@@ -30,6 +30,12 @@
 .load-more { display: block; margin: 28px auto; padding: 10px 15px; border: 1px solid #e0e3eb; border-radius: 9px; background: #fff; color: #20283a; font-weight: 650; }
 .add-channel { display: flex; gap: 10px; margin: 0 0 22px; padding: 16px; border: 1px solid #e6e9f0; border-radius: 12px; background: #fff; }
 .add-channel input { flex: 1; min-width: 0; }
+.add-channel .channel-jump {
+  flex: 0 1 240px; min-width: 155px; max-width: 280px;
+  padding: 11px; border: 1px solid #e0e3eb; border-radius: 9px;
+  background: #fff; color: #20283a;
+}
+.channel-card-selected { border-color: #6151dc; box-shadow: 0 0 0 2px #6151dc33; }
 .request-list { margin-bottom: 20px; padding: 14px 16px; border: 1px solid #e6e9f0; border-radius: 12px; background: #fff; }
 .request-list h2 { margin: 0 0 8px; font-size: 15px; }
 .request-list p { margin: 5px 0; font-size: 12px; }
@@ -53,6 +59,7 @@
 @media (max-width: 700px) {
   .video-grid { grid-template-columns: 1fr; }
   .add-channel { flex-direction: column; }
+  .add-channel .channel-jump { flex: auto; width: 100%; max-width: none; }
   .channel-card { flex-wrap: wrap; }
   .channel-actions { width: 100%; justify-content: flex-start; }
   .filters select { flex: 1 1 140px; }

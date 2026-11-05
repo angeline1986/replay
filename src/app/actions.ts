@@ -14,7 +14,7 @@ export function makeActions(hooks: Hooks) {
     video.state ??= { video_id: video.id, is_favorite: false, is_watched: false }
     video.state[key] = !video.state[key]
     if (state.demo) { hooks.render(); return }
-    await hooks.act(() => saveVideoState(hooks.userId(), video), false)
+    await hooks.act(() => saveVideoState(hooks.userId(), video))
   }
 
   async function createChannel(input: string): Promise<void> {

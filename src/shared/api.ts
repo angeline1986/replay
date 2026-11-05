@@ -58,13 +58,16 @@ export async function signInWithGitHub(): Promise<void> {
 }
 
 export async function loadDashboard(userId: string): Promise<{
-  channels: Channel[]; requests: ChannelRequest[]; videos: Video[]; hasMore: boolean
+  channels: Channel[]; requests: ChannelRequest[]; videos: Video[]; highlights: Video[]; favorites: Video[]; hasMore: boolean
 }> {
   const channels = unwrap(await client().from('channels').select('*').order('name')) as Channel[]
   const requests = unwrap(await client().from('channel_requests')
     .select('id,handle,status,error_message').order('created_at', { ascending: false }).limit(20)) as ChannelRequest[]
-  const videos = await loadVideoPage(userId, channels, 0)
-  return { channels, requests, videos, hasMore: videos.length === 50 }
+  const [videos, highlights, favorites] = await Promise.all([
+    loadVideoPage(userId, channels, 0), loadLatestChannelVideos(userId, channels),
+    loadFavoriteVideos(userId, channels)
+  ])
+  return { channels, requests, videos, highlights, favorites, hasMore: videos.length === 50 }
 }
 
 export async function loadVideoPage(userId: string, channels: Channel[], offset: number): Promise<Video[]> {
@@ -82,6 +85,58 @@ export async function loadVideoPage(userId: string, channels: Channel[], offset:
     channel: byChannel.get(video.channel_id),
     state: byVideo.get(video.id)
   }))
+}
+
+// Consulta um vídeo por canal: a paginação geral de 50 vídeos não é suficiente.
+export async function loadLatestChannelVideos(userId: string, channels: Channel[]): Promise<Video[]> {
+  const videos: Video[] = []
+  for (let offset = 0; offset < channels.length; offset += 8) {
+    const page = await Promise.all(channels.slice(offset, offset + 8).map(async (channel) => {
+      const result = await client().from('videos')
+        .select('id,channel_id,youtube_video_id,title,url,thumbnail_url,published_at,discovered_at')
+        .eq('channel_id', channel.id)
+        .order('published_at', { ascending: false }).limit(1)
+      const matches = unwrap(result) as Video[]
+      return matches[0] ? { ...matches[0], channel: { id: channel.id, name: channel.name } } : null
+    }))
+    for (const video of page) if (video) videos.push(video)
+  }
+  if (!videos.length) return []
+  const states = unwrap(await client().from('user_video_state')
+    .select('video_id,is_favorite,is_watched').eq('user_id', userId)
+    .in('video_id', videos.map((video) => video.id))) as VideoState[]
+  const byVideo = new Map(states.map((item) => [item.video_id, item]))
+  return videos.map((video) => ({ ...video, state: byVideo.get(video.id) }))
+    .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
+}
+
+// Favoritos independem da paginação cronológica do feed geral.
+export async function loadFavoriteVideos(userId: string, channels: Channel[]): Promise<Video[]> {
+  const ids: string[] = []
+  for (let offset = 0; ; offset += 500) {
+    const states = unwrap(await client().from('user_video_state')
+      .select('video_id').eq('user_id', userId).eq('is_favorite', true)
+      .range(offset, offset + 499)) as { video_id: string }[]
+    ids.push(...states.map((state) => state.video_id))
+    if (states.length < 500) break
+  }
+  if (!ids.length) return []
+  const byChannel = new Map(channels.map((channel) => [channel.id, channel]))
+  const favorites: Video[] = []
+  for (let offset = 0; offset < ids.length; offset += 100) {
+    const batch = ids.slice(offset, offset + 100)
+    const videos = unwrap(await client().from('videos')
+      .select('id,channel_id,youtube_video_id,title,url,thumbnail_url,published_at,discovered_at')
+      .in('id', batch)) as Video[]
+    const states = unwrap(await client().from('user_video_state')
+      .select('video_id,is_favorite,is_watched').eq('user_id', userId)
+      .in('video_id', batch)) as VideoState[]
+    const byVideo = new Map(states.map((state) => [state.video_id, state]))
+    favorites.push(...videos.map((video) => ({
+      ...video, channel: byChannel.get(video.channel_id), state: byVideo.get(video.id)
+    })).filter((video) => video.state?.is_favorite))
+  }
+  return favorites.sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
 }
 
 export async function requestChannel(userId: string, handle: string): Promise<void> {

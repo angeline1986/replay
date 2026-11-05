@@ -6,6 +6,8 @@ export interface AppState {
   channels: Channel[]
   requests: ChannelRequest[]
   videos: Video[]
+  highlights: Video[]
+  favoriteVideos: Video[]
   hasMore: boolean
   filter: VideoFilter
   page: 'favorites' | 'videos' | 'channels'
@@ -20,6 +22,8 @@ export const state: AppState = {
   channels: import.meta.env.VITE_DEMO === 'true' ? structuredClone(demoChannels) : [],
   requests: [],
   videos: import.meta.env.VITE_DEMO === 'true' ? structuredClone(demoVideos) : [],
+  highlights: import.meta.env.VITE_DEMO === 'true' ? structuredClone(demoVideos) : [],
+  favoriteVideos: [],
   hasMore: false,
   filter: { query: '', status: 'all', channelId: routeFromHash(location.hash).channelId },
   page: routeFromHash(location.hash).page,

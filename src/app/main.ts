@@ -29,6 +29,8 @@ const auth = createAuthGate({
     state.channels = value?.dashboard.channels ?? []
     state.requests = value?.dashboard.requests ?? []
     state.videos = value?.dashboard.videos ?? []
+    state.highlights = value?.dashboard.highlights ?? []
+    state.favoriteVideos = value?.dashboard.favorites ?? []
     state.hasMore = value?.dashboard.hasMore ?? false
     state.error = ''
     authMessage = ''
@@ -43,6 +45,8 @@ async function refresh(): Promise<void> {
   state.channels = data.channels
   state.requests = data.requests
   state.videos = data.videos
+  state.highlights = data.highlights
+  state.favoriteVideos = data.favorites
   state.hasMore = data.hasMore
 }
 
@@ -111,7 +115,9 @@ function render(): void {
     }, authMessage))
   } else {
     main.append(state.page !== 'channels' ? videoView({
-      mode: state.page, videos: state.videos, channels: state.channels,
+      mode: state.page, videos: state.videos, highlights: state.highlights,
+      favoriteVideos: state.demo ? state.videos.filter((v) => v.state?.is_favorite) : state.favoriteVideos,
+      channels: state.channels,
       filter: state.filter, sort: state.sort,
       hasMore: state.hasMore, onLoadMore: () => { void loadMore() },
       onSort: (sort) => { state.sort = sort; render() },

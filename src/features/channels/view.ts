@@ -24,6 +24,27 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   heading.append(intro)
   root.append(heading, statsView(options.channels, options.videos))
   const form = element('form', 'add-channel')
+  const select = element('select', 'channel-jump')
+  select.setAttribute('aria-label', 'Ir para canal cadastrado')
+  const placeholder = element('option', '', 'Selecionar canal…')
+  placeholder.value = ''
+  select.append(placeholder)
+  for (const item of options.channels) {
+    const option = element('option', '', item.name)
+    option.value = item.id
+    select.append(option)
+  }
+  select.disabled = options.channels.length === 0
+  const cards = new Map<string, HTMLElement>()
+  select.addEventListener('change', () => {
+    for (const [id, card] of cards) {
+      card.classList.toggle('channel-card-selected', id === select.value)
+    }
+    const target = cards.get(select.value)
+    if (target && typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
   const field = element('input')
   field.name = 'channel'
   field.type = 'text'
@@ -32,7 +53,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   field.setAttribute('aria-label', 'URL, arroba ou ID do canal')
   const submit = element('button', 'primary', 'Adicionar canal')
   submit.type = 'submit'
-  form.append(field, submit)
+  form.append(select, field, submit)
   form.addEventListener('submit', (event) => {
     event.preventDefault()
     options.onAdd(field.value.trim())
@@ -61,6 +82,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   const list = element('div', 'channel-list')
   for (const channel of options.channels) {
     const item = element('article', 'channel-card')
+    cards.set(channel.id, item)
     const avatar = element('div', 'avatar', channel.name.slice(0, 1).toUpperCase())
     if (channel.avatar_url) {
       const img = element('img')

@@ -5,6 +5,8 @@ import { statsView } from '../stats/view.ts'
 interface VideoViewOptions {
   mode: 'favorites' | 'videos'
   videos: Video[]
+  highlights?: Video[]
+  favoriteVideos?: Video[]
   channels: Channel[]
   filter: VideoFilter
   sort: 'recent' | 'az'
@@ -30,7 +32,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const add = element('a', 'primary header-action', '+ Adicionar canal')
   add.href = '#channels'
   heading.append(intro, add)
-  root.append(heading, statsView(options.channels, options.videos))
+  root.append(heading, statsView(options.channels, options.videos, options.favoriteVideos?.length))
 
   const filters = element('div', 'filters')
   const search = element('input')
@@ -80,7 +82,11 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   filters.append(sort)
   root.append(filters)
 
-  const filtered = filterVideos(options.videos, options.filter)
+  // Com ambos os selects em "Todos", mostrar apenas o último vídeo de cada canal.
+  const onePerChannel = !favorites && options.filter.status === 'all' && !options.filter.channelId
+  const source = favorites ? (options.favoriteVideos ?? options.videos)
+    : onePerChannel ? (options.highlights ?? options.videos) : options.videos
+  const filtered = filterVideos(source, options.filter)
     .filter((video) => !favorites || video.state?.is_favorite)
   if (options.sort === 'az') filtered.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'))
   const sectionTitle = element('div', 'section-title')
@@ -98,7 +104,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     for (const video of filtered) grid.append(videoCard(video, options.onToggle))
     root.append(grid)
   }
-  if (options.hasMore) root.append(button('Carregar mais vídeos', options.onLoadMore, 'load-more'))
+  if (options.hasMore && !onePerChannel && !favorites) root.append(button('Carregar mais vídeos', options.onLoadMore, 'load-more'))
   return root
 }
 
