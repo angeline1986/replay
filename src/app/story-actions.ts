@@ -1,7 +1,6 @@
 import { state } from './state.ts'
 import { supabase } from '../shared/api.ts'
 import { attachStoryVideo, decideCandidate, followStory, renameStory, unfollowStory } from '../shared/stories-api.ts'
-import { suggestStoryName } from '../shared/story-match.ts'
 import type { Video } from '../shared/model.ts'
 import type { StoryCandidate, TrackedStory } from '../shared/story-model.ts'
 
@@ -58,11 +57,10 @@ ${menu}`)
       if (linked) location.hash = '#stories'
       return
     }
-    const name = prompt('Nome da obra (corrija o título promocional, se necessário):',
-      suggestStoryName(video.title))
-    if (name === null) return
-    const aliases = aliasesInput()
-    if (aliases === null) return
+    // O título exibido no cartão identifica inicialmente a história.
+    // Nome e aliases continuam editáveis em “Minhas histórias”.
+    const name = video.title.trim()
+    const aliases: string[] = []
     if (state.demo) {
       const existing = state.stories.groups.find((group) =>
         group.story.canonical_key === name.toLocaleLowerCase('pt-BR').trim())
