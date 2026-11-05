@@ -4,7 +4,7 @@ RePlay mostra somente vídeos dos canais do YouTube escolhidos pelo usuário. O 
 
 ## Estado
 
-O código está na branch `feature/replay-mvp`. A proprietária escolheu um projeto Supabase existente; migrations, Secrets, coleta real e Pages ainda exigem aplicação e validação. Veja [plano Supabase](docs/supabase-plan.md), [relatório](docs/report.md) e [marcos](docs/milestones.md).
+O portal e o coletor estão na `main`. O menu para macOS está preparado separadamente em `feature/terminal-control`; a proposta anterior de GitHub App e Edge Function permanece isolada em `feature/portal-monitor-control`. Veja [relatório](docs/report.md) e [operação](docs/operations.md).
 
 ## Desenvolvimento
 
@@ -12,16 +12,15 @@ Requer Node.js 22. Execute `npm ci`, `npm run check` e `npm run dev`. Para dados
 
 O build usa a base `/replay/` para GitHub Pages. `npm run build` cria `dist/`. `npm run check:lines` valida o máximo de 200 linhas em todo arquivo de código e configuração mantido manualmente. `package-lock.json`, `node_modules`, `dist` e `coverage` são gerados/ignorados.
 
-## Primeira instalação
+## Menu no Terminal do macOS
 
-1. Use o projeto Supabase existente `fxbivwcfwqdvotohzrwg`, escolhido pela proprietária. Confirme o estado e o plano antes de aplicar migrations ou ativar recursos pagos; não crie outro projeto.
-2. Aplique as migrations versionadas em `supabase/migrations/` primeiro em desenvolvimento, com a CLI Supabase, e execute os testes RLS com duas contas e sessão anônima.
-3. Desative cadastro público no Supabase Auth. Crie o primeiro usuário autorizado por convite administrativo e insira seu `user_id` em `public.profiles` via interface administrativa segura.
-4. Configure o URL de redirecionamento `https://angeline1986.github.io/replay/` no Auth.
-5. No GitHub, configure as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`; configure os Secrets `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `YOUTUBE_API_KEY` para a coleta.
-6. Ative GitHub Pages com fonte GitHub Actions. Faça merge na `main` após CI verde. Execute `Monitorar canais` manualmente e verifique logs, banco e a URL do Pages.
+Use Node.js 22, `gh auth login` na conta `angeline1986`, e `.env.local` com `VITE_SUPABASE_URL` do projeto RePlay e `VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...`. No diretório do projeto, execute `npm ci` e `npm link` uma vez; depois digite `replay` em qualquer diretório enquanto esta versão do Node estiver ativa. `npm run replay` também abre o menu sem instalar o comando global.
 
-Não cole credenciais em issues, chat, commits, variáveis `VITE_` de serviço ou arquivos no Pages. O nome `RePlay` e a interface foram definidos pela descrição da especificação; nenhum protótipo HTML foi recebido.
+O menu usa `gh` para consultar e solicitar o workflow manual na `main`. Para listar ou mudar canais, abre o login GitHub já configurado no Supabase e recebe o callback PKCE em `http://localhost:5173/replay/`, URL já permitida no Auth. Feche um Vite local que ocupe a porta 5173 antes de acessar canais. A sessão fica somente na memória do processo; a chave publicável e o JWT do usuário passam pelas políticas RLS. Não configure `service_role` ou `sb_secret_` no Terminal. Ações em massa exigem confirmação com a quantidade; detalhes em [operação](docs/operations.md).
+
+## Configuração existente
+
+O projeto Supabase `fxbivwcfwqdvotohzrwg`, o login GitHub, o GitHub Pages e os três Actions Secrets da coleta já foram configurados. As migrations e políticas RLS existentes não são reaplicadas pelo menu. Não coloque credenciais em issues, chat, commits, variáveis `VITE_` de serviço ou arquivos do Pages.
 
 ## Limites
 

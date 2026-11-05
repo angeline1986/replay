@@ -1,5 +1,13 @@
 # Operação e recuperação
 
+## Menu do Terminal
+
+Na branch `feature/terminal-control`, instale o atalho com `npm link` após `npm ci`; `replay` abre nove opções. O link global aponta para esta cópia do projeto e para a versão ativa do Node 22 via nvm. `npm run replay` funciona sem o link. O comando exige `gh` autenticado como `angeline1986` para solicitar o workflow. Não cria GitHub App nem Edge Function.
+
+As opções de canal usam a URL e a chave `sb_publishable_` de `.env.local`. No primeiro acesso a canais, a CLI abre o GitHub OAuth existente com PKCE e recebe o código em `http://localhost:5173/replay/`. O Supabase troca o código por sessão em memória; `getUser()` e `profiles.role = owner` são verificados antes de cada leitura e alteração. As consultas e atualizações passam pela RLS existente com o JWT do usuário; nenhuma chave privilegiada é lida pela CLI. A porta 5173 precisa estar livre. Encerrar o processo elimina a sessão local da CLI, sem afetar a sessão do dashboard.
+
+As opções `Ativar todos` e `Pausar todos` calculam apenas canais cujo estado mudará, pedem `SIM <quantidade>`, conferem a lista novamente e verificam o número de linhas retornadas. Em caso de alteração concorrente ou parcial, consulte a lista antes de repetir. A opção manual exige confirmação, consulta os runs do dia local em São Paulo e recusa segunda manual ou run em andamento. O gate e a concorrência do Actions continuam decisivos; duas chamadas simultâneas da CLI podem criar um run extra bloqueado, mas só uma coleta manual é elegível. Um run verde sem etapa de coleta é mostrado como bloqueado, não como coleta concluída. O resultado e a cota só aparecem quando o log contém o resumo filtrado.
+
 ## Coleta
 
 O workflow `Monitorar canais` agenda uma coleta diária às 17:00 em `America/Sao_Paulo` e oferece `Run workflow` para uma coleta manual. O botão e o agendamento só ficam disponíveis quando o arquivo estiver na branch padrão; a execução do job exige `refs/heads/main`. `scripts/check-daily-limit.ts` consulta o histórico do próprio workflow na `main` com `github.token` e `actions: read`: a primeira execução manual do dia local pode coletar; outra manual é ignorada. A automática mantém sua vaga, e no máximo duas execuções elegíveis coletam no mesmo dia. Reexecuções do mesmo run são bloqueadas. Se a consulta ao histórico falhar, o coletor não inicia. A concorrência por branch `replay-monitor-${{ github.ref }}` impede duas coletas simultâneas na `main`. Uma manual cancelada, falha ou executada sem canais ativos ainda ocupa sua vaga do dia, por segurança. O limite depende da integridade do histórico do Actions; excluir runs manualmente pode invalidar a contagem.
