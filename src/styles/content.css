@@ -33,6 +33,18 @@
 .request-list { margin-bottom: 20px; padding: 14px 16px; border: 1px solid #e6e9f0; border-radius: 12px; background: #fff; }
 .request-list h2 { margin: 0 0 8px; font-size: 15px; }
 .request-list p { margin: 5px 0; font-size: 12px; }
+.monitor-card { margin: 0 0 20px; padding: 16px; border: 1px solid #e6e9f0; border-radius: 12px; background: #fff; }
+.monitor-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.monitor-head h2 { margin: 0; font-size: 17px; }
+.monitor-card .muted { margin: 9px 0 0; }
+.monitor-card .notice { margin: 12px 0 0; }
+.monitor-state { margin: 13px 0 9px; color: #5545cb; font-weight: 750; text-transform: capitalize; }
+.monitor-details { display: flex; flex-wrap: wrap; gap: 7px 18px; color: #536077; font-size: 12px; }
+.monitor-errors { margin: 10px 0 0; padding-left: 20px; color: #a33343; font-size: 12px; }
+.bulk-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.bulk-actions button { padding: 7px 10px; border: 1px solid #e0e3eb; border-radius: 8px; background: #fff; color: #20283a; font-size: 12px; font-weight: 650; }
+.bulk-actions button:hover { background: #f7f6fd; }
+button:disabled { cursor: not-allowed; opacity: .55; }
 .channel-list { display: grid; gap: 10px; }
 .channel-card { display: flex; align-items: center; gap: 14px; padding: 15px; }
 .avatar { display: grid; place-items: center; flex: 0 0 52px; width: 52px; height: 52px; overflow: hidden; border-radius: 50%; background: linear-gradient(115deg, #6f57d9, #a39def); color: #fff; font-size: 22px; font-weight: 700; }
@@ -56,4 +68,5 @@
   .channel-card { flex-wrap: wrap; }
   .channel-actions { width: 100%; justify-content: flex-start; }
   .filters select { flex: 1 1 140px; }
+  .monitor-head, .section-title { align-items: flex-start; flex-wrap: wrap; }
 }

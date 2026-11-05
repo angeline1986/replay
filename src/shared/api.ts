@@ -107,11 +107,6 @@ export async function addChannel(userId: string, channelId: string): Promise<voi
   if (error) throw new Error(error.message)
 }
 
-export async function setChannelActive(channel: Channel, active: boolean): Promise<void> {
-  const { error } = await client().from('channels').update({ is_active: active }).eq('id', channel.id)
-  if (error) throw new Error(error.message)
-}
-
 export async function removeChannel(channel: Channel): Promise<void> {
   const { error } = await client().from('channels').delete().eq('id', channel.id)
   if (error) throw new Error(error.message)

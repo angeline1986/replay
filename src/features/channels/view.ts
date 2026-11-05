@@ -1,6 +1,8 @@
 import { button, element, notice } from '../../shared/dom.ts'
 import type { Channel, ChannelRequest, Video } from '../../shared/model.ts'
+import type { MonitorSnapshot } from '../../shared/monitor-api.ts'
 import { statsView } from '../stats/view.ts'
+import { monitorView } from './monitor-view.ts'
 
 interface ChannelViewOptions {
   channels: Channel[]
@@ -10,6 +12,13 @@ interface ChannelViewOptions {
   onToggle: (channel: Channel) => void
   onRemove: (channel: Channel) => void
   onOpen: (channel: Channel) => void
+  onBulk: (active: boolean) => void
+  onCollect: () => void
+  monitor: MonitorSnapshot | null
+  monitorLoading: boolean
+  monitorError: string
+  demo: boolean
+  busy: boolean
 }
 
 export function channelView(options: ChannelViewOptions): HTMLElement {
@@ -23,6 +32,8 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   )
   heading.append(intro)
   root.append(heading, statsView(options.channels, options.videos))
+  root.append(monitorView(options.monitor, options.monitorLoading || options.busy,
+    options.monitorError, options.onCollect, options.demo))
   const form = element('form', 'add-channel')
   const field = element('input')
   field.name = 'channel'
@@ -53,6 +64,13 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     element('h2', '', 'Seus canais'),
     element('span', 'result-count', `${options.channels.length} canal${options.channels.length === 1 ? '' : 'is'}`)
   )
+  const bulk = element('div', 'bulk-actions')
+  const activate = button('Ativar todos', () => options.onBulk(true))
+  const pause = button('Pausar todos', () => options.onBulk(false))
+  activate.disabled = options.busy || !options.channels.some((channel) => !channel.is_active)
+  pause.disabled = options.busy || !options.channels.some((channel) => channel.is_active)
+  bulk.append(activate, pause)
+  sectionTitle.append(bulk)
   root.append(sectionTitle)
   if (!options.channels.length) {
     root.append(notice('Nenhum canal cadastrado. Adicione o primeiro para começar.'))

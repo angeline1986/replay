@@ -18,10 +18,13 @@ test('tela de canais dispara cadastro, pausa e abertura', () => withDocument((wi
   const events: string[] = []
   const view = channelView({
     channels: demoChannels, requests: [], videos: demoVideos,
+    monitor: null, monitorLoading: false, monitorError: '', demo: true, busy: false,
     onAdd: (input) => events.push(`add:${input}`),
     onToggle: (channel) => events.push(`toggle:${channel.id}`),
     onRemove: (channel) => events.push(`remove:${channel.id}`),
-    onOpen: (channel) => events.push(`open:${channel.id}`)
+    onOpen: (channel) => events.push(`open:${channel.id}`),
+    onBulk: (active) => events.push(`bulk:${active}`),
+    onCollect: () => events.push('collect')
   })
   const input = view.querySelector('input')!
   input.value = '@canal'
@@ -30,9 +33,10 @@ test('tela de canais dispara cadastro, pausa e abertura', () => withDocument((wi
   buttons[0].click()
   buttons[1].click()
   buttons[2].click()
+  view.querySelectorAll<HTMLButtonElement>('.bulk-actions button')[1].click()
   assert.deepEqual(events, [
     'add:@canal', `open:${demoChannelIds[0]}`,
-    `toggle:${demoChannelIds[0]}`, `remove:${demoChannelIds[0]}`
+    `toggle:${demoChannelIds[0]}`, `remove:${demoChannelIds[0]}`, 'bulk:false'
   ])
 }))
 

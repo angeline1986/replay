@@ -1,5 +1,6 @@
 import { state } from './state.ts'
-import { addChannel, removeChannel, requestChannel, saveVideoState, setChannelActive } from '../shared/api.ts'
+import { addChannel, removeChannel, requestChannel, saveVideoState } from '../shared/api.ts'
+import { changeChannelState } from '../shared/monitor-api.ts'
 import { validChannelId, type Channel, type Video } from '../shared/model.ts'
 import { normalizeChannelInput } from '../features/channels/normalize.ts'
 
@@ -47,7 +48,7 @@ export function makeActions(hooks: Hooks) {
 
   async function toggleChannel(channel: Channel): Promise<void> {
     if (state.demo) { channel.is_active = !channel.is_active; hooks.render(); return }
-    await hooks.act(() => setChannelActive(channel, !channel.is_active))
+    await hooks.act(async () => { await changeChannelState(!channel.is_active, channel.id) })
   }
 
   async function deleteChannel(channel: Channel): Promise<void> {

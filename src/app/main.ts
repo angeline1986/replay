@@ -11,6 +11,7 @@ import { makeActions } from './actions.ts'
 import { channelRoute, routeFromHash } from './route.ts'
 import { createAuthGate } from './auth-gate.ts'
 import { accountBar, sidebarView } from './shell.ts'
+import { createMonitorController } from './monitor.ts'
 
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
@@ -34,8 +35,15 @@ const auth = createAuthGate({
     authMessage = ''
   },
   onError: (error) => { state.error = message(error) },
-  onChange: render
+  onChange: () => {
+    render()
+    if (auth.phase === 'signed_in') monitor.start()
+    else monitor.stop()
+  }
 })
+
+const monitor = createMonitorController({ render, act,
+  ready: () => auth.phase === 'signed_in' && state.page === 'channels' && !state.demo })
 
 async function refresh(): Promise<void> {
   if (state.demo || !userId) return
@@ -130,8 +138,15 @@ function render(): void {
       onToggle: (video, key) => { void actions.toggleVideo(video, key) }
     }) : channelView({
       channels: state.channels, requests: state.requests, videos: state.videos,
+      monitor: monitor.snapshot().value,
+      monitorLoading: monitor.snapshot().loading,
+      monitorError: monitor.snapshot().error,
+      demo: state.demo,
+      busy: state.busy,
       onAdd: (input) => { void actions.createChannel(input) },
-      onToggle: (channel) => { void actions.toggleChannel(channel) },
+      onToggle: (channel) => { void actions.toggleChannel(channel).then(() => monitor.refreshStatus()) },
+      onBulk: (active) => { void monitor.bulk(active) },
+      onCollect: () => { void monitor.collect() },
       onRemove: (channel) => { void actions.deleteChannel(channel) },
       onOpen: (channel) => {
         state.filter.channelId = channel.id
@@ -148,6 +163,8 @@ window.addEventListener('hashchange', () => {
   state.filter = { query: '', status: 'all', channelId: route.channelId }
   state.sort = 'recent'
   render()
+  if (state.page === 'channels') monitor.start()
+  else monitor.stop()
 })
 
 supabase?.auth.onAuthStateChange((event, session) => auth.handle(event, session?.user.id))

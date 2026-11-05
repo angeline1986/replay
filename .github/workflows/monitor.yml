@@ -26,9 +26,13 @@ jobs:
         run: node --experimental-strip-types scripts/check-daily-limit.ts
         env:
           GITHUB_TOKEN: ${{ github.token }}
+      - name: Coleta bloqueada pelo limite diário
+        if: steps.daily_gate.outputs.allowed == 'false'
+        run: echo 'Limite diário atingido; nenhuma coleta foi executada.'
       - if: steps.daily_gate.outputs.allowed == 'true'
         run: npm ci
-      - name: Coletar vídeos públicos
+      - id: collect_videos
+        name: Coletar vídeos públicos
         if: steps.daily_gate.outputs.allowed == 'true'
         run: npm run collect
         env:

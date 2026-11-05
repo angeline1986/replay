@@ -10,6 +10,12 @@ Falhas por canal são registradas em `sync_runs`; erro de cota interrompe os can
 
 ## Credenciais
 
+O controle pelo portal está preparado em `feature/portal-monitor-control`, sem publicação remota. Para habilitar depois de aprovada a mudança: criar um GitHub App privado sob `angeline1986`, instalar somente em `angeline1986/replay`, conceder apenas `Actions: read/write` e guardar `REPLAY_GITHUB_APP_ID`, `REPLAY_GITHUB_INSTALLATION_ID` e `REPLAY_GITHUB_APP_PRIVATE_KEY` como Secrets da Edge Function `monitor-control`. O App de login GitHub OAuth é separado. A função usa chave publicável e JWT do usuário, valida `getUser()` e `profiles.role = 'owner'`, e usa RLS nas alterações de canais; não recebe a chave de serviço do coletor.
+
+O portal confirma a quantidade antes de ações em massa e o backend recusa contagem desatualizada. A função bloqueia outra solicitação manual no mesmo dia ou enquanto há execução em andamento; o gate do Actions continua sendo a proteção final contra duas coletas. O status vem do run, das etapas e, quando disponível, do log exclusivo do coletor. Um workflow concluído sem a etapa de coleta é mostrado como bloqueado ou falho, nunca como vídeos coletados. O portal exibe 17:00 como horário programado e o início do job como horário efetivo. Logs ausentes deixam contagem e erros como indisponíveis.
+
+Em duas solicitações verdadeiramente simultâneas, ambas podem passar na consulta prévia antes de o GitHub registrar a primeira. O gate do workflow permite somente a primeira coleta manual, mas pode restar um run adicional bloqueado. Impedir até a criação desse run exigiria um bloqueio persistente novo, fora do escopo sem autorização de esquema. O botão fica desativado após o primeiro clique e a consulta prévia impede repetições sequenciais.
+
 Se a chave de serviço vazar, revogue/rotacione no Supabase e atualize apenas o GitHub Secret. Se a chave YouTube vazar, restrinja ou rotacione no Google Cloud e atualize apenas `YOUTUBE_API_KEY` em GitHub Actions Secrets. Se a chave publicável mudar, atualize a GitHub Variable e publique novamente. Nunca mostre chaves em logs. Revise o artefato `dist/` e o histórico Git antes de publicar.
 
 ## Backup e restauração
