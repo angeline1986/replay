@@ -2,7 +2,6 @@ import { button, element, notice } from '../../shared/dom.ts'
 import { validVideoUrl, type Video } from '../../shared/model.ts'
 import { parseStoryPosition } from '../../shared/story-match.ts'
 import type { StoryCandidate, StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
-import './view.css'
 
 interface StoryViewOptions {
   data: StoryDashboard

@@ -1,3 +1,4 @@
+import '../features/stories/view.css'
 import '../styles/base.css'
 import '../styles/content.css'
 import { state } from './state.ts'
