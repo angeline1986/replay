@@ -1,4 +1,5 @@
 import { button, element, notice } from '../../shared/dom.ts'
+import { iconGlyph } from '../videos/icons.ts'
 import { validVideoUrl, type Video } from '../../shared/model.ts'
 import { parseStoryPosition } from '../../shared/story-match.ts'
 import type { StoryCandidate, StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
@@ -80,7 +81,9 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   info.append(element('p', 'video-meta',
     `${cover?.channel?.name ?? 'Canal'} · ${cover ? new Date(cover.published_at).toLocaleDateString('pt-BR') : 'Sem vídeo'}`))
   const tags = element('div', 'follow-tags')
-  tags.append(element('span', 'follow-tag', '✓ Acompanhando'))
+  const following = element('span', 'follow-tag follow-tag-icon')
+  following.append(iconGlyph('runner'))
+  tags.append(following)
   const position = cover ? parseStoryPosition(cover.title) : null
   if (position) {
     const label = position.kind === 'part' ? 'Parte' :

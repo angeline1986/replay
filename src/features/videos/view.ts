@@ -1,6 +1,7 @@
 import { button, element, notice } from '../../shared/dom.ts'
 import { filterVideos, validVideoUrl, type Channel, type Video, type VideoFilter } from '../../shared/model.ts'
 import { statsView } from '../stats/view.ts'
+import { iconButton } from './icons.ts'
 
 interface VideoViewOptions {
   mode: 'favorites' | 'videos'
@@ -138,12 +139,16 @@ function videoCard(
   body.append(title, meta)
   const actions = element('div', 'card-actions')
   const following = options.trackedVideoIds.has(video.id)
-  const follow = button(following ? '✓ Acompanhando' : 'Acompanhar esta história',
-    () => options.onFollow(video))
+  const favorite = Boolean(video.state?.is_favorite)
+  const watched = Boolean(video.state?.is_watched)
+  const follow = iconButton(following ? 'História já acompanhada' : 'Acompanhar esta história',
+    'runner', () => options.onFollow(video), following)
   follow.disabled = following
   actions.append(
-    button(video.state?.is_favorite ? '★ Favorito' : '☆ Favoritar', () => options.onToggle(video, 'is_favorite')),
-    button(video.state?.is_watched ? '✓ Visto' : '○ Marcar visto', () => options.onToggle(video, 'is_watched')),
+    iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
+      'star', () => options.onToggle(video, 'is_favorite'), favorite),
+    iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto',
+      watched ? 'eye' : 'eye-slash', () => options.onToggle(video, 'is_watched'), watched),
     follow
   )
   actions.append(link)

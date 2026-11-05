@@ -94,3 +94,17 @@
   .channel-actions { width: 100%; justify-content: flex-start; }
   .filters select { flex: 1 1 140px; }
 }
+
+/* Ações compactas dos cartões de vídeo */
+.card-actions .icon-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 36px; width: 36px; height: 36px; padding: 8px;
+  border: 1px solid #e0e3eb; border-radius: 9px;
+  background: #fff; color: #8490a5;
+}
+.card-actions .icon-action svg { display: block; width: 18px; height: 18px; fill: currentColor; }
+.card-actions .icon-action:hover:not(:disabled) { color: #5545cb; background: #f7f6fd; }
+.card-actions .icon-star.is-active { color: #cf911c; background: #fff8e9; }
+.card-actions .icon-eye.is-active { color: #5545cb; background: #f0edff; }
+.card-actions .icon-runner.is-active { color: #5545cb; background: #f0edff; }
+.card-actions .icon-action:disabled { opacity: .75; cursor: default; }

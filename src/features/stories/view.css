@@ -47,3 +47,15 @@
   .follow-info { min-height: 0; }
 }
 .follow-sequence[hidden] { display: none; }
+
+.follow-tag-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+}
+.follow-tag-icon svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
