@@ -22,7 +22,8 @@ export interface CollectorSummary {
 }
 
 export async function runCollector(
-  key: string, store: CollectorStore, fetcher: typeof fetch = fetch
+  key: string, store: CollectorStore, fetcher: typeof fetch = fetch,
+  budget: ApiBudget = new ApiBudget()
 ): Promise<CollectorSummary> {
   const channels = await store.activeChannels()
   const result: CollectorSummary = { active: channels.length, processed: 0, videos: 0,
@@ -34,7 +35,6 @@ export async function runCollector(
       ? 'Limite de 100 canais ativos excedido.' : 'YOUTUBE_API_KEY ausente.'
     return result
   }
-  const budget = new ApiBudget()
   let playlists: Map<string, string>
   try {
     playlists = await uploadPlaylists(

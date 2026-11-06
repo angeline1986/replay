@@ -8,11 +8,12 @@ export interface ResolvedChannel {
   avatar_url: string | null
 }
 
-export async function resolveHandle(handle: string, apiKey: string): Promise<ResolvedChannel> {
+export async function resolveHandle(handle: string, apiKey: string,
+  budget: ApiBudget = new ApiBudget(1)): Promise<ResolvedChannel> {
   if (!/^[A-Za-z0-9_.-]{3,30}$/.test(handle)) throw new Error('Handle inválido.')
   const data = await youtubeGet<{
     items?: Array<{ id?: string; snippet?: { title?: string; thumbnails?: { default?: { url?: string } } } }>
-  }>('channels', { part: 'snippet', forHandle: handle }, apiKey, new ApiBudget(1))
+  }>('channels', { part: 'snippet', forHandle: handle }, apiKey, budget)
   const item = data.items?.[0]
   if (!item?.id || !channelPattern.test(item.id) || !item.snippet?.title) {
     throw new Error('Canal não encontrado para o handle informado.')

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { QuotaError } from '../youtube/client.ts'
+import { ApiBudget, QuotaError } from '../youtube/client.ts'
 import { resolveHandle } from '../youtube/resolve.ts'
 import { safeError } from './safe-error.ts'
 
@@ -9,22 +9,24 @@ interface Request {
   handle: string
 }
 
-export async function processRequests(): Promise<{ failures: number; calls: number }> {
+export async function processRequests(maxRequests = 20, budget = new ApiBudget(20)):
+  Promise<{ failures: number; calls: number; quotaStopped: boolean }> {
+  if (maxRequests <= 0) return { failures: 0, calls: 0, quotaStopped: false }
   const key = process.env.YOUTUBE_API_KEY
-  if (!key) { console.log('Resolução de handles desativada: API não configurada.'); return { failures: 0, calls: 0 } }
+  if (!key) { console.log('Resolução de handles desativada: API não configurada.'); return { failures: 0, calls: 0, quotaStopped: false } }
   const url = process.env.SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !serviceKey) throw new Error('Configuração Supabase ausente.')
   const db = createClient(url, serviceKey, { auth: { persistSession: false } })
   const { data, error } = await db.from('channel_requests')
-    .select('id,owner_id,handle').eq('status', 'pending').order('created_at').limit(20)
+    .select('id,owner_id,handle').eq('status', 'pending').order('created_at').limit(Math.min(20, maxRequests))
   if (error) throw new Error(error.message)
   let failures = 0
-  let calls = 0
+  const startUsed = budget.used
+  let quotaStopped = false
   for (const request of (data ?? []) as Request[]) {
     try {
-      calls++
-      const channel = await resolveHandle(request.handle, key)
+      const channel = await resolveHandle(request.handle, key, budget)
       const saved = await db.from('channels').upsert({
         owner_id: request.owner_id, handle: `@${request.handle}`, ...channel
       }, { onConflict: 'owner_id,youtube_channel_id' })
@@ -42,8 +44,8 @@ export async function processRequests(): Promise<{ failures: number; calls: numb
       }).eq('id', request.id)
       if (updated.error) console.error(`Falha de registro de handle: ${request.id}`)
       console.error(`Falha de resolução de handle: ${request.id}`)
-      if (error instanceof QuotaError) break
+      if (error instanceof QuotaError) { quotaStopped = true; break }
     }
   }
-  return { failures, calls }
+  return { failures, calls: budget.used - startUsed, quotaStopped }
 }

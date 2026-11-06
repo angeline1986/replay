@@ -19,7 +19,8 @@ test('execução completa sem canais ativos termina sem chamadas YouTube ou escr
   }) as typeof fetch
   try {
     await import('../../collector/jobs/main.ts')
-    assert.deepEqual(paths, ['/rest/v1/channels', '/rest/v1/channel_requests', '/rest/v1/tracked_stories'])
+    assert.deepEqual(paths, ['/rest/v1/channels', '/rest/v1/channel_requests',
+      '/rest/v1/channels', '/rest/v1/tracked_stories'])
     assert.notEqual(process.exitCode, 1)
   } finally {
     globalThis.fetch = originalFetch
