@@ -22,41 +22,6 @@ function aliasesInput(current: string[] = []): string[] | null {
 
 export function makeStoryActions(hooks: Hooks) {
   async function follow(video: Video): Promise<void> {
-    const groups = state.stories.groups
-    if (groups.length && confirm('Adicionar este vídeo a uma história que você já acompanha?')) {
-      const menu = groups.map((group, index) => `${index + 1}. ${group.story.name}`).join('\n')
-      const choice = prompt(`Escolha o número da história:
-${menu}`)
-      if (choice === null) return
-      const index = Number(choice) - 1
-      if (!Number.isInteger(index) || index < 0 || index >= groups.length) return
-      const group = groups[index]
-      if (!confirm(`Confirmar vínculo deste vídeo com “${group.story.name}”?`)) return
-      if (state.demo) {
-        const pending = group.pending.find((item) => item.video_id === video.id)
-        const existing = group.confirmed.some((item) => item.video_id === video.id) ||
-          group.story.seed_video_id === video.id
-        if (pending) {
-          group.pending = group.pending.filter((item) => item.id !== pending.id)
-          group.confirmed.push({ ...pending, status: 'confirmed' })
-          state.stories.pendingCount--
-        } else if (!existing) {
-          group.confirmed.push({ id: crypto.randomUUID(), story_id: group.story.id,
-            video_id: video.id, status: 'confirmed', score: 100, reason: 'Associação manual',
-            detected_at: new Date().toISOString(), decided_at: new Date().toISOString(), video })
-        }
-        location.hash = '#stories'
-        hooks.render()
-        return
-      }
-      let linked = false
-      await hooks.act(async () => {
-        await attachStoryVideo(client(), group.story.id, video.id)
-        linked = true
-      })
-      if (linked) location.hash = '#stories'
-      return
-    }
     // O título exibido no cartão identifica inicialmente a história.
     // Nome e aliases continuam editáveis em “Minhas histórias”.
     const name = video.title.trim()
@@ -65,7 +30,6 @@ ${menu}`)
       const existing = state.stories.groups.find((group) =>
         group.story.canonical_key === name.toLocaleLowerCase('pt-BR').trim())
       if (existing) {
-        if (!confirm(`Adicionar este vídeo à história “${existing.story.name}”?`)) return
         const already = existing.story.seed_video_id === video.id ||
           existing.confirmed.some((item) => item.video_id === video.id)
         const rejected = existing.pending.some((item) => item.video_id === video.id)
@@ -97,7 +61,8 @@ ${menu}`)
       completed = true
     })
     if (!completed) return
-    if (existingId && confirm(`Adicionar este vídeo à história existente “${name.trim()}”?`)) {
+    if (existingId) {
+      // Nome canônico idêntico: vincular sem pedir escolha numérica.
       await hooks.act(async () => {
         await attachStoryVideo(client(), existingId, video.id)
       })
