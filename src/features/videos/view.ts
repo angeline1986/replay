@@ -65,7 +65,13 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const allChannels = element('option', '', 'Todos os canais')
   allChannels.value = ''
   channel.append(allChannels)
-  for (const item of options.channels) {
+  const favoriteSource = options.favoriteVideos ?? options.videos
+  const favoriteChannelIds = new Set(favoriteSource
+    .filter((video) => video.state?.is_favorite).map((video) => video.channel_id))
+  const availableChannels = favorites
+    ? options.channels.filter((item) => favoriteChannelIds.has(item.id))
+    : options.channels
+  for (const item of availableChannels) {
     const option = element('option', '', item.name)
     option.value = item.id
     channel.append(option)
