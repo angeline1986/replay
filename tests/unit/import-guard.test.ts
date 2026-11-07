@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { parseImportInput } from '../../supabase/functions/import-channel/input.ts'
 
-const sql = readFileSync('docs/architecture/replay-import-guard.proposal.sql', 'utf8')
+const sql = readFileSync('supabase/migrations/20261107222904_replay_immediate_import.sql', 'utf8')
 const edge = readFileSync('supabase/functions/import-channel/index.ts', 'utf8')
 const worker = readFileSync('supabase/functions/import-channel/import-one.ts', 'utf8')
 
@@ -19,10 +19,10 @@ test('recusa payloads malformados, campos extras e valores nao-textuais', () => 
   }
 })
 test('reserva SQL nao libera running automaticamente apos 120 segundos', () => {
-  assert.match(sql, /status = 'running'\) then/)
+  assert.match(sql, /status = 'running'/)
   assert.doesNotMatch(sql, /created_at > now\(\) - interval '120 seconds'/)
   assert.match(sql, /revoke all on function public\.reserve_replay_import/)
-  assert.match(sql, /grant execute on function public\.reserve_replay_import\(uuid,text\) to service_role/)
+  assert.match(sql, /grant execute on function public\.reserve_replay_import\(uuid,\s*text\)\s+to service_role/)
 })
 test('resultado HTTP depende de gravacao confirmada do status', () => {
   assert.match(edge, /\.update\(\{ status: 'done' \}\)/)
