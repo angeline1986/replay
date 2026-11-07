@@ -70,10 +70,12 @@ export async function loadDashboard(userId: string): Promise<{
   return { channels, requests, videos, highlights, favorites, hasMore: videos.length === 50 }
 }
 
-export async function loadVideoPage(userId: string, channels: Channel[], offset: number): Promise<Video[]> {
-  const videos = unwrap(await client().from('videos')
+export async function loadVideoPage(userId: string, channels: Channel[], offset: number, limit = 50, channelId?: string): Promise<Video[]> {
+  const query = client().from('videos')
     .select('id,channel_id,youtube_video_id,title,url,thumbnail_url,published_at,discovered_at')
-    .order('published_at', { ascending: false }).range(offset, offset + 49)) as Video[]
+    .order('published_at', { ascending: false })
+  const videos = unwrap(await (channelId ? query.eq('channel_id', channelId) : query)
+    .range(offset, offset + limit - 1)) as Video[]
   if (!videos.length) return []
   const states = unwrap(await client().from('user_video_state')
     .select('video_id,is_favorite,is_watched').eq('user_id', userId)

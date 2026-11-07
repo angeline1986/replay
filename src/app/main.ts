@@ -16,10 +16,12 @@ import { loadStoryDashboard } from '../shared/stories-api.ts'
 import { makeStoryActions } from './story-actions.ts'
 import { storiesView } from '../features/stories/view.ts'
 import type { Channel } from '../shared/model.ts'
+import { ChannelPages, loadNext } from '../features/videos/channel-pages.ts'
 
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
 let authMessage = ''
+const channelPages = new ChannelPages()
 const actions = makeActions({ render, act, userId: () => userId })
 const storyActions = makeStoryActions({ render, act, userId: () => userId })
 
@@ -47,6 +49,7 @@ const auth = createAuthGate({
     state.stories = value?.storySnapshot.data ?? { groups: [], pendingCount: 0 }
     state.storiesError = value?.storySnapshot.error ?? ''
     state.hasMore = value?.dashboard.hasMore ?? false
+    channelPages.reset()
     state.error = ''
     authMessage = ''
   },
@@ -66,16 +69,16 @@ async function refresh(): Promise<void> {
   state.stories = stories.data
   state.storiesError = stories.error
   state.hasMore = data.hasMore
+  channelPages.reset()
 }
 
 async function loadMore(): Promise<void> {
-  if (state.busy || state.demo || !state.hasMore) return
+  if (state.busy || state.demo || !(state.filter.channelId ? channelPages.hasMore(state.filter.channelId) : state.hasMore)) return
   state.busy = true
   render()
   try {
-    const next = await loadVideoPage(userId, state.channels, state.videos.length)
-    state.videos.push(...next)
-    state.hasMore = next.length === 50
+    state.hasMore = await loadNext(state.filter.channelId, state.videos, state.hasMore, channelPages,
+      (offset, limit, channel) => loadVideoPage(userId, state.channels, offset, limit, channel))
   } catch (error) {
     state.error = message(error)
   } finally {
@@ -143,11 +146,11 @@ function render(): void {
         onRename: (story) => { void storyActions.rename(story) },
         onUnfollow: (story) => { void storyActions.unfollow(story) }
       })) : state.page !== 'channels' ? videoView({
-      mode: state.page, videos: state.videos, highlights: state.highlights,
+      mode: state.page, videos: channelPages.videos(state.videos, state.filter.channelId), highlights: state.highlights,
       favoriteVideos: state.demo ? state.videos.filter((v) => v.state?.is_favorite) : state.favoriteVideos,
       channels: state.channels,
       filter: state.filter, sort: state.sort,
-      hasMore: state.hasMore, onLoadMore: () => { void loadMore() },
+      hasMore: state.filter.channelId ? channelPages.hasMore(state.filter.channelId) : state.hasMore, onLoadMore: () => { void loadMore() },
       onSort: (sort) => { state.sort = sort; render() },
       onFilter: (filter) => {
         const active = document.activeElement as HTMLInputElement
