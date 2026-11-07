@@ -2,6 +2,7 @@ import { state } from './state.ts'
 import { addChannel, removeChannel, requestChannel, saveVideoState, setChannelActive } from '../shared/api.ts'
 import { validChannelId, type Channel, type Video } from '../shared/model.ts'
 import { normalizeChannelInput } from '../features/channels/normalize.ts'
+import { importChannelNow } from '../shared/import-channel.ts'
 
 interface Hooks {
   render: () => void
@@ -18,6 +19,8 @@ export function makeActions(hooks: Hooks) {
   }
 
   async function createChannel(input: string): Promise<void> {
+    if (state.busy) return
+    state.importMessage = ''
     try {
       const parsed = normalizeChannelInput(input)
       if (!parsed.id && !parsed.handle) throw new Error('Canal inválido.')
@@ -35,7 +38,14 @@ export function makeActions(hooks: Hooks) {
         hooks.render()
         return
       }
-      if (parsed.handle) await hooks.act(() => requestChannel(hooks.userId(), parsed.handle!))
+      if (import.meta.env.VITE_IMMEDIATE_CHANNEL_IMPORT === 'true') {
+        await hooks.act(async () => {
+          const result = await importChannelNow(parsed)
+          state.importMessage = result.status === 'already_monitored'
+            ? 'Este canal já está monitorado.'
+            : `Canal cadastrado: ${result.importedVideos} vídeo(s) recente(s) importado(s).`
+        })
+      } else if (parsed.handle) await hooks.act(() => requestChannel(hooks.userId(), parsed.handle!))
       else if (parsed.id && validChannelId(parsed.id)) {
         await hooks.act(() => addChannel(hooks.userId(), parsed.id!))
       }

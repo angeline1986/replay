@@ -17,6 +17,7 @@ export interface AppState {
   sort: 'recent' | 'az'
   busy: boolean
   error: string
+  importMessage: string
   demo: boolean
   userEmail: string
 }
@@ -35,6 +36,7 @@ export const state: AppState = {
   sort: 'recent',
   busy: false,
   error: '',
+  importMessage: '',
   demo: import.meta.env.VITE_DEMO === 'true',
   userEmail: ''
 }

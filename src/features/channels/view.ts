@@ -6,6 +6,7 @@ interface ChannelViewOptions {
   channels: Channel[]
   requests: ChannelRequest[]
   videos: Video[]
+  busy?: boolean
   onAdd: (input: string) => void
   onToggle: (channel: Channel) => void
   onRemove: (channel: Channel) => void
@@ -53,6 +54,8 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   field.setAttribute('aria-label', 'URL, arroba ou ID do canal')
   const submit = element('button', 'primary', 'Adicionar canal')
   submit.type = 'submit'
+  submit.disabled = Boolean(options.busy)
+  field.disabled = Boolean(options.busy)
   form.append(select, field, submit)
   form.addEventListener('submit', (event) => {
     event.preventDefault()

@@ -120,7 +120,9 @@ function render(): void {
   shell.append(workspace)
   if (state.demo) main.append(element('p', 'demo-banner', 'Modo demonstração — dados fictícios, sem conexão com Supabase.'))
   if (state.error) main.append(notice(state.error, 'error'))
-  if (state.busy) main.append(notice('Carregando…'))
+  if (state.importMessage && state.page === 'channels') main.append(notice(state.importMessage))
+  if (state.busy) main.append(notice(state.page === 'channels'
+    ? 'Cadastrando canal e buscando até 50 vídeos recentes…' : 'Carregando…'))
   if (!state.demo && !configured) {
     main.append(notice('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY.'))
   } else if (!state.demo && auth.phase === 'initializing') {
@@ -168,6 +170,7 @@ function render(): void {
       onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds
     }) : channelView({
       channels: state.channels, requests: state.requests, videos: state.videos,
+      busy: state.busy,
       onAdd: (input) => { void actions.createChannel(input) },
       onToggle: (channel) => { void actions.toggleChannel(channel) },
       onRemove: (channel) => { void actions.deleteChannel(channel) },
