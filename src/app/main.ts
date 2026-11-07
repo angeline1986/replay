@@ -1,4 +1,4 @@
-import '../shared/splash.ts'
+import { syncRequestLoader } from '../shared/splash.ts'
 import '../features/stories/view.css'
 import '../styles/base.css'
 import '../styles/content.css'
@@ -111,6 +111,7 @@ async function act(operation: () => Promise<void>, reload = true): Promise<void>
 
 function render(): void {
   clear(root)
+  syncRequestLoader(state.busy || (!state.demo && configured && auth.phase === 'initializing'))
   const shell = element('div', 'app-shell')
   const signedIn = state.demo || auth.phase === 'signed_in'
   shell.append(sidebarView(state.page, signedIn, state.stories.pendingCount))

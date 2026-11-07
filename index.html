@@ -10,24 +10,26 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div id="replay-loader" class="replay-loader-overlay" aria-hidden="true">
-      <div class="aurora-blob blob-purple"></div>
-      <div class="aurora-blob blob-blue"></div>
-      <div class="loader-content">
-        <div class="brand-row">
-          <div class="brand-icon-box">
-            <svg viewBox="0 0 24 24" class="brand-play-svg" aria-hidden="true">
-              <path d="M8 5v14l11-7z" />
-            </svg>
+    <template id="replay-loader-template">
+      <div class="replay-loader-overlay" aria-hidden="true">
+        <div class="aurora-blob blob-purple"></div>
+        <div class="aurora-blob blob-blue"></div>
+        <div class="loader-content">
+          <div class="brand-row">
+            <div class="brand-icon-box">
+              <svg viewBox="0 0 24 24" class="brand-play-svg" aria-hidden="true">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            <span class="brand-name">RePlay</span>
           </div>
-          <span class="brand-name">RePlay</span>
-        </div>
-        <div class="progress-wrapper">
-          <div class="progress-track"><div id="loader-progress-bar" class="progress-fill"></div></div>
-          <div id="loader-counter" class="progress-counter">0%</div>
+          <div class="progress-wrapper">
+            <div class="progress-track"><div class="progress-fill"></div></div>
+            <div class="progress-counter">0%</div>
+          </div>
         </div>
       </div>
-    </div>
+    </template>
     <div id="app"></div>
     <script type="module" src="/src/app/main.ts"></script>
   </body>
