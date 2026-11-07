@@ -1,3 +1,4 @@
+import '../shared/splash.ts'
 import '../features/stories/view.css'
 import '../styles/base.css'
 import '../styles/content.css'

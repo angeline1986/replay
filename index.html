@@ -5,8 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Seus canais do YouTube, seus vídeos, no seu ritmo." />
     <title>RePlay · seus canais em dia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <div id="replay-loader" class="replay-loader-overlay" aria-hidden="true">
+      <div class="aurora-blob blob-purple"></div>
+      <div class="aurora-blob blob-blue"></div>
+      <div class="loader-content">
+        <div class="brand-row">
+          <div class="brand-icon-box">
+            <svg viewBox="0 0 24 24" class="brand-play-svg" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+          <span class="brand-name">RePlay</span>
+        </div>
+        <div class="progress-wrapper">
+          <div class="progress-track"><div id="loader-progress-bar" class="progress-fill"></div></div>
+          <div id="loader-counter" class="progress-counter">0%</div>
+        </div>
+      </div>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/app/main.ts"></script>
   </body>
