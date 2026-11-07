@@ -17,6 +17,7 @@ import { makeStoryActions } from './story-actions.ts'
 import { storiesView } from '../features/stories/view.ts'
 import type { Channel } from '../shared/model.ts'
 import { ChannelPages, loadNext } from '../features/videos/channel-pages.ts'
+import { backfillMissingAvatars } from '../shared/channel-avatars.ts'
 
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
@@ -35,7 +36,8 @@ const auth = createAuthGate({
   load: async () => {
     const user = await currentUser()
     if (!user) return null
-    const dashboard = await loadDashboard(user.id)
+    let dashboard = await loadDashboard(user.id)
+    if (await backfillMissingAvatars(dashboard.channels)) dashboard = await loadDashboard(user.id)
     return { ...user, dashboard, storySnapshot: await storySnapshot(user.id, dashboard.channels) }
   },
   commit: (value) => {
