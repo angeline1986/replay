@@ -66,8 +66,9 @@ test('histórias têm filtro, divisores por canal e ações de favorito e visto'
   assert.equal(view.querySelectorAll('.favorite-channel-group .follow-grid').length, 2)
   const first = view.querySelector('.follow-card')!
   const buttons = [...first.querySelectorAll<HTMLButtonElement>('.follow-tags .icon-action')]
-  assert.deepEqual(buttons.map((node) => node.getAttribute('aria-pressed')), ['true', 'false'])
-  buttons.forEach((node) => node.click())
+  assert.deepEqual(buttons.map((node) => node.getAttribute('aria-pressed')), ['true', 'false', 'false'])
+  assert.equal(buttons[2].getAttribute('aria-label'), 'Concluir história')
+  buttons.slice(0, 2).forEach((node) => node.click())
   assert.equal(first.querySelector('.follow-expand'), null)
   assert.deepEqual(events, ['demo-v1:is_favorite', 'demo-v1:is_watched'])
   assert.deepEqual(opened, [])

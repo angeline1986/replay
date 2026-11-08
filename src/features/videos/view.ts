@@ -4,7 +4,7 @@ import { iconButton } from './icons.ts'
 import { favoriteVideoGroups } from './favorites.ts'
 import { youtubeSearchView } from './youtube-search.ts'
 import { channelPicker } from '../../shared/channel-picker.ts'
-import type { YouTubeResult } from '../../shared/saved-youtube.ts'
+import type { YouTubeLookupResult, YouTubeResult } from '../../shared/saved-youtube.ts'
 
 interface VideoViewOptions {
   mode: 'favorites' | 'videos' | 'deprioritized' | 'queue'
@@ -23,7 +23,7 @@ interface VideoViewOptions {
   trackedVideoIds: Set<string>
   onLoadMore: () => void
   onSaveYouTube?: (video: YouTubeResult, mode: 'queue' | 'deprioritized') => void
-  onLookupYouTube?: (input: string) => Promise<YouTubeResult>
+  onLookupYouTube?: (input: string) => Promise<YouTubeLookupResult>
   onToggleSaved?: (video: Video, key: 'is_queued' | 'is_deprioritized') => void
 }
 
@@ -55,7 +55,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     status.setAttribute('aria-label', 'Filtrar vídeos por status')
     const statuses = favorites
       ? [['all', 'Favoritos'], ['unwatched', 'Não vistos']]
-      : [['all', 'Lançamentos'], ['new', 'Novos'], ['unwatched', 'Não vistos'],
+      : [['all', 'Tipo'], ['new', 'Novos'], ['unwatched', 'Não vistos'],
         ['favorites', 'Favoritos'], ...(options.filter.channelId ? [['marked', 'Marcados']] : [])]
     for (const [value, label] of statuses) {
       const option = element('option', '', label)

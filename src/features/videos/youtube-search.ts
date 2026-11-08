@@ -1,8 +1,8 @@
 import { button, element, notice } from '../../shared/dom.ts'
-import type { YouTubeResult } from '../../shared/saved-youtube.ts'
+import type { YouTubeLookupResult, YouTubeResult } from '../../shared/saved-youtube.ts'
 
 export function youtubeSearchView(
-  mode: 'queue' | 'deprioritized' | 'completed', lookup: (input: string) => Promise<YouTubeResult>,
+  mode: 'queue' | 'deprioritized' | 'completed', lookup: (input: string) => Promise<YouTubeLookupResult>,
   onSave: (video: YouTubeResult) => void
 ): HTMLElement {
   const section = element('section', 'youtube-search')
@@ -21,7 +21,7 @@ export function youtubeSearchView(
     event.preventDefault()
     submit.disabled = true
     submit.textContent = 'Buscando…'
-    result.replaceChildren(notice('Consultando vídeo no YouTube…'))
+    result.replaceChildren(notice('Procurando vídeo…'))
     void lookup(input.value).then((video) => {
       const preview = element('div', 'youtube-preview')
       const image = element('img')
@@ -30,8 +30,12 @@ export function youtubeSearchView(
       image.referrerPolicy = 'no-referrer'
       const info = element('div', 'youtube-preview-info')
       info.append(element('strong', '', video.title), element('span', '', video.channel_name))
-      info.append(button(mode === 'queue' ? 'Adicionar à fila' : mode === 'completed' ? 'Adicionar aos concluídos' : 'Despriorizar vídeo',
-        () => onSave(video), 'primary'))
+      const action = button(video.already_added
+        ? mode === 'queue' ? 'Já está na fila' : mode === 'completed' ? 'Já está nos concluídos' : 'Já está despriorizado'
+        : mode === 'queue' ? 'Adicionar à fila' : mode === 'completed' ? 'Adicionar aos concluídos' : 'Despriorizar vídeo',
+      () => onSave(video), 'primary')
+      action.disabled = Boolean(video.already_added)
+      info.append(action)
       preview.append(image, info)
       result.replaceChildren(preview)
     }).catch((error: unknown) => {

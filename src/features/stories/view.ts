@@ -4,10 +4,8 @@ import { validVideoUrl, type Channel, type Video } from '../../shared/model.ts'
 import { storyChannelGroups, storyChannelId } from './groups.ts'
 import { storyToolbar } from './toolbar.ts'
 import { youtubeSearchView } from '../videos/youtube-search.ts'
-import type { YouTubeResult } from '../../shared/saved-youtube.ts'
+import type { YouTubeLookupResult, YouTubeResult } from '../../shared/saved-youtube.ts'
 import type { StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
-
-const completeIconUrl = new URL('../../assets/icons/check-double-solid-full.svg', import.meta.url).href
 
 interface StoryViewOptions {
   data: StoryDashboard
@@ -19,14 +17,14 @@ interface StoryViewOptions {
   onQuery: (value: string) => void
   sort: 'recent' | 'az'
   onSort: (value: 'recent' | 'az') => void
-  onLookupYouTube: (input: string) => Promise<YouTubeResult>
+  onLookupYouTube: (input: string) => Promise<YouTubeLookupResult>
   onSaveYouTube: (video: YouTubeResult) => void
   onToggleVideo: (video: Video, key: 'is_favorite' | 'is_watched') => void
   onOpenSequence: (story: TrackedStory) => void
   onComplete: (story: TrackedStory, completed: boolean) => void
 }
 
-function videoActions(video: Video, options: StoryViewOptions): HTMLElement {
+function videoActions(video: Video, story: TrackedStory, options: StoryViewOptions): HTMLElement {
   const actions = element('div', 'card-actions follow-video-actions')
   const favorite = Boolean(video.state?.is_favorite)
   const watched = Boolean(video.state?.is_watched)
@@ -34,6 +32,8 @@ function videoActions(video: Video, options: StoryViewOptions): HTMLElement {
     () => options.onToggleVideo(video, 'is_favorite'), favorite),
     iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto', watched ? 'eye' : 'eye-slash',
       () => options.onToggleVideo(video, 'is_watched'), watched))
+  if (options.mode !== 'completed') actions.append(iconButton('Concluir história', 'check-double',
+    () => options.onComplete(story, true)))
   return actions
 }
 
@@ -64,25 +64,15 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   if (options.mode === 'completed') following.textContent = 'Concluída'
   else { following.append(iconGlyph('runner')); following.title = 'Acompanhando esta história' }
   tags.append(following)
-  if (cover) tags.append(videoActions(cover, options))
+  if (cover) tags.append(videoActions(cover, group.story, options))
   info.append(tags)
   card.append(info)
   const footer = element('div', 'follow-footer')
   const continuations = group.confirmed.length + group.pending.length
   if (continuations) footer.append(button(`Ver sequência (+${continuations})`,
     () => options.onOpenSequence(group.story), 'follow-expand'))
-  const complete = button(options.mode === 'completed' ? 'Retomar' : '',
-    () => options.onComplete(group.story, options.mode !== 'completed'),
-    `follow-complete${options.mode === 'completed' ? '' : ' is-icon'}`)
-  if (options.mode !== 'completed') {
-    complete.title = 'Concluir história'
-    complete.setAttribute('aria-label', complete.title)
-    const glyph = element('span', 'supplied-svg-icon')
-    glyph.style.maskImage = `url("${completeIconUrl}")`
-    glyph.style.webkitMaskImage = `url("${completeIconUrl}")`
-    complete.append(glyph)
-  }
-  footer.append(complete)
+  if (options.mode === 'completed') footer.append(button('Retomar',
+    () => options.onComplete(group.story, false), 'follow-complete'))
   if (cover) {
     const link = element('a', 'follow-open', '↗')
     link.href = validVideoUrl(cover.youtube_video_id)

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { validVideoUrl, type Video } from './model.ts'
+import { localYouTubeVideo } from './youtube-local.ts'
 
 export interface YouTubeResult {
   youtube_video_id: string
@@ -8,6 +9,10 @@ export interface YouTubeResult {
   title: string
   thumbnail_url: string
   published_at: string
+}
+
+export interface YouTubeLookupResult extends YouTubeResult {
+  already_added?: boolean
 }
 
 interface SavedVideo extends YouTubeResult {
@@ -42,7 +47,12 @@ export async function loadSavedYouTube(db: SupabaseClient, userId: string): Prom
   return rows.map(asVideo)
 }
 
-export async function lookupYouTube(db: SupabaseClient, input: string): Promise<YouTubeResult> {
+export async function lookupYouTube(
+  db: SupabaseClient, userId: string, input: string,
+  collection: 'queue' | 'deprioritized' | 'completed'
+): Promise<YouTubeLookupResult> {
+  const local = await localYouTubeVideo(db, userId, input, collection)
+  if (local) return local
   const { data, error } = await db.functions.invoke<YouTubeResult>('lookup-youtube-video', {
     body: { url: input }
   })
@@ -62,7 +72,12 @@ export async function saveCompletedYouTube(
   const channel = await db.from('channels').select('id').eq('owner_id', userId)
     .eq('youtube_channel_id', video.youtube_channel_id).maybeSingle()
   if (channel.error) throw new Error(channel.error.message)
-  if (!channel.data) await importChannel({ id: video.youtube_channel_id })
+  if (channel.data) {
+    const stored = await db.from('videos').select('id').eq('channel_id', channel.data.id)
+      .eq('youtube_video_id', video.youtube_video_id).maybeSingle()
+    if (stored.error) throw new Error(stored.error.message)
+    if (stored.data) return stored.data.id
+  } else await importChannel({ id: video.youtube_channel_id })
   const { data, error } = await db.functions.invoke<{ video_id?: string }>('lookup-youtube-video', {
     body: { url: validVideoUrl(video.youtube_video_id), save: true }
   })
@@ -107,7 +122,9 @@ export async function saveYouTubeToCollection(
     .eq('user_id', userId).eq('youtube_video_id', video.youtube_video_id).maybeSingle()
   if (current.error) throw new Error(current.error.message)
   const { error } = await db.from('saved_youtube_videos').upsert({
-    ...video, user_id: userId, is_queued: current.data?.is_queued ?? false,
+    youtube_video_id: video.youtube_video_id, youtube_channel_id: video.youtube_channel_id,
+    channel_name: video.channel_name, title: video.title, thumbnail_url: video.thumbnail_url,
+    published_at: video.published_at, user_id: userId, is_queued: current.data?.is_queued ?? false,
     is_deprioritized: current.data?.is_deprioritized ?? false, [flag]: true
   }, { onConflict: 'user_id,youtube_video_id' })
   if (error) throw new Error(error.message)

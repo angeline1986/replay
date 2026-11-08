@@ -71,6 +71,7 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   })
   assert.equal(view.querySelectorAll('.video-card').length, 1)
   assert.equal(view.querySelector('.new-badge')?.textContent, 'Novo')
+  assert.equal(view.querySelector('.favorite-status option')?.textContent, 'Tipo')
   const open = view.querySelector('.video-open')!
   assert.equal(open.querySelector('.new-badge')?.textContent, 'Novo')
   assert.equal(open.querySelector('.video-link')?.textContent, '↗')
@@ -108,7 +109,7 @@ test('Minhas histórias abre a sequência em Lançamentos sem expandir o cartão
   const view = storiesView({ selectedChannelId: '', onChannelSelect: () => {}, query: '', onQuery: () => {}, sort: 'recent', onSort: () => {}, onLookupYouTube: async () => { throw Error('unused') }, onSaveYouTube: () => {}, data: { groups: [{ story, seed: demoVideos[0],
     confirmed: [], pending: [candidate] }], completed: [], pendingCount: 1 },
   onOpenSequence: (item) => events.push(`open:${item.id}`),
-  onComplete: () => {}, onToggleVideo: () => {} })
+  onComplete: (item, completed) => events.push(`complete:${item.id}:${completed}`), onToggleVideo: () => {} })
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /Obra <Nova>/)
   assert.equal(view.querySelectorAll('.follow-grid').length, 1)
@@ -120,11 +121,13 @@ test('Minhas histórias abre a sequência em Lançamentos sem expandir o cartão
   assert.equal(view.querySelector('.follow-footer .follow-open')?.textContent, '↗')
   assert.equal(view.querySelector('.follow-hero .follow-alert'), null)
   assert.equal(view.querySelector('.follow-expand')?.textContent, 'Ver sequência (+1)')
-  assert.match(view.querySelector<HTMLElement>('.follow-complete .supplied-svg-icon')?.style.maskImage ?? '',
+  assert.match(view.querySelector<HTMLElement>('.follow-video-actions .icon-check-double .supplied-svg-icon')?.style.maskImage ?? '',
     /check-double-solid-full\.svg/)
-  assert.equal(view.querySelector('.follow-complete')?.getAttribute('aria-label'), 'Concluir história')
+  assert.equal(view.querySelector('.icon-check-double')?.getAttribute('aria-label'), 'Concluir história')
+  assert.equal(view.querySelector('.follow-footer .follow-complete'), null)
   view.querySelector<HTMLButtonElement>('.follow-expand')!.click()
-  assert.deepEqual(events, ['open:story'])
+  view.querySelector<HTMLButtonElement>('.icon-check-double')!.click()
+  assert.deepEqual(events, ['open:story', 'complete:story:true'])
   assert.match(sidebarView('stories', true, 1).textContent ?? '', /Minhas histórias \(1\)/)
 }))
 

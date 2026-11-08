@@ -18,8 +18,8 @@
   line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; margin: 0 0 9px;
   min-height: 39px; font-size: 15px; line-height: 1.35; }
 .follow-info .video-meta { margin: 0; }
-.follow-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
-.follow-tags .follow-video-actions { margin: 0; }
+.follow-tags { display: flex; flex-wrap: nowrap; gap: 7px; margin-top: 12px; }
+.follow-tags .follow-video-actions { flex-wrap: nowrap; margin: 0; }
 .follow-tag { padding: 5px 8px; border-radius: 7px; font-size: 11px;
   color: #5545cb; background: #efedff; font-weight: 700; }
 
@@ -30,10 +30,6 @@
 .follow-complete { padding: 0; border: 0; background: transparent; color: #5545cb;
   font-family: inherit; font-size: 12px; font-weight: 700; }
 .follow-complete:hover { text-decoration: underline; }
-.follow-complete.is-icon { display: grid; place-items: center; width: 28px; height: 28px;
-  border: 1px solid #dedbea; border-radius: 7px; cursor: pointer; }
-.follow-complete.is-icon:hover { background: #f0edff; }
-.follow-complete.is-icon .supplied-svg-icon { width: 16px; height: 16px; background: currentColor; }
 .follow-open { margin-left: auto; font-size: 18px; font-weight: 700; line-height: 1;
   text-decoration: none; color: #5545cb; }
 .video-open .follow-open { margin-left: 0; }

@@ -78,6 +78,23 @@ test('adicionar vídeo concluído importa canal ausente e salva ID verificado', 
   ])
 })
 
+test('vídeo já importado entra em Concluídos sem consultar YouTube novamente', async () => {
+  const calls: string[] = []
+  const db = { from: (table: string) => {
+    calls.push(table)
+    const query = { select: () => query, eq: () => query,
+      maybeSingle: async () => ({ data: table === 'channels' ? { id: 'channel-1' }
+        : { id: '11111111-1111-1111-1111-111111111111' }, error: null }) }
+    return query
+  }, functions: { invoke: async () => { calls.push('youtube'); return { data: null, error: null } } }
+  } as unknown as SupabaseClient
+  const video = { youtube_video_id: 'aaaaaaaaaaa', youtube_channel_id: 'UC0000000000000000000000',
+    channel_name: 'Canal', title: 'História', thumbnail_url: '', published_at: '2026-11-08T00:00:00Z' }
+  const id = await saveCompletedYouTube(db, 'owner', video, async () => { calls.push('import') })
+  assert.equal(id, '11111111-1111-1111-1111-111111111111')
+  assert.deepEqual(calls, ['channels', 'videos'])
+})
+
 test('limite de importação impede salvar vídeo concluído de canal novo', async () => {
   let invoked = false
   const db = { from: () => {
