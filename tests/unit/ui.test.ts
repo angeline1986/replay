@@ -176,7 +176,7 @@ test('favoritos fora da primeira página são exibidos sem carregar mais', () =>
   assert.equal(view.querySelectorAll('.video-card').length, 1)
   assert.match(view.textContent ?? '', /Experimentos que cabem na mesa/)
   assert.equal(view.querySelector('.load-more'), null)
-  assert.match(view.textContent ?? '', /Seus favoritos1/)
+  assert.match(view.textContent ?? '', /Vídeos favoritos1/)
 }))
 
 test('tela de login prioriza GitHub e mantém recuperação por e-mail', () => withDocument((window) => {
