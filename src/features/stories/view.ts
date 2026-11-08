@@ -75,11 +75,16 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   footer.append(button(options.mode === 'completed' ? 'Retomar' : 'Concluir',
     () => options.onComplete(group.story, options.mode !== 'completed'), 'follow-complete'))
   if (cover) {
-    const link = element('a', 'follow-open', 'Abrir ↗')
+    const link = element('a', 'follow-open', '↗')
     link.href = validVideoUrl(cover.youtube_video_id)
     link.target = '_blank'
     link.rel = 'noopener noreferrer'
-    footer.append(link)
+    link.title = 'Abrir vídeo no YouTube'
+    link.setAttribute('aria-label', link.title)
+    const open = element('span', 'video-open')
+    if (!cover.state) open.append(element('span', 'new-badge', 'Novo'))
+    open.append(link)
+    footer.append(open)
   }
   card.append(footer)
   return card
@@ -94,9 +99,12 @@ export function storiesView(options: StoryViewOptions): HTMLElement {
     const titles = [group.seed?.title, ...group.confirmed.map((item) => item.video.title)].filter(Boolean)
     return !query || `${group.story.name} ${channel?.name ?? ''} ${titles.join(' ')}`.toLocaleLowerCase('pt-BR').includes(query)
   })
-  if (options.mode === 'completed') visible.sort((a, b) => options.sort === 'az'
-    ? a.story.name.localeCompare(b.story.name, 'pt-BR')
-    : Date.parse(b.story.completed_at ?? '') - Date.parse(a.story.completed_at ?? ''))
+  const latest = (group: StoryDashboard['groups'][number]) => Math.max(
+    Date.parse(group.seed?.published_at ?? '') || 0,
+    ...group.confirmed.map((item) => Date.parse(item.video.published_at) || 0))
+  visible.sort((a, b) => options.sort === 'az' ? a.story.name.localeCompare(b.story.name, 'pt-BR')
+    : options.mode === 'completed' ? Date.parse(b.story.completed_at ?? '') - Date.parse(a.story.completed_at ?? '')
+      : latest(b) - latest(a) || Date.parse(b.story.created_at) - Date.parse(a.story.created_at))
   const root = element('section', 'content')
   const heading = element('div', 'favorites-toolbar')
   const title = element('div', 'favorite-page-title')

@@ -43,6 +43,7 @@ export function channelPicker(options: {
   function update(): void {
     const choice = choices.find((item) => item.id === selected) ?? choices[0]
     trigger.replaceChildren(label(choice), element('span', 'channel-picker-chevron', '⌄'))
+    trigger.title = choice.name
     for (const node of nodes) node.setAttribute('aria-selected', String(node.dataset.channelId === selected))
   }
   function close(): void { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false') }
@@ -57,6 +58,7 @@ export function channelPicker(options: {
       options.onChange(choice.id)
     }, 'channel-picker-option')
     option.dataset.channelId = choice.id
+    option.title = choice.name
     option.setAttribute('role', 'option')
     option.append(label(choice))
     nodes.push(option)

@@ -70,6 +70,10 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   })
   assert.equal(view.querySelectorAll('.video-card').length, 1)
   assert.equal(view.querySelector('.new-badge')?.textContent, 'Novo')
+  const open = view.querySelector('.video-open')!
+  assert.equal(open.querySelector('.new-badge')?.textContent, 'Novo')
+  assert.equal(open.querySelector('.video-link')?.textContent, '↗')
+  assert.equal(open.querySelector('.video-link')?.getAttribute('aria-label'), 'Abrir vídeo no YouTube')
   const icons = [...view.querySelectorAll<HTMLButtonElement>('.card-actions .icon-action')]
   assert.equal(icons.length, 5)
   assert.deepEqual(icons.map((node) => node.getAttribute('aria-label')),
@@ -111,6 +115,8 @@ test('Minhas histórias abre a sequência em Lançamentos sem expandir o cartão
   assert.equal(view.querySelectorAll('.follow-hero').length, 1)
   assert.equal(view.querySelectorAll('.follow-video').length, 0)
   assert.equal(view.querySelector('.follow-tag.secondary'), null)
+  assert.equal(view.querySelector('.follow-footer .video-open .new-badge')?.textContent, 'Novo')
+  assert.equal(view.querySelector('.follow-footer .follow-open')?.textContent, '↗')
   view.querySelector<HTMLButtonElement>('.follow-expand')!.click()
   assert.deepEqual(events, ['open:story'])
   assert.match(sidebarView('stories', true, 1).textContent ?? '', /Minhas histórias \(1\)/)

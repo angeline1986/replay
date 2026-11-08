@@ -35,6 +35,8 @@ test('sequência abre em Lançamentos com cartões, ordem de partes e decisões'
     assert.equal(view.querySelector('h1')?.textContent, 'Lançamentos')
     assert.equal(view.querySelectorAll('.video-grid').length, 2)
     assert.equal(view.querySelectorAll('.video-card').length, 4)
+    assert.equal(view.querySelector('.sequence-card .video-open .video-link')?.textContent, '↗')
+    assert.equal(view.querySelector('.sequence-card .video-open .new-badge')?.textContent, 'Novo')
     assert.deepEqual([...view.querySelectorAll('.sequence-section:last-child .video-card h2')]
       .map((node) => node.textContent), [part40.title, part41.title])
     assert.equal(view.querySelector('.follow-sequence'), null)

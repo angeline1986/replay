@@ -134,7 +134,7 @@ function render(): void {
         selectedChannelId: state.page === 'completed' ? state.completedChannelId : state.storyChannelId,
         onChannelSelect: (id) => { if (state.page === 'completed') state.completedChannelId = id; else state.storyChannelId = id; render() },
         query: state.completedQuery, onQuery: (value) => { state.completedQuery = value; render() },
-        sort: state.completedSort, onSort: (value) => { state.completedSort = value; render() },
+        sort: state.page === 'completed' ? state.completedSort : state.storySort, onSort: (value) => { if (state.page === 'completed') state.completedSort = value; else state.storySort = value; render() },
         onLookupYouTube: (input) => lookupYouTube(supabase!, input), onSaveYouTube: (video) => { void storyActions.addYouTubeCompleted(video) },
         onOpenSequence: (story) => { location.hash = storySequenceRoute(story.id) },
         onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels

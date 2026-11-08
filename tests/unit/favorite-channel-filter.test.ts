@@ -34,6 +34,10 @@ test('favoritos lista somente canais com vídeos favoritos', () => {
     const feed = videoView(options('videos'))
     const feedSelect = feed.querySelectorAll('.favorite-channel-filter .channel-picker-option')
     assert.equal(feedSelect.length, demoChannels.length + 1)
+    const compound = feedSelect[2] as HTMLButtonElement
+    assert.equal(compound.title, 'Ciência em Casa')
+    compound.click()
+    assert.equal(feed.querySelector<HTMLButtonElement>('.channel-picker-trigger')?.title, 'Ciência em Casa')
     assert.ok(feed.querySelector('.favorite-channel-filter .channel-picker-trophy'))
   } finally {
     globalThis.document = original

@@ -148,15 +148,12 @@ function videoCard(
   const body = element('div', 'video-body')
   const meta = element('p', 'video-meta', `${video.channel?.name ?? 'Canal'} · ${new Date(video.published_at).toLocaleDateString('pt-BR')}`)
   const title = element('h2', '', video.title)
-  const link = element('a', 'video-link', 'Abrir ↗')
+  const link = element('a', 'video-link', '↗')
   link.href = validVideoUrl(video.youtube_video_id)
   link.target = '_blank'
   link.rel = 'noopener noreferrer'
-  if (options.mode === 'videos') {
-    const badgeRow = element('div', 'video-badge-row')
-    if (!video.state) badgeRow.append(element('span', 'new-badge', 'Novo'))
-    body.append(badgeRow)
-  } else if (!video.state) body.append(element('span', 'new-badge', 'Novo'))
+  link.title = 'Abrir vídeo no YouTube'
+  link.setAttribute('aria-label', link.title)
   body.append(title, meta)
   const actions = element('div', 'card-actions')
   const following = options.trackedVideoIds.has(video.id)
@@ -184,7 +181,10 @@ function videoCard(
     iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo',
       'heart-crack', () => options.onToggle(video, 'is_deprioritized'), deprioritized)
   )
-  actions.append(link)
+  const open = element('span', 'video-open')
+  if (!video.state) open.append(element('span', 'new-badge', 'Novo'))
+  open.append(link)
+  actions.append(open)
   body.append(actions)
   card.append(body)
   return card

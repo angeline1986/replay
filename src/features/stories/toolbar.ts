@@ -41,17 +41,15 @@ export function storyToolbar(options: {
     placeholder: options.completed ? 'Canais' : 'Todos os canais',
     label: options.completed ? 'Filtrar concluídos por canal' : 'Filtrar histórias por canal',
     className: 'favorite-channel-filter', onChange: options.onChannelSelect }))
-  if (options.completed) {
-    const sort = element('select', 'favorite-sort')
-    sort.setAttribute('aria-label', 'Ordenar histórias concluídas')
-    for (const [value, label] of [['recent', 'Recentes'], ['az', 'Título A–Z']] as const) {
-      const option = element('option', '', label)
-      option.value = value
-      sort.append(option)
-    }
-    sort.value = options.sort
-    sort.addEventListener('change', () => options.onSort(sort.value as 'recent' | 'az'))
-    controls.append(sort)
+  const sort = element('select', 'favorite-sort')
+  sort.setAttribute('aria-label', options.completed ? 'Ordenar histórias concluídas' : 'Ordenar minhas histórias')
+  for (const [value, label] of [['recent', 'Recentes'], ['az', 'A–Z']] as const) {
+    const option = element('option', '', label)
+    option.value = value
+    sort.append(option)
   }
+  sort.value = options.sort
+  sort.addEventListener('change', () => options.onSort(sort.value as 'recent' | 'az'))
+  controls.append(sort)
   return controls
 }

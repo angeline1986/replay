@@ -15,7 +15,7 @@
 .favorite-toolbar-controls input { flex: 1 1 190px; max-width: 340px; background: #f7f8fa; }
 .favorite-toolbar-controls select { flex: 0 1 145px; }
 .favorite-toolbar-controls .favorite-status { flex-basis: 110px; }
-.favorite-toolbar-controls .favorite-channel-filter { flex-basis: 150px; }
+.favorite-toolbar-controls .favorite-channel-filter { flex-basis: 185px; }
 .favorite-toolbar-controls .favorite-sort { flex-basis: 125px; }
 .favorite-toolbar-controls .header-action { display: inline-flex; align-items: center; justify-content: center; flex: none; min-height: 38px; padding: 8px 13px; font-family: inherit; font-size: 13px; font-weight: 650; line-height: 1.4; white-space: nowrap; }
 .channel-toolbar-form .channel-jump { flex: 0 1 190px; }
@@ -63,6 +63,9 @@
 .card-actions button:first-child { color: #b47718; }
 .video-link, .channel-link { color: #5545cb; font-size: 12px; font-weight: 700; text-decoration: none; }
 .video-link { margin-left: auto; }
+.video-open { display: inline-flex; align-items: center; gap: 6px; flex: none;
+  margin-left: auto; white-space: nowrap; }
+.video-open .video-link { margin-left: 0; font-size: 18px; line-height: 1; }
 .video-link:hover, .channel-link:hover { text-decoration: underline; }
 .load-more { display: block; margin: 28px auto; padding: 10px 15px; border: 1px solid #e0e3eb; border-radius: 9px; background: #fff; color: #20283a; font-weight: 650; }
 .add-channel { display: flex; gap: 10px; margin: 0 0 22px; padding: 16px; border: 1px solid #e6e9f0; border-radius: 12px; background: #fff; }

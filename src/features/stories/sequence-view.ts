@@ -56,11 +56,16 @@ function sequenceCard(video: Video, label: string, options: SequenceOptions,
     iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo', 'heart-crack',
       () => options.onToggle(video, 'is_deprioritized'), deprioritized)
   )
-  const link = element('a', 'video-link', 'Abrir ↗')
+  const link = element('a', 'video-link', '↗')
   link.href = validVideoUrl(video.youtube_video_id)
   link.target = '_blank'
   link.rel = 'noopener noreferrer'
-  actions.append(link)
+  link.title = 'Abrir vídeo no YouTube'
+  link.setAttribute('aria-label', link.title)
+  const open = element('span', 'video-open')
+  if (!video.state) open.append(element('span', 'new-badge', 'Novo'))
+  open.append(link)
+  actions.append(open)
   body.append(badgeRow, title, meta, actions)
   card.append(art, body)
   if (candidate) {

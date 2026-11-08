@@ -31,8 +31,9 @@
 .follow-complete { padding: 0; border: 0; background: transparent; color: #5545cb;
   font-family: inherit; font-size: 12px; font-weight: 700; }
 .follow-complete:hover { text-decoration: underline; }
-.follow-open { margin-left: auto; font-size: 12px; font-weight: 700;
+.follow-open { margin-left: auto; font-size: 18px; font-weight: 700; line-height: 1;
   text-decoration: none; color: #5545cb; }
+.video-open .follow-open { margin-left: 0; }
 .follow-open:hover { text-decoration: underline; }
 @media (max-width: 700px) {
   .follow-heading { align-items: flex-start; }

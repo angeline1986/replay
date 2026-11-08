@@ -44,6 +44,7 @@ test('histórias têm filtro, divisores por canal e ações de favorito e visto'
   const events: string[] = []
   const selected: string[] = []
   const opened: string[] = []
+  const sorted: string[] = []
   const story = (id: string, videoId: string) => ({ id, owner_id: 'owner', seed_video_id: videoId,
     name: `Obra ${id}`, canonical_key: id, aliases: [], is_followed: true, completed_at: null,
     last_scanned_at: null, created_at: '2026-11-04T00:00:00Z' })
@@ -52,7 +53,7 @@ test('histórias têm filtro, divisores por canal e ações de favorito e visto'
     { ...demoVideos[1], state: { video_id: demoVideos[1].id, is_favorite: false, is_watched: true } }
   ]
   const options = { channels: demoChannels, selectedChannelId: '', onChannelSelect: (id: string) => selected.push(id),
-    query: '', onQuery: () => {}, sort: 'recent' as const, onSort: () => {}, onLookupYouTube: async () => { throw Error('unused') }, onSaveYouTube: () => {},
+    query: '', onQuery: () => {}, sort: 'recent' as const, onSort: (value: string) => sorted.push(value), onLookupYouTube: async () => { throw Error('unused') }, onSaveYouTube: () => {},
     data: { groups: videos.map((video, index) => ({ story: story(`s${index}`, video.id), seed: video,
       confirmed: [], pending: [] })), completed: [], pendingCount: 0 },
     onOpenSequence: (story: TrackedStory) => opened.push(story.id), onComplete: () => {},
@@ -69,12 +70,22 @@ test('histórias têm filtro, divisores por canal e ações de favorito e visto'
   first.querySelector<HTMLButtonElement>('.follow-expand')!.click()
   assert.deepEqual(events, ['demo-v1:is_favorite', 'demo-v1:is_watched'])
   assert.deepEqual(opened, ['s0'])
+  const sort = view.querySelector<HTMLSelectElement>('select[aria-label="Ordenar minhas histórias"]')!
+  sort.value = 'az'; sort.dispatchEvent(new window.Event('change'))
+  assert.deepEqual(sorted, ['az'])
   const select = view.querySelector<HTMLButtonElement>(`.favorite-channel-filter .channel-picker-option[data-channel-id="${demoChannels[1].id}"]`)!
   select.click()
   assert.deepEqual(selected, [demoChannels[1].id])
   const filtered = storiesView({ ...options, selectedChannelId: demoChannels[1].id })
   assert.equal(filtered.querySelectorAll('.follow-card').length, 1)
   assert.equal(filtered.querySelector('.favorite-channel-heading h3')?.textContent, demoChannels[1].name)
+  const titled = options.data.groups.map((group, index) => ({ ...group,
+    story: { ...group.story, name: index ? 'Abelha' : 'Zebra' } }))
+  const alphabetical = storiesView({ ...options, data: { ...options.data, groups: titled }, sort: 'az' })
+  assert.deepEqual([...alphabetical.querySelectorAll('.follow-card h2')].map((node) => node.textContent), ['Abelha', 'Zebra'])
+  const recent = storiesView({ ...options, data: { ...options.data,
+    groups: [...options.data.groups].reverse() }, sort: 'recent' })
+  assert.deepEqual([...recent.querySelectorAll('.follow-card h2')].map((node) => node.textContent), ['Obra s0', 'Obra s1'])
 }))
 
 test('carregamento de histórias inclui os estados pessoais dos vídeos', async () => {
