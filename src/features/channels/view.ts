@@ -74,40 +74,57 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   }
   const list = element('div', 'channel-list')
   for (const channel of options.channels) {
-    const item = element('article', 'channel-card')
+    const count = options.videos.filter((video) => video.channel_id === channel.id && !video.state).length
+    const item = element('article', `channel-card compact-channel-card${count ? ' has-news' : ''}${channel.is_active ? '' : ' is-paused'}`)
     cards.set(channel.id, item)
-    const avatar = element('div', 'avatar', channel.name.slice(0, 1).toUpperCase())
+    const head = element('div', 'channel-card-head')
+    const avatar = element('div', 'avatar channel-card-avatar', channel.name.slice(0, 1).toUpperCase())
     if (channel.avatar_url) {
       const img = element('img')
       img.src = channel.avatar_url
       img.alt = ''
       img.referrerPolicy = 'no-referrer'
       img.addEventListener('error', () => img.remove())
-      avatar.replaceChildren(img)
+      avatar.append(img)
     }
-    item.append(avatar)
-    const detail = element('div', 'channel-detail')
-    detail.append(element('h2', '', channel.name))
-    const count = options.videos.filter((video) => video.channel_id === channel.id && !video.state).length
-    detail.append(element('p', 'muted', `${count} novidade${count === 1 ? '' : 's'} · ${channel.is_active ? 'Ativo' : 'Pausado'}`))
-    const checked = channel.last_checked_at
-      ? new Date(channel.last_checked_at).toLocaleString('pt-BR') : 'Ainda não verificado'
-    detail.append(element('p', 'muted small', `Última verificação: ${checked}`))
+    const detail = element('div', 'channel-card-identity')
+    const name = element('h2', '', channel.name)
+    name.title = channel.name
+    detail.append(name)
     const link = element('a', 'channel-link', 'Ver no YouTube ↗')
     link.href = `https://www.youtube.com/channel/${channel.youtube_channel_id}`
     link.target = '_blank'
     link.rel = 'noopener noreferrer'
     detail.append(link)
-    item.append(detail)
-    const actions = element('div', 'channel-actions')
-    actions.append(
-      button('Ver vídeos', () => options.onOpen(channel)),
-      button(channel.is_active ? 'Pausar' : 'Reativar', () => options.onToggle(channel)),
-      button('Remover', () => options.onRemove(channel), 'danger')
-    )
-    item.append(actions)
+    head.append(avatar, detail)
+    const status = element('div', 'channel-card-status')
+    const badge = channel.is_active ? count ? `+${count} novo${count === 1 ? '' : 's'}` : '0 novas' : 'Pausado'
+    status.append(element('span', `channel-badge${channel.is_active ? count ? ' has-news' : '' : ' is-paused'}`, badge),
+      element('span', 'channel-checked', checkedLabel(channel.last_checked_at)))
+    const actions = element('div', 'channel-actions channel-card-actions')
+    const view = button(count ? `Ver vídeos (${count})` : 'Ver vídeos', () => options.onOpen(channel),
+      `channel-view-videos${count ? ' has-news' : ''}`)
+    const toggle = button(channel.is_active ? '⏸' : '▶', () => options.onToggle(channel), 'channel-icon-button')
+    toggle.title = channel.is_active ? 'Pausar monitoramento' : 'Reativar monitoramento'
+    toggle.setAttribute('aria-label', toggle.title)
+    const remove = button('🗑', () => options.onRemove(channel), 'channel-icon-button danger')
+    remove.title = 'Remover canal'
+    remove.setAttribute('aria-label', remove.title)
+    actions.append(view, toggle, remove)
+    item.append(head, status, actions)
     list.append(item)
   }
   root.append(list)
   return root
+}
+
+function checkedLabel(value: string | null): string {
+  if (!value) return 'Ainda não verificado'
+  const time = Date.parse(value)
+  if (!Number.isFinite(time)) return 'Verificação indisponível'
+  const minutes = Math.max(0, Math.floor((Date.now() - time) / 60000))
+  if (minutes < 1) return 'Checado agora'
+  if (minutes < 60) return `Há ${minutes} min`
+  if (minutes < 1440) return `Há ${Math.floor(minutes / 60)} h`
+  return `Checado em ${new Date(time).toLocaleDateString('pt-BR')}`
 }
