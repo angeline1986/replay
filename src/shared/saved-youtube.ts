@@ -62,6 +62,9 @@ export async function saveYouTubeToCollection(
     .limit(1).maybeSingle()
   if (monitored.error) throw new Error(monitored.error.message)
   if (monitored.data) {
+    const saved = await db.from('saved_youtube_videos').select('id,is_queued,is_deprioritized')
+      .eq('user_id', userId).eq('youtube_video_id', video.youtube_video_id).maybeSingle()
+    if (saved.error) throw new Error(saved.error.message)
     const current = await db.from('user_video_state')
       .select('is_favorite,is_watched,is_deprioritized,is_queued,watched_at')
       .eq('user_id', userId).eq('video_id', monitored.data.id).maybeSingle()
@@ -70,10 +73,14 @@ export async function saveYouTubeToCollection(
       user_id: userId, video_id: monitored.data.id,
       is_favorite: current.data?.is_favorite ?? false, is_watched: current.data?.is_watched ?? false,
       watched_at: current.data?.watched_at ?? null,
-      is_deprioritized: current.data?.is_deprioritized ?? false,
-      is_queued: current.data?.is_queued ?? false, [flag]: true
+      is_deprioritized: Boolean(current.data?.is_deprioritized || saved.data?.is_deprioritized),
+      is_queued: Boolean(current.data?.is_queued || saved.data?.is_queued), [flag]: true
     }, { onConflict: 'user_id,video_id' })
     if (error) throw new Error(error.message)
+    if (saved.data) {
+      const removed = await db.from('saved_youtube_videos').delete().eq('id', saved.data.id)
+      if (removed.error) throw new Error(removed.error.message)
+    }
     return
   }
   const current = await db.from('saved_youtube_videos').select('is_queued,is_deprioritized')
@@ -84,6 +91,19 @@ export async function saveYouTubeToCollection(
     is_deprioritized: current.data?.is_deprioritized ?? false, [flag]: true
   }, { onConflict: 'user_id,youtube_video_id' })
   if (error) throw new Error(error.message)
+}
+
+export async function addYouTubeWithChannel(
+  db: SupabaseClient, userId: string, video: YouTubeResult,
+  flag: 'is_queued' | 'is_deprioritized',
+  importChannel: (input: { id: string }) => Promise<unknown>,
+  save: typeof saveYouTubeToCollection = saveYouTubeToCollection
+): Promise<void> {
+  const found = await db.from('channels').select('id').eq('owner_id', userId)
+    .eq('youtube_channel_id', video.youtube_channel_id).maybeSingle()
+  if (found.error) throw new Error(found.error.message)
+  if (!found.data) await importChannel({ id: video.youtube_channel_id })
+  await save(db, userId, video, flag)
 }
 
 export async function toggleSavedYouTube(

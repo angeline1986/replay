@@ -20,7 +20,7 @@ import { storiesView } from '../features/stories/view.ts'
 import type { Channel } from '../shared/model.ts'
 import { ChannelPages, loadNext } from '../features/videos/channel-pages.ts'
 import { backfillMissingAvatars } from '../shared/channel-avatars.ts'
-import { lookupYouTube, saveYouTubeToCollection, toggleSavedYouTube } from '../shared/saved-youtube.ts'
+import { lookupYouTube, toggleSavedYouTube } from '../shared/saved-youtube.ts'
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
 let authMessage = ''
@@ -170,7 +170,7 @@ function render(): void {
         }
       },
       onToggle: (video, key) => { void actions.toggleVideo(video, key) },
-      onSaveYouTube: (video, mode) => { void act(() => saveYouTubeToCollection(supabase!, userId, video, mode === 'queue' ? 'is_queued' : 'is_deprioritized')) },
+      onSaveYouTube: (video, mode) => { void actions.addYouTubeVideo(video, mode) },
       onLookupYouTube: (input) => lookupYouTube(supabase!, input),
       onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) },
       onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds

@@ -31,6 +31,24 @@ test('falha remota interrompe sem indicar sucesso', async () => {
     /Importação indisponível/)
 })
 
+test('limite da função informa as 12 tentativas ao usuário', async () => {
+  const client: ImportInvoker = { functions: { invoke: async () => ({ data: null,
+    error: { message: 'Function returned a non-2xx status code',
+      context: new Response(JSON.stringify({ error: 'Limite de importação ou operação em andamento.' }),
+        { status: 429 }) } }) } }
+  await assert.rejects(invokeInitialImport(client, { id: 'UC' + 'a'.repeat(22) }),
+    /12 tentativas diárias/)
+})
+
+test('cota do YouTube não é confundida com limite diário', async () => {
+  const client: ImportInvoker = { functions: { invoke: async () => ({ data: null,
+    error: { message: 'Function returned a non-2xx status code',
+      context: new Response(JSON.stringify({ error: 'Cota YouTube indisponível.' }),
+        { status: 429 }) } }) } }
+  await assert.rejects(invokeInitialImport(client, { id: 'UC' + 'a'.repeat(22) }),
+    /Cota YouTube indisponível/)
+})
+
 test('resposta malformada ou contagem excessiva e rejeitada', async () => {
   for (const data of [null, { status: 'imported', importedVideos: 51, channelId: 'x' },
     { status: 'done', importedVideos: 2, channelId: 'x' },

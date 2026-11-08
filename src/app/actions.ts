@@ -1,8 +1,9 @@
 import { state } from './state.ts'
-import { addChannel, removeChannel, requestChannel, saveVideoState, setChannelActive } from '../shared/api.ts'
+import { addChannel, removeChannel, requestChannel, saveVideoState, setChannelActive, supabase } from '../shared/api.ts'
 import { validChannelId, type Channel, type Video } from '../shared/model.ts'
 import { normalizeChannelInput } from '../features/channels/normalize.ts'
 import { importChannelNow } from '../shared/import-channel.ts'
+import { addYouTubeWithChannel, type YouTubeResult } from '../shared/saved-youtube.ts'
 
 interface Hooks {
   render: () => void
@@ -16,6 +17,13 @@ export function makeActions(hooks: Hooks) {
     video.state[key] = !video.state[key]
     if (state.demo) { hooks.render(); return }
     await hooks.act(() => saveVideoState(hooks.userId(), video))
+  }
+
+  async function addYouTubeVideo(video: YouTubeResult, mode: 'queue' | 'deprioritized'): Promise<void> {
+    const db = supabase
+    if (state.busy || !db) return
+    const flag = mode === 'queue' ? 'is_queued' : 'is_deprioritized'
+    await hooks.act(() => addYouTubeWithChannel(db, hooks.userId(), video, flag, importChannelNow))
   }
 
   async function createChannel(input: string): Promise<void> {
@@ -71,5 +79,5 @@ export function makeActions(hooks: Hooks) {
     await hooks.act(() => removeChannel(channel))
   }
 
-  return { toggleVideo, createChannel, toggleChannel, deleteChannel }
+  return { toggleVideo, addYouTubeVideo, createChannel, toggleChannel, deleteChannel }
 }

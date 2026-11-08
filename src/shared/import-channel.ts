@@ -7,7 +7,7 @@ export interface InitialImportResponse {
 export interface ImportInvoker {
   functions: {
     invoke(name: string, options: { body: { handle?: string; channelId?: string } }):
-      Promise<{ data: unknown; error: { message: string } | null }>
+      Promise<{ data: unknown; error: { message: string; context?: unknown } | null }>
   }
 }
 
@@ -16,7 +16,17 @@ export async function invokeInitialImport(
 ): Promise<InitialImportResponse> {
   const body = input.handle ? { handle: input.handle } : { channelId: input.id }
   const { data, error } = await client.functions.invoke('import-channel', { body })
-  if (error) throw new Error('Importação indisponível. Confira a função no Supabase.')
+  if (error) {
+    if (error.context instanceof Response) {
+      const payload = await error.context.clone().json().catch(() => null)
+      const detail = typeof payload?.error === 'string' ? payload.error : ''
+      if (detail === 'Limite de importação ou operação em andamento.') {
+        throw new Error('Limite de 12 tentativas diárias de cadastro ou importação em andamento.')
+      }
+      if (/^(Limite de 100 canais|Cota YouTube|Canal não encontrado)/.test(detail)) throw new Error(detail)
+    }
+    throw new Error('Importação indisponível. Confira a função no Supabase.')
+  }
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new Error('Resposta inválida do servidor.')
   }
