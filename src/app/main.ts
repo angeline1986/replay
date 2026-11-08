@@ -3,13 +3,13 @@ import '../features/stories/view.css'
 import '../styles/base.css'
 import '../styles/content.css'
 import '../features/channels/grid.css'
+import '../features/videos/youtube-search.css'
 import { state } from './state.ts'
 import { button, clear, element, notice } from '../shared/dom.ts'
-import { configured, currentUser, loadDashboard, loadVideoPage, sendMagicLink, signInWithGitHub, signOut } from '../shared/api.ts'
+import { configured, currentUser, loadDashboard, loadVideoPage, sendMagicLink, signInWithGitHub, signOut, supabase } from '../shared/api.ts'
 import { authView } from '../features/auth/view.ts'
 import { channelView } from '../features/channels/view.ts'
 import { videoView } from '../features/videos/view.ts'
-import { supabase } from '../shared/api.ts'
 import { makeActions } from './actions.ts'
 import { channelRoute, routeFromHash } from './route.ts'
 import { createAuthGate } from './auth-gate.ts'
@@ -20,7 +20,7 @@ import { storiesView } from '../features/stories/view.ts'
 import type { Channel } from '../shared/model.ts'
 import { ChannelPages, loadNext } from '../features/videos/channel-pages.ts'
 import { backfillMissingAvatars } from '../shared/channel-avatars.ts'
-
+import { lookupYouTube, saveYouTubeToCollection, toggleSavedYouTube } from '../shared/saved-youtube.ts'
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
 let authMessage = ''
@@ -89,9 +89,7 @@ async function loadMore(): Promise<void> {
     render()
   }
 }
-function message(error: unknown): string {
-  return error instanceof Error ? error.message : 'Não foi possível concluir a operação.'
-}
+function message(error: unknown): string { return error instanceof Error ? error.message : 'Não foi possível concluir a operação.' }
 async function act(operation: () => Promise<void>, reload = true): Promise<void> {
   state.error = ''
   state.busy = true
@@ -172,6 +170,9 @@ function render(): void {
         }
       },
       onToggle: (video, key) => { void actions.toggleVideo(video, key) },
+      onSaveYouTube: (video, mode) => { void act(() => saveYouTubeToCollection(supabase!, userId, video, mode === 'queue' ? 'is_queued' : 'is_deprioritized')) },
+      onLookupYouTube: (input) => lookupYouTube(supabase!, input),
+      onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) },
       onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds
     }) : channelView({
       channels: state.channels, requests: state.requests, videos: state.videos,
@@ -194,7 +195,6 @@ window.addEventListener('hashchange', () => {
   state.sort = 'recent'
   render()
 })
-
 supabase?.auth.onAuthStateChange((event, session) => auth.handle(event, session?.user.id))
 if (!state.demo && configured) void auth.start()
 else render()

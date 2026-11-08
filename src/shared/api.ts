@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Channel, ChannelRequest, Video, VideoState } from './model.ts'
 import { loadVideoCollection } from './video-collections.ts'
+import { loadSavedYouTube } from './saved-youtube.ts'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -65,13 +66,15 @@ export async function loadDashboard(userId: string): Promise<{
   const channels = unwrap(await client().from('channels').select('*').order('name')) as Channel[]
   const requests = unwrap(await client().from('channel_requests')
     .select('id,handle,status,error_message').order('created_at', { ascending: false }).limit(20)) as ChannelRequest[]
-  const [videos, highlights, favorites, deprioritized, queued] = await Promise.all([
+  const [videos, highlights, favorites, deprioritized, queued, saved] = await Promise.all([
     loadVideoPage(userId, channels, 0), loadLatestChannelVideos(userId, channels),
     loadVideoCollection(client(), userId, channels, 'is_favorite'),
     loadVideoCollection(client(), userId, channels, 'is_deprioritized'),
-    loadVideoCollection(client(), userId, channels, 'is_queued')
+    loadVideoCollection(client(), userId, channels, 'is_queued'), loadSavedYouTube(client(), userId)
   ])
-  return { channels, requests, videos, highlights, favorites, deprioritized, queued, hasMore: videos.length === 50 }
+  return { channels, requests, videos, highlights, favorites,
+    deprioritized: [...deprioritized, ...saved.filter((video) => video.state?.is_deprioritized)],
+    queued: [...queued, ...saved.filter((video) => video.state?.is_queued)], hasMore: videos.length === 50 }
 }
 
 export async function loadVideoPage(userId: string, channels: Channel[], offset: number, limit = 50, channelId?: string): Promise<Video[]> {

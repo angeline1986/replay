@@ -14,7 +14,8 @@ export function favoriteVideoGroups(
     const channel = channels.find((item) => item.id === channelId)
     const group = element('section', index ? 'favorite-channel-group' : 'favorite-channel-group first-channel-group')
     const heading = element('div', 'favorite-channel-heading')
-    const avatar = element('span', 'avatar favorite-channel-avatar', channel?.name.slice(0, 1).toUpperCase() ?? '?')
+    const avatar = element('span', 'avatar favorite-channel-avatar',
+      (channel?.name ?? items[0].channel?.name ?? '?').slice(0, 1).toUpperCase())
     if (channel?.avatar_url) {
       const image = element('img')
       image.src = channel.avatar_url

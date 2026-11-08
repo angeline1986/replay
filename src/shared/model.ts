@@ -21,6 +21,7 @@ export interface Video {
   discovered_at: string
   channel?: Pick<Channel, 'name' | 'id'>
   state?: VideoState
+  external?: true
 }
 
 export interface VideoState {

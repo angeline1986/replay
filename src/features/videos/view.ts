@@ -2,6 +2,8 @@ import { button, element, notice } from '../../shared/dom.ts'
 import { filterVideos, validVideoUrl, type Channel, type Video, type VideoFilter } from '../../shared/model.ts'
 import { iconButton } from './icons.ts'
 import { favoriteVideoGroups } from './favorites.ts'
+import { youtubeSearchView } from './youtube-search.ts'
+import type { YouTubeResult } from '../../shared/saved-youtube.ts'
 
 interface VideoViewOptions {
   mode: 'favorites' | 'videos' | 'deprioritized' | 'queue'
@@ -19,6 +21,9 @@ interface VideoViewOptions {
   onFollow: (video: Video) => void
   trackedVideoIds: Set<string>
   onLoadMore: () => void
+  onSaveYouTube?: (video: YouTubeResult, mode: 'queue' | 'deprioritized') => void
+  onLookupYouTube?: (input: string) => Promise<YouTubeResult>
+  onToggleSaved?: (video: Video, key: 'is_queued' | 'is_deprioritized') => void
 }
 
 export function videoView(options: VideoViewOptions): HTMLElement {
@@ -34,8 +39,6 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const countSource = collection ? (options.collectionVideos ?? favoriteSource) : options.videos
   const countBadge = element('span', 'favorite-total', String(countSource.length))
   intro.append(element('h1', '', title), countBadge)
-  const add = element('a', 'primary header-action', 'Add Canal')
-  add.href = '#channels'
   heading.append(intro)
 
   const filters = element('div', 'favorite-toolbar-controls')
@@ -77,6 +80,14 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     option.value = item.id
     channel.append(option)
   }
+  if (options.mode === 'queue' || options.mode === 'deprioritized') {
+    for (const video of channelSource.filter((item) => item.external)) {
+      if ([...channel.options].some((item) => item.value === video.channel_id)) continue
+      const option = element('option', '', video.channel?.name ?? 'Canal')
+      option.value = video.channel_id
+      channel.append(option)
+    }
+  }
   channel.value = options.filter.channelId
   channel.addEventListener('change', () => options.onFilter({ ...options.filter, channelId: channel.value }))
   filters.append(channel)
@@ -90,9 +101,12 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   sort.value = options.sort
   sort.addEventListener('change', () => options.onSort(sort.value as VideoViewOptions['sort']))
   filters.append(sort)
-  filters.append(add)
   heading.append(filters)
   root.append(heading)
+  if ((options.mode === 'queue' || options.mode === 'deprioritized') && options.onSaveYouTube && options.onLookupYouTube) {
+    root.append(youtubeSearchView(options.mode, options.onLookupYouTube, (video) => options.onSaveYouTube?.(video,
+      options.mode as 'queue' | 'deprioritized')))
+  }
 
   // Com ambos os selects em "Todos", mostrar apenas o último vídeo de cada canal.
   const onePerChannel = !collection && options.filter.status === 'all' && !options.filter.channelId
@@ -156,7 +170,13 @@ function videoCard(
   const follow = iconButton(following ? 'História já acompanhada' : 'Acompanhar esta história',
     'runner', () => options.onFollow(video), following)
   follow.disabled = following
-  actions.append(
+  if (video.external) actions.append(
+    iconButton(queued ? 'Remover da fila de espera' : 'Adicionar à fila de espera',
+      'hourglass', () => options.onToggleSaved?.(video, 'is_queued'), queued),
+    iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo',
+      'heart-crack', () => options.onToggleSaved?.(video, 'is_deprioritized'), deprioritized)
+  )
+  else actions.append(
     iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
       'star', () => options.onToggle(video, 'is_favorite'), favorite),
     iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto',
