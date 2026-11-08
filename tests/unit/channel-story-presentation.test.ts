@@ -70,6 +70,7 @@ test('histórias têm filtro, divisores por canal e ações de favorito e visto'
   assert.equal(buttons[2].getAttribute('aria-label'), 'Concluir história')
   buttons.slice(0, 2).forEach((node) => node.click())
   assert.equal(first.querySelector('.follow-expand'), null)
+  assert.equal(first.querySelector('.follow-footer'), null)
   assert.deepEqual(events, ['demo-v1:is_favorite', 'demo-v1:is_watched'])
   assert.deepEqual(opened, [])
   const sort = view.querySelector<HTMLSelectElement>('select[aria-label="Ordenar minhas histórias"]')!

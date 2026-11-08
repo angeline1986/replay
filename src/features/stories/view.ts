@@ -39,8 +39,16 @@ function videoActions(video: Video, story: TrackedStory, options: StoryViewOptio
 
 function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOptions): HTMLElement {
   const card = element('article', 'follow-card')
-  const hero = element('div', 'follow-hero')
   const cover = group.seed ?? group.confirmed[0]?.video ?? null
+  const hero = cover ? element('a', 'follow-hero') : element('div', 'follow-hero')
+  if (cover) {
+    const link = hero as HTMLAnchorElement
+    link.href = validVideoUrl(cover.youtube_video_id)
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    link.title = 'Abrir vídeo no YouTube'
+    link.setAttribute('aria-label', link.title)
+  }
   if (cover?.thumbnail_url) {
     const img = element('img')
     img.src = cover.thumbnail_url
@@ -51,9 +59,6 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
     hero.append(img)
   }
   hero.append(element('span', 'follow-play', '▶'))
-  const count = Number(Boolean(group.seed)) + group.confirmed.length
-  hero.append(element('span', 'follow-count',
-    `${count} vídeo${count === 1 ? '' : 's'} confirmado${count === 1 ? '' : 's'}`))
   card.append(hero)
   const info = element('div', 'follow-info')
   info.append(element('h2', '', group.story.name))
@@ -73,19 +78,7 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
     () => options.onOpenSequence(group.story), 'follow-expand'))
   if (options.mode === 'completed') footer.append(button('Retomar',
     () => options.onComplete(group.story, false), 'follow-complete'))
-  if (cover) {
-    const link = element('a', 'follow-open', '↗')
-    link.href = validVideoUrl(cover.youtube_video_id)
-    link.target = '_blank'
-    link.rel = 'noopener noreferrer'
-    link.title = 'Abrir vídeo no YouTube'
-    link.setAttribute('aria-label', link.title)
-    const open = element('span', 'video-open')
-    if (!cover.state) open.append(element('span', 'new-badge', 'Novo'))
-    open.append(link)
-    footer.append(open)
-  }
-  card.append(footer)
+  if (footer.childElementCount) card.append(footer)
   return card
 }
 

@@ -6,13 +6,10 @@
 .follow-card { display: flex; flex-direction: column; min-width: 0; overflow: hidden;
   border: 1px solid #e0e3eb; border-radius: 15px; background: #fff; }
 .follow-hero { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9;
-  background: linear-gradient(115deg, #6675ad, #adb8db); overflow: hidden; }
+  background: linear-gradient(115deg, #6675ad, #adb8db); overflow: hidden; text-decoration: none; }
 .follow-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .follow-play { position: relative; z-index: 1; padding: 8px 13px; border-radius: 100%;
   background: #14141ab5; color: white; font-size: 17px; }
-.follow-count { position: absolute; z-index: 2; padding: 5px 8px;
-  border-radius: 5px; font-size: 11px; font-weight: 700; color: #fff; }
-.follow-count { bottom: 9px; left: 10px; background: #17171cbd; }
 .follow-info { flex: 1; padding: 13px 14px 12px; min-height: 135px; }
 .follow-info h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; margin: 0 0 9px;
@@ -30,10 +27,6 @@
 .follow-complete { padding: 0; border: 0; background: transparent; color: #5545cb;
   font-family: inherit; font-size: 12px; font-weight: 700; }
 .follow-complete:hover { text-decoration: underline; }
-.follow-open { margin-left: auto; font-size: 18px; font-weight: 700; line-height: 1;
-  text-decoration: none; color: #5545cb; }
-.video-open .follow-open { margin-left: 0; }
-.follow-open:hover { text-decoration: underline; }
 @media (max-width: 700px) {
   .follow-heading { align-items: flex-start; }
   .follow-info { min-height: 0; }
