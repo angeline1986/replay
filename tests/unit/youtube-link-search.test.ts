@@ -35,6 +35,8 @@ test('fila busca vídeo no YouTube e oferece adicioná-lo sem cadastrar canal', 
       onSaveYouTube: (video) => { saved = video.youtube_video_id }
     })
     assert.equal(view.textContent?.includes('Add Canal'), false)
+    assert.equal(view.querySelector('.favorite-status'), null)
+    assert.equal(view.querySelector('input[type="search"]')?.getAttribute('aria-label'), 'Buscar vídeo')
     const input = view.querySelector<HTMLInputElement>('.youtube-search input')!
     input.value = 'https://www.youtube.com/watch?v=Hx2SPzq2h4Q'
     view.querySelector<HTMLFormElement>('.youtube-search form')!

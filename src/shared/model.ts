@@ -52,7 +52,7 @@ export function filterVideos(videos: Video[], filter: VideoFilter): Video[] {
     if (filter.status === 'favorites' && !video.state?.is_favorite) return false
     if (filter.status === 'unwatched' && video.state?.is_watched) return false
     if (filter.status === 'new' && video.state) return false
-    const text = `${video.title} ${video.channel?.name ?? ''}`.toLocaleLowerCase('pt-BR')
+    const text = video.title.toLocaleLowerCase('pt-BR')
     return text.includes(query)
   }).sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
 }

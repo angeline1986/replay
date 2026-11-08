@@ -44,27 +44,28 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const filters = element('div', 'favorite-toolbar-controls')
   const search = element('input')
   search.type = 'search'
-  search.placeholder = '⌕  Vídeo ou canal...'
-  search.setAttribute('aria-label', 'Vídeo ou canal')
+  search.placeholder = '⌕  Buscar vídeo...'
+  search.setAttribute('aria-label', 'Buscar vídeo')
   search.value = options.filter.query
   search.addEventListener('input', () => options.onFilter({ ...options.filter, query: search.value }))
   filters.append(search)
-  const status = element('select', 'favorite-status')
-  status.setAttribute('aria-label', 'Filtrar vídeos por status')
-  const collectionLabel = favorites ? 'Favoritos' : options.mode === 'queue' ? 'Fila de espera' : 'Despriorizados'
-  const statuses = collection
-    ? [['all', collectionLabel], ['unwatched', 'Não vistos']]
-    : [['all', 'Lançamentos'], ['new', 'Novos'], ['unwatched', 'Não vistos'], ['favorites', 'Favoritos']]
-  for (const [value, label] of statuses) {
-    const option = element('option', '', label)
-    option.value = value
-    status.append(option)
+  if (options.mode === 'favorites' || options.mode === 'videos') {
+    const status = element('select', 'favorite-status')
+    status.setAttribute('aria-label', 'Filtrar vídeos por status')
+    const statuses = favorites
+      ? [['all', 'Favoritos'], ['unwatched', 'Não vistos']]
+      : [['all', 'Lançamentos'], ['new', 'Novos'], ['unwatched', 'Não vistos'], ['favorites', 'Favoritos']]
+    for (const [value, label] of statuses) {
+      const option = element('option', '', label)
+      option.value = value
+      status.append(option)
+    }
+    status.value = options.filter.status
+    status.addEventListener('change', () => options.onFilter({
+      ...options.filter, status: status.value as VideoFilter['status']
+    }))
+    filters.append(status)
   }
-  status.value = options.filter.status
-  status.addEventListener('change', () => options.onFilter({
-    ...options.filter, status: status.value as VideoFilter['status']
-  }))
-  filters.append(status)
   const channel = element('select', 'favorite-channel-filter')
   channel.setAttribute('aria-label', 'Filtrar vídeos por canal')
   const allChannels = element('option', '', 'Canais')
