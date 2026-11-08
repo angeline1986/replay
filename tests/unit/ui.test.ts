@@ -71,14 +71,15 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   assert.equal(view.querySelectorAll('.video-card').length, 1)
   assert.equal(view.querySelector('.new-badge')?.textContent, 'Novo')
   const icons = [...view.querySelectorAll<HTMLButtonElement>('.card-actions .icon-action')]
-  assert.equal(icons.length, 3)
+  assert.equal(icons.length, 5)
   assert.deepEqual(icons.map((node) => node.getAttribute('aria-label')),
-    ['Adicionar aos favoritos', 'Marcar como visto', 'Acompanhar esta história'])
+    ['Adicionar aos favoritos', 'Despriorizar vídeo', 'Adicionar à fila de espera',
+      'Marcar como visto', 'Acompanhar esta história'])
   assert.deepEqual(icons.map((node) => node.querySelector('svg')?.getAttribute('viewBox')),
-    ['0 0 640 640', '0 0 640 640', '0 0 640 640'])
+    ['0 0 640 640', '0 0 640 640', '0 0 640 640', '0 0 640 640', '0 0 640 640'])
   assert.deepEqual(icons.map((node) => node.getAttribute('aria-pressed')),
-    ['false', 'false', 'false'])
-  assert.equal(icons[1].classList.contains('icon-eye-slash'), true)
+    ['false', 'false', 'false', 'false', 'false'])
+  assert.equal(icons[3].classList.contains('icon-eye-slash'), true)
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /<script>alert\(1\)<\/script>/)
   assert.equal(view.querySelector<HTMLAnchorElement>('.video-link')?.hostname, 'www.youtube.com')
