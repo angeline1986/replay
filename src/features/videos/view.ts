@@ -27,10 +27,12 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const heading = element('div', favorites ? 'favorites-toolbar' : 'page-head')
   const intro = element('div')
   const favoriteSource = options.favoriteVideos ?? options.videos
+  let favoriteCountBadge: HTMLElement | null = null
   if (favorites) {
     const title = element('div', 'favorite-page-title')
     title.append(element('h1', '', 'Vídeos favoritos'))
-    title.append(element('span', 'favorite-total', String(favoriteSource.filter((video) => video.state?.is_favorite).length)))
+    favoriteCountBadge = element('span', 'favorite-total', String(favoriteSource.filter((video) => video.state?.is_favorite).length))
+    title.append(favoriteCountBadge)
     intro.append(title)
   } else {
     intro.append(
@@ -65,7 +67,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   status.addEventListener('change', () => options.onFilter({
     ...options.filter, status: status.value as VideoFilter['status']
   }))
-  if (!favorites) filters.append(status)
+  filters.append(status)
   const channel = element('select')
   channel.setAttribute('aria-label', 'Filtrar vídeos por canal')
   const allChannels = element('option', '', 'Todos os canais')
@@ -110,14 +112,15 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const filtered = filterVideos(source, options.filter)
     .filter((video) => !favorites || video.state?.is_favorite)
   if (options.sort === 'az') filtered.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'))
+  if (favoriteCountBadge) favoriteCountBadge.textContent = String(filtered.length)
   const sectionTitle = element('div', 'section-title')
-  sectionTitle.append(
-    element('h2', '', favorites ? 'Minha seleção' : 'Publicações recentes'),
-    ...(favorites ? [status] : []),
-    element('span', 'result-count', `${filtered.length} vídeo${filtered.length === 1 ? '' : 's'}`)
-  )
-  if (favorites) sectionTitle.classList.add('favorite-section-title')
-  root.append(sectionTitle)
+  if (!favorites) {
+    sectionTitle.append(
+      element('h2', '', 'Publicações recentes'),
+      element('span', 'result-count', `${filtered.length} vídeo${filtered.length === 1 ? '' : 's'}`)
+    )
+    root.append(sectionTitle)
+  }
   if (!filtered.length) {
     root.append(notice(favorites
       ? 'Nenhum favorito encontrado. Marque um vídeo no feed para vê-lo aqui.'

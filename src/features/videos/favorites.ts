@@ -26,7 +26,7 @@ export function favoriteVideoGroups(
     heading.append(avatar, element('h3', '', channelName(items[0], channels)))
     heading.append(element('span', 'result-count', `${items.length} vídeo${items.length === 1 ? '' : 's'}`))
     group.append(heading)
-    const grid = element('div', 'video-grid')
+    const grid = element('div', 'video-grid favorite-video-list')
     for (const video of items) grid.append(renderCard(video))
     group.append(grid)
     result.append(group)
