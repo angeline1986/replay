@@ -73,22 +73,22 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   const icons = [...view.querySelectorAll<HTMLButtonElement>('.card-actions .icon-action')]
   assert.equal(icons.length, 5)
   assert.deepEqual(icons.map((node) => node.getAttribute('aria-label')),
-    ['Adicionar aos favoritos', 'Despriorizar vídeo', 'Adicionar à fila de espera',
-      'Marcar como visto', 'Acompanhar esta história'])
+    ['Adicionar aos favoritos', 'Marcar como visto', 'Acompanhar esta história',
+      'Adicionar à fila de espera', 'Despriorizar vídeo'])
   assert.deepEqual(icons.map((node) => node.querySelector('svg')?.getAttribute('viewBox')),
-    ['0 0 640 640', undefined, undefined, '0 0 640 640', '0 0 640 640'])
-  assert.match(icons[1].querySelector<HTMLElement>('.supplied-svg-icon')?.style.maskImage ?? '', /heart-crack-solid-full\.svg/)
-  assert.match(icons[2].querySelector<HTMLElement>('.supplied-svg-icon')?.style.maskImage ?? '', /hourglass-half-solid-full\.svg/)
+    ['0 0 640 640', '0 0 640 640', '0 0 640 640', undefined, undefined])
+  assert.match(icons[3].querySelector<HTMLElement>('.supplied-svg-icon')?.style.maskImage ?? '', /hourglass-half-solid-full\.svg/)
+  assert.match(icons[4].querySelector<HTMLElement>('.supplied-svg-icon')?.style.maskImage ?? '', /heart-crack-solid-full\.svg/)
   assert.deepEqual(icons.map((node) => node.getAttribute('aria-pressed')),
     ['false', 'false', 'false', 'false', 'false'])
-  assert.equal(icons[3].classList.contains('icon-eye-slash'), true)
+  assert.equal(icons[1].classList.contains('icon-eye-slash'), true)
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /<script>alert\(1\)<\/script>/)
   assert.equal(view.querySelector<HTMLAnchorElement>('.video-link')?.hostname, 'www.youtube.com')
   assert.equal(view.querySelector<HTMLSelectElement>('select[aria-label="Filtrar vídeos por canal"]')?.selectedOptions[0].textContent, 'Canais')
   const actions = [...view.querySelectorAll<HTMLButtonElement>('.card-actions button')]
   actions.slice(0, 5).forEach((action) => action.click())
-  assert.deepEqual(events, ['is_favorite', 'is_deprioritized', 'is_queued', 'is_watched', 'follow'])
+  assert.deepEqual(events, ['is_favorite', 'is_watched', 'follow', 'is_queued', 'is_deprioritized'])
 }))
 
 test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corrigir nome', () => withDocument(() => {

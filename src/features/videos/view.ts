@@ -159,13 +159,13 @@ function videoCard(
   actions.append(
     iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
       'star', () => options.onToggle(video, 'is_favorite'), favorite),
-    iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo',
-      'heart-crack', () => options.onToggle(video, 'is_deprioritized'), deprioritized),
-    iconButton(queued ? 'Remover da fila de espera' : 'Adicionar à fila de espera',
-      'hourglass', () => options.onToggle(video, 'is_queued'), queued),
     iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto',
       watched ? 'eye' : 'eye-slash', () => options.onToggle(video, 'is_watched'), watched),
-    follow
+    follow,
+    iconButton(queued ? 'Remover da fila de espera' : 'Adicionar à fila de espera',
+      'hourglass', () => options.onToggle(video, 'is_queued'), queued),
+    iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo',
+      'heart-crack', () => options.onToggle(video, 'is_deprioritized'), deprioritized)
   )
   actions.append(link)
   body.append(actions)
