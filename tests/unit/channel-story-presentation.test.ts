@@ -19,22 +19,30 @@ function withDocument(run: (window: JSDOM['window']) => void): void {
 }
 
 test('canais tops podem aparecer primeiro ou sozinhos sem mudar a marcação', () => withDocument((window) => {
-  const reordered = [demoChannels[1], demoChannels[0]]
+  const reordered = [
+    { ...demoChannels[1], id: 'z', name: 'Zeta' },
+    { ...demoChannels[0], id: 'e', name: 'Épico' },
+    { ...demoChannels[1], id: 'a', name: 'Álvaro' },
+    { ...demoChannels[0], id: 'b', name: 'Bêta' }
+  ]
   const selected: string[] = []
   const base = { channels: reordered, requests: [], videos: demoVideos,
     onAdd: () => {}, onToggle: () => {}, onTop: () => {}, onRemove: () => {}, onOpen: () => {}, onMarked: () => {},
     onTopFilter: (value: string) => selected.push(value) }
   const first = channelView({ ...base, topFilter: 'top-first' })
   assert.deepEqual([...first.querySelectorAll('.channel-card h2')].map((node) => node.textContent),
-    [demoChannels[0].name, demoChannels[1].name])
+    ['Bêta', 'Épico', 'Álvaro', 'Zeta'])
+  const all = channelView({ ...base, topFilter: 'all' })
+  assert.deepEqual([...all.querySelectorAll('.channel-card h2')].map((node) => node.textContent),
+    ['Álvaro', 'Bêta', 'Épico', 'Zeta'])
   const filter = first.querySelector<HTMLSelectElement>('.channel-top-filter')!
   filter.value = 'top-only'
   filter.dispatchEvent(new window.Event('change'))
   assert.deepEqual(selected, ['top-only'])
   const only = channelView({ ...base, topFilter: 'top-only' })
-  assert.equal(only.querySelectorAll('.channel-card').length, 1)
-  assert.equal(only.querySelector('.favorite-total')?.textContent, '1')
-  assert.equal(only.querySelectorAll('.channel-jump .channel-picker-option').length, 2)
+  assert.deepEqual([...only.querySelectorAll('.channel-card h2')].map((node) => node.textContent), ['Bêta', 'Épico'])
+  assert.equal(only.querySelector('.favorite-total')?.textContent, '2')
+  assert.equal(only.querySelectorAll('.channel-jump .channel-picker-option').length, 3)
   assert.match(only.querySelector<HTMLElement>('.channel-jump .channel-picker-trophy')?.style.maskImage ?? '',
     /trophy-solid-full\.svg/)
   assert.equal(reordered[1].is_top, true)

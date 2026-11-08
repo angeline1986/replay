@@ -21,9 +21,10 @@ interface ChannelViewOptions {
 }
 
 export function channelView(options: ChannelViewOptions): HTMLElement {
-  const visible = options.topFilter === 'top-only' ? options.channels.filter((item) => item.is_top)
-    : options.topFilter === 'top-first' ? [...options.channels].sort((a, b) => Number(b.is_top) - Number(a.is_top))
-      : options.channels
+  const visible = options.channels.filter((item) => options.topFilter !== 'top-only' || item.is_top)
+    .sort((a, b) => (options.topFilter === 'top-first' ? Number(b.is_top) - Number(a.is_top) : 0)
+      || a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base', numeric: true })
+      || a.id.localeCompare(b.id))
   const root = element('section', 'content')
   const heading = element('div', 'favorites-toolbar')
   const intro = element('div', 'favorite-page-title')
