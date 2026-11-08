@@ -2,6 +2,7 @@ import { button, element, notice } from '../../shared/dom.ts'
 import { filterVideos, validVideoUrl, type Channel, type Video, type VideoFilter } from '../../shared/model.ts'
 import { statsView } from '../stats/view.ts'
 import { iconButton } from './icons.ts'
+import { favoriteVideoGroups } from './favorites.ts'
 
 interface VideoViewOptions {
   mode: 'favorites' | 'videos'
@@ -108,6 +109,8 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     root.append(notice(favorites
       ? 'Nenhum favorito encontrado. Marque um vídeo no feed para vê-lo aqui.'
       : 'Nenhum vídeo encontrado. Ajuste os filtros ou cadastre um canal.'))
+  } else if (favorites) {
+    root.append(favoriteVideoGroups(filtered, options.channels, options.sort, (video) => videoCard(video, options)))
   } else {
     const grid = element('div', 'video-grid')
     for (const video of filtered) grid.append(videoCard(video, options))

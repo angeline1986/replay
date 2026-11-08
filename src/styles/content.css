@@ -8,6 +8,12 @@
 .section-title { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0 13px; }
 .section-title h2 { margin: 0; font-size: 18px; }
 .result-count { color: #778095; font-size: 13px; }
+.favorite-channel-group { padding-top: 18px; margin-top: 22px; border-top: 1px solid #e0e3eb; }
+.favorite-channel-group.first-channel-group { padding-top: 0; margin-top: 0; border-top: 0; }
+.favorite-channel-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+.favorite-channel-heading h3 { margin: 0; font-size: 16px; }
+.favorite-channel-heading .result-count { margin-left: auto; }
+.favorite-channel-avatar { width: 32px; height: 32px; flex-basis: 32px; font-size: 14px; }
 .video-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .video-card, .channel-card { border: 1px solid #e6e9f0; border-radius: 12px; background: #fff; overflow: hidden; }
 .video-art { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; background: linear-gradient(115deg, #6675ad, #adb8db); }
