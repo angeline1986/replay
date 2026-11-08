@@ -4,7 +4,9 @@
 .compact-channel-card:hover { border-color: #c8c5e5; box-shadow: 0 5px 16px #20283a12; }
 .compact-channel-card.has-news { border-color: #c6c2f7; }
 .compact-channel-card.is-paused { border-color: #d7dce7; border-style: dashed; background: #fafbfe; opacity: .76; }
-.compact-channel-card.channel-card-selected { border-color: #6151dc; box-shadow: 0 0 0 2px #6151dc33; }
+.compact-channel-card.channel-card-selected { border-color: #4532cf; outline: 3px solid #6254e8;
+  outline-offset: 2px; background: #f0edff; box-shadow: 0 10px 24px #5545cb40; opacity: 1; }
+.compact-channel-card.channel-card-selected .channel-card-identity h2 { color: #3826b8; }
 .channel-card-head { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
 .channel-card-avatar { position: relative; flex: 0 0 38px; width: 38px; height: 38px; font-size: 16px; }
 .channel-card-avatar img { position: absolute; inset: 0; }
