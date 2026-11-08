@@ -92,7 +92,7 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   assert.deepEqual(events, ['is_favorite', 'is_watched', 'follow', 'is_queued', 'is_deprioritized'])
 }))
 
-test('Minhas histórias mostra pendências e executa confirmar e rejeitar', () => withDocument(() => {
+test('Minhas histórias abre a sequência em Lançamentos sem expandir o cartão', () => withDocument(() => {
   const events: string[] = []
   const story = { id: 'story', owner_id: 'owner', seed_video_id: demoVideos[0].id,
     name: 'Obra <Nova>', canonical_key: 'obra nova', aliases: [], is_followed: true, completed_at: null,
@@ -102,29 +102,17 @@ test('Minhas histórias mostra pendências e executa confirmar e rejeitar', () =
     detected_at: '2026-11-05T00:00:00Z', decided_at: null, video: demoVideos[1] }
   const view = storiesView({ selectedChannelId: '', onChannelSelect: () => {}, query: '', onQuery: () => {}, sort: 'recent', onSort: () => {}, onLookupYouTube: async () => { throw Error('unused') }, onSaveYouTube: () => {}, data: { groups: [{ story, seed: demoVideos[0],
     confirmed: [], pending: [candidate] }], completed: [], pendingCount: 1 },
-  onDecide: (_item, status) => events.push(status),
-  onUnfollow: () => events.push('unfollow'), onComplete: () => {}, onToggleVideo: () => {} })
+  onOpenSequence: (item) => events.push(`open:${item.id}`),
+  onComplete: () => {}, onToggleVideo: () => {} })
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /Obra <Nova>/)
   assert.equal(view.querySelectorAll('.follow-grid').length, 1)
   assert.equal(view.querySelectorAll('.follow-card').length, 1)
   assert.equal(view.querySelectorAll('.follow-hero').length, 1)
-  assert.equal(view.querySelectorAll('.follow-video').length, 2)
-  assert.match(view.textContent ?? '', /Possíveis continuações \(1\)/)
-  assert.equal(view.querySelector('.follow-sequence')?.hasAttribute('hidden'), true)
-
+  assert.equal(view.querySelectorAll('.follow-video').length, 0)
+  assert.equal(view.querySelector('.follow-tag.secondary'), null)
   view.querySelector<HTMLButtonElement>('.follow-expand')!.click()
-  assert.equal(view.querySelector('.follow-sequence')?.hasAttribute('hidden'), false)
-
-  view.querySelector<HTMLButtonElement>('.follow-controls button')!.click()
-
-  const decisions = view.querySelectorAll<HTMLButtonElement>(
-    '.follow-candidate-actions button'
-  )
-  decisions[0].click()
-  decisions[1].click()
-
-  assert.deepEqual(events, ['unfollow', 'confirmed', 'rejected'])
+  assert.deepEqual(events, ['open:story'])
   assert.match(sidebarView('stories', true, 1).textContent ?? '', /Minhas histórias \(1\)/)
 }))
 

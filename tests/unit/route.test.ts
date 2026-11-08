@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { channelRoute, isMarkedRoute, markedRoute, routeFromHash } from '../../src/app/route.ts'
+import { channelRoute, isMarkedRoute, markedRoute, routeFromHash,
+  storySequenceId, storySequenceRoute } from '../../src/app/route.ts'
 
 const id = '12345678-1234-1234-1234-123456789abc'
 
@@ -14,10 +15,13 @@ test('rota hash abre vídeos e canais, inclusive após atualização', () => {
   assert.deepEqual(routeFromHash(markedRoute(id)), { page: 'videos', channelId: id })
   assert.equal(isMarkedRoute(markedRoute(id)), true)
   assert.equal(isMarkedRoute(channelRoute(id)), false)
+  assert.deepEqual(routeFromHash(storySequenceRoute(id)), { page: 'videos', channelId: '' })
+  assert.equal(storySequenceId(storySequenceRoute(id)), id)
 })
 
 test('rota de canal rejeita ID inválido', () => {
   assert.throws(() => channelRoute('javascript:alert(1)'), /inválido/)
   assert.deepEqual(routeFromHash('#videos/bad'), { page: 'favorites', channelId: '' })
   assert.deepEqual(routeFromHash('#videos/bad/marked'), { page: 'favorites', channelId: '' })
+  assert.throws(() => storySequenceRoute('javascript:alert(1)'), /inválido/)
 })

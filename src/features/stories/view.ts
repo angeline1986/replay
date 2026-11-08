@@ -1,12 +1,11 @@
 import { button, element, notice } from '../../shared/dom.ts'
 import { iconButton, iconGlyph } from '../videos/icons.ts'
 import { validVideoUrl, type Channel, type Video } from '../../shared/model.ts'
-import { parseStoryPosition } from '../../shared/story-match.ts'
 import { storyChannelGroups, storyChannelId } from './groups.ts'
 import { storyToolbar } from './toolbar.ts'
 import { youtubeSearchView } from '../videos/youtube-search.ts'
 import type { YouTubeResult } from '../../shared/saved-youtube.ts'
-import type { StoryCandidate, StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
+import type { StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
 
 interface StoryViewOptions {
   data: StoryDashboard
@@ -21,8 +20,7 @@ interface StoryViewOptions {
   onLookupYouTube: (input: string) => Promise<YouTubeResult>
   onSaveYouTube: (video: YouTubeResult) => void
   onToggleVideo: (video: Video, key: 'is_favorite' | 'is_watched') => void
-  onDecide: (candidate: StoryCandidate, status: 'confirmed' | 'rejected') => void
-  onUnfollow: (story: TrackedStory) => void
+  onOpenSequence: (story: TrackedStory) => void
   onComplete: (story: TrackedStory, completed: boolean) => void
 }
 
@@ -35,51 +33,6 @@ function videoActions(video: Video, options: StoryViewOptions): HTMLElement {
     iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto', watched ? 'eye' : 'eye-slash',
       () => options.onToggleVideo(video, 'is_watched'), watched))
   return actions
-}
-
-function videoLink(video: Video, subtitle: string, options: StoryViewOptions): HTMLElement {
-  const row = element('div', 'follow-video')
-  const detail = element('div', 'follow-video-detail')
-  const a = element('a', '', video.title)
-  a.href = validVideoUrl(video.youtube_video_id)
-  a.target = '_blank'
-  a.rel = 'noopener noreferrer'
-  detail.append(a, element('p', 'video-meta', subtitle))
-  row.append(detail, videoActions(video, options))
-  return row
-}
-
-function sequence(group: StoryDashboard['groups'][number], options: StoryViewOptions): HTMLElement {
-  const body = element('div', 'follow-sequence')
-  const controls = element('div', 'follow-controls')
-  if (options.mode !== 'completed') controls.append(button('Deixar de acompanhar', () => options.onUnfollow(group.story)))
-  body.append(controls, element('h3', '', 'Vídeos confirmados'))
-  if (group.seed) body.append(videoLink(group.seed, 'Vídeo inicial', options))
-  for (const item of group.confirmed) {
-    body.append(videoLink(item.video, 'Continuação confirmada', options))
-  }
-  if (!group.seed && !group.confirmed.length) {
-    body.append(element('p', 'muted small', 'Nenhum vídeo confirmado disponível.'))
-  }
-  if (options.mode !== 'completed') body.append(element('h3', '', `Possíveis continuações (${group.pending.length})`))
-  if (options.mode !== 'completed' && !group.pending.length) {
-    body.append(element('p', 'muted small', group.story.last_scanned_at
-      ? 'Nenhuma sugestão pendente.'
-      : 'A primeira verificação ocorrerá após a próxima coleta.'))
-  }
-  for (const candidate of options.mode === 'completed' ? [] : group.pending) {
-    const item = element('div', 'follow-candidate')
-    item.append(videoLink(candidate.video,
-      `Confiança ${candidate.score >= 85 ? 'alta' : 'média'} · ${candidate.reason}`, options))
-    const actions = element('div', 'follow-candidate-actions')
-    actions.append(
-      button('Confirmar continuação', () => options.onDecide(candidate, 'confirmed')),
-      button('Rejeitar sugestão', () => options.onDecide(candidate, 'rejected'))
-    )
-    item.append(actions)
-    body.append(item)
-  }
-  return body
 }
 
 function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOptions): HTMLElement {
@@ -114,23 +67,11 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   else { following.append(iconGlyph('runner')); following.title = 'Acompanhando esta história' }
   tags.append(following)
   if (cover) tags.append(videoActions(cover, options))
-  const position = cover ? parseStoryPosition(cover.title) : null
-  if (position) {
-    const label = position.kind === 'part' ? 'Parte' :
-      position.kind === 'chapter' ? 'Capítulo' : 'Episódio'
-    tags.append(element('span', 'follow-tag secondary', `${label} ${position.first}${position.last !== position.first ? `–${position.last}` : ''}`))
-  }
   info.append(tags)
   card.append(info)
-  const sequencePanel = sequence(group, options)
-  sequencePanel.hidden = true
   const footer = element('div', 'follow-footer')
-  const expand = button(`Ver sequência (${count})`, () => {
-    sequencePanel.hidden = !sequencePanel.hidden
-    expand.setAttribute('aria-expanded', String(!sequencePanel.hidden))
-  }, 'follow-expand')
-  expand.setAttribute('aria-expanded', 'false')
-  footer.append(expand)
+  footer.append(button(`Ver sequência (${count + group.pending.length})`,
+    () => options.onOpenSequence(group.story), 'follow-expand'))
   footer.append(button(options.mode === 'completed' ? 'Retomar' : 'Concluir',
     () => options.onComplete(group.story, options.mode !== 'completed'), 'follow-complete'))
   if (cover) {
@@ -140,7 +81,7 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
     link.rel = 'noopener noreferrer'
     footer.append(link)
   }
-  card.append(footer, sequencePanel)
+  card.append(footer)
   return card
 }
 

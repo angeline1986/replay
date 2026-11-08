@@ -11,7 +11,7 @@ import { authView } from '../features/auth/view.ts'
 import { channelView } from '../features/channels/view.ts'
 import { videoView } from '../features/videos/view.ts'
 import { makeActions } from './actions.ts'
-import { channelRoute, isMarkedRoute, markedRoute, routeFromHash } from './route.ts'
+import { channelRoute, isMarkedRoute, markedRoute, routeFromHash, storySequenceId, storySequenceRoute } from './route.ts'
 import { createAuthGate } from './auth-gate.ts'
 import { sidebarView } from './shell.ts'
 import { scanExistingStories, storySnapshot } from './story-snapshot.ts'
@@ -22,13 +22,12 @@ import { backfillMissingAvatars } from '../shared/channel-avatars.ts'
 import { lookupYouTube, toggleSavedYouTube } from '../shared/saved-youtube.ts'
 import { loadMarkedPage } from './marked-page.ts'
 import { makeVideoLoader } from './video-loading.ts'
+import { sequencePage } from './sequence-page.ts'
 const root = document.querySelector<HTMLElement>('#app')!
-let userId = ''
-let authMessage = ''
+let userId = '', authMessage = ''
 const channelPages = new ChannelPages()
 const loadMore = makeVideoLoader(channelPages, () => userId, render)
-const actions = makeActions({ render, act, userId: () => userId })
-const storyActions = makeStoryActions({ render, act, userId: () => userId })
+const actions = makeActions({ render, act, userId: () => userId }), storyActions = makeStoryActions({ render, act, userId: () => userId })
 const auth = createAuthGate({
   load: async () => {
     const user = await currentUser()
@@ -137,9 +136,10 @@ function render(): void {
         query: state.completedQuery, onQuery: (value) => { state.completedQuery = value; render() },
         sort: state.completedSort, onSort: (value) => { state.completedSort = value; render() },
         onLookupYouTube: (input) => lookupYouTube(supabase!, input), onSaveYouTube: (video) => { void storyActions.addYouTubeCompleted(video) },
-        onDecide: (item, status) => { void storyActions.decide(item, status) },
-        onUnfollow: (story) => { void storyActions.unfollow(story) }, onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels
-      })) : state.page !== 'channels' ? videoView({
+        onOpenSequence: (story) => { location.hash = storySequenceRoute(story.id) },
+        onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels
+      })) : state.page !== 'channels' ? (storySequenceId(location.hash)
+      ? sequencePage(state.stories, storySequenceId(location.hash), actions, storyActions) : videoView({
       mode: state.page, videos: state.filter.status === 'marked' ? state.markedVideos
         : channelPages.videos(channelBase(state.videos, state.filter.channelId), state.filter.channelId), highlights: state.highlights,
       favoriteVideos: state.demo ? state.videos.filter((v) => v.state?.is_favorite) : state.favoriteVideos,
@@ -173,7 +173,7 @@ function render(): void {
       onLookupYouTube: (input) => lookupYouTube(supabase!, input),
       onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) },
       onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds
-    }) : channelView({
+    })) : channelView({
       channels: state.channels, requests: state.requests, videos: state.videos, topFilter: state.channelTopFilter, onTopFilter: (value) => { state.channelTopFilter = value; render() },
       busy: state.busy,
       onAdd: (input) => { void actions.createChannel(input) },

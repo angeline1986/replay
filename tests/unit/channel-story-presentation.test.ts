@@ -43,6 +43,7 @@ test('canais tops podem aparecer primeiro ou sozinhos sem mudar a marcação', (
 test('histórias têm filtro, divisores por canal e ações de favorito e visto', () => withDocument((window) => {
   const events: string[] = []
   const selected: string[] = []
+  const opened: string[] = []
   const story = (id: string, videoId: string) => ({ id, owner_id: 'owner', seed_video_id: videoId,
     name: `Obra ${id}`, canonical_key: id, aliases: [], is_followed: true, completed_at: null,
     last_scanned_at: null, created_at: '2026-11-04T00:00:00Z' })
@@ -54,7 +55,7 @@ test('histórias têm filtro, divisores por canal e ações de favorito e visto'
     query: '', onQuery: () => {}, sort: 'recent' as const, onSort: () => {}, onLookupYouTube: async () => { throw Error('unused') }, onSaveYouTube: () => {},
     data: { groups: videos.map((video, index) => ({ story: story(`s${index}`, video.id), seed: video,
       confirmed: [], pending: [] })), completed: [], pendingCount: 0 },
-    onDecide: () => {}, onUnfollow: () => {}, onComplete: () => {},
+    onOpenSequence: (story: TrackedStory) => opened.push(story.id), onComplete: () => {},
     onToggleVideo: (video: Video, key: string) => events.push(`${video.id}:${key}`) }
   const view = storiesView(options)
   assert.deepEqual([...view.querySelectorAll('.favorite-channel-heading h3')].map((node) => node.textContent),
@@ -66,8 +67,8 @@ test('histórias têm filtro, divisores por canal e ações de favorito e visto'
   assert.deepEqual(buttons.map((node) => node.getAttribute('aria-pressed')), ['true', 'false'])
   buttons.forEach((node) => node.click())
   first.querySelector<HTMLButtonElement>('.follow-expand')!.click()
-  first.querySelector<HTMLButtonElement>('.follow-video .icon-eye-slash')!.click()
-  assert.deepEqual(events, ['demo-v1:is_favorite', 'demo-v1:is_watched', 'demo-v1:is_watched'])
+  assert.deepEqual(events, ['demo-v1:is_favorite', 'demo-v1:is_watched'])
+  assert.deepEqual(opened, ['s0'])
   const select = view.querySelector<HTMLButtonElement>(`.favorite-channel-filter .channel-picker-option[data-channel-id="${demoChannels[1].id}"]`)!
   select.click()
   assert.deepEqual(selected, [demoChannels[1].id])
@@ -146,7 +147,7 @@ test('página Concluídos mostra apenas histórias encerradas e permite retomar'
     selectedChannelId: '', onChannelSelect: () => {}, query: '', onQuery: () => {}, sort: 'recent', onSort: () => {},
     onLookupYouTube: async () => { throw Error('unused') }, onSaveYouTube: () => {},
     data: { groups: [], completed: [{ story, seed: demoVideos[0], confirmed: [], pending: [] }], pendingCount: 0 },
-    onDecide: () => {}, onUnfollow: () => {}, onToggleVideo: () => {},
+    onOpenSequence: () => {}, onToggleVideo: () => {},
     onComplete: (item: TrackedStory, completed: boolean) => resumed.push(`${item.id}:${completed}`) }
   const view = storiesView({ ...options, sort: 'recent' })
   assert.equal(routeFromHash('#completed').page, 'completed')
