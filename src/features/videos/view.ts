@@ -140,7 +140,7 @@ function videoCard(
   video: Video,
   options: VideoViewOptions
 ): HTMLElement {
-  const card = element('article', 'video-card')
+  const card = element('article', options.mode === 'favorites' ? 'video-card favorite-video-card' : 'video-card')
   const image = element('div', 'video-art')
   if (video.thumbnail_url) {
     const img = element('img')
