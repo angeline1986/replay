@@ -1,9 +1,7 @@
 .sequence-toolbar-actions .ghost { padding: 8px 12px; font-size: 12px; white-space: nowrap; }
 .sequence-toolbar-actions .sequence-unfollow { color: #b73445; }
-.sequence-title { margin: 0 0 22px; font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; }
 .sequence-section { margin-top: 22px; }
 .sequence-section .section-title { margin-bottom: 13px; }
-.sequence-pending-badge { background: #fff2d7; color: #98640c; }
 .sequence-card.is-pending { border-color: #eddbaf; }
 .sequence-decision { display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   padding: 12px 13px; border-top: 1px solid #edf0f5; }

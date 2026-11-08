@@ -35,6 +35,10 @@ test('sequência abre em Lançamentos com cartões, ordem de partes e decisões'
     assert.equal(view.querySelector('h1')?.textContent, 'Lançamentos')
     assert.equal(view.querySelectorAll('.video-grid').length, 2)
     assert.equal(view.querySelectorAll('.video-card').length, 4)
+    assert.equal(view.querySelector('.sequence-title'), null)
+    assert.equal(view.querySelectorAll('.video-badge-row').length, 0)
+    assert.equal(view.querySelector('.sequence-section h2')?.textContent, 'Possíveis continuações')
+    assert.equal(view.querySelector('.sequence-decision .video-meta')?.textContent, 'Confiança alta')
     assert.equal(view.querySelector('.sequence-card .video-open .video-link')?.textContent, '↗')
     assert.equal(view.querySelector('.sequence-card .video-open .new-badge')?.textContent, 'Novo')
     assert.deepEqual([...view.querySelectorAll('.sequence-section:last-child .video-card h2')]
@@ -46,5 +50,11 @@ test('sequência abre em Lançamentos com cartões, ordem de partes e decisões'
     view.querySelector<HTMLButtonElement>('.sequence-toolbar-actions .ghost')!.click()
     view.querySelector<HTMLButtonElement>('.sequence-unfollow')!.click()
     assert.deepEqual(events, ['is_favorite', 'm40:confirmed', 'm40:rejected', 'back', 'unfollow'])
+    const withoutPending = sequenceView({ id: story.id,
+      data: { groups: [{ story, seed, confirmed: [], pending: [] }], completed: [], pendingCount: 0 },
+      onBack: () => {}, onUnfollow: () => {}, onToggle: () => {}, onDecide: () => {} })
+    assert.equal(withoutPending.querySelectorAll('.video-card').length, 1)
+    assert.equal(withoutPending.querySelector('.sequence-section'), null)
+    assert.doesNotMatch(withoutPending.textContent ?? '', /Nenhuma continuação pendente/)
   } finally { globalThis.document = original; dom.window.close() }
 })

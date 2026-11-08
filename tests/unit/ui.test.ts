@@ -117,6 +117,11 @@ test('Minhas histórias abre a sequência em Lançamentos sem expandir o cartão
   assert.equal(view.querySelector('.follow-tag.secondary'), null)
   assert.equal(view.querySelector('.follow-footer .video-open .new-badge')?.textContent, 'Novo')
   assert.equal(view.querySelector('.follow-footer .follow-open')?.textContent, '↗')
+  assert.equal(view.querySelector('.follow-hero .follow-alert'), null)
+  assert.equal(view.querySelector('.follow-expand')?.textContent, 'Ver sequência (+1)')
+  assert.match(view.querySelector<HTMLElement>('.follow-complete .supplied-svg-icon')?.style.maskImage ?? '',
+    /check-double-solid-full\.svg/)
+  assert.equal(view.querySelector('.follow-complete')?.getAttribute('aria-label'), 'Concluir história')
   view.querySelector<HTMLButtonElement>('.follow-expand')!.click()
   assert.deepEqual(events, ['open:story'])
   assert.match(sidebarView('stories', true, 1).textContent ?? '', /Minhas histórias \(1\)/)

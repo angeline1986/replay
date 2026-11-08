@@ -20,7 +20,7 @@ function byChapter(a: Video, b: Video): number {
   return Date.parse(a.published_at) - Date.parse(b.published_at)
 }
 
-function sequenceCard(video: Video, label: string, options: SequenceOptions,
+function sequenceCard(video: Video, options: SequenceOptions,
   candidate?: StoryCandidate): HTMLElement {
   const card = element('article', `video-card sequence-card${candidate ? ' is-pending' : ''}`)
   const art = element('div', 'video-art')
@@ -35,8 +35,6 @@ function sequenceCard(video: Video, label: string, options: SequenceOptions,
   }
   art.append(element('span', 'play-mark', '▶'))
   const body = element('div', 'video-body')
-  const badgeRow = element('div', 'video-badge-row')
-  badgeRow.append(element('span', `new-badge${candidate ? ' sequence-pending-badge' : ''}`, label))
   const title = element('h2', '', video.title)
   const meta = element('p', 'video-meta', `${video.channel?.name ?? 'Canal'} · ${new Date(video.published_at).toLocaleDateString('pt-BR')}`)
   const actions = element('div', 'card-actions')
@@ -66,11 +64,11 @@ function sequenceCard(video: Video, label: string, options: SequenceOptions,
   if (!video.state) open.append(element('span', 'new-badge', 'Novo'))
   open.append(link)
   actions.append(open)
-  body.append(badgeRow, title, meta, actions)
+  body.append(title, meta, actions)
   card.append(art, body)
   if (candidate) {
     const decision = element('div', 'sequence-decision')
-    decision.append(element('p', 'video-meta', `Sugestão · confiança ${candidate.score >= 85 ? 'alta' : 'média'}`),
+    decision.append(element('p', 'video-meta', `Confiança ${candidate.score >= 85 ? 'alta' : 'média'}`),
       button('Confirmar', () => options.onDecide(candidate, 'confirmed'), 'primary'),
       button('Rejeitar', () => options.onDecide(candidate, 'rejected'), 'ghost'))
     card.append(decision)
@@ -103,16 +101,15 @@ export function sequenceView(options: SequenceOptions): HTMLElement {
   heading.append(intro, controls)
   root.append(heading)
   if (!group) { root.append(notice('História não encontrada. Volte para Minhas histórias.')); return root }
-  root.append(element('h2', 'sequence-title', group.story.name))
   const confirmed = [group.seed, ...group.confirmed.map((item) => item.video)]
     .filter((video): video is Video => Boolean(video)).sort(byChapter)
-  root.append(groupSection('Vídeos confirmados', confirmed.map((video) => sequenceCard(video,
-    video.id === group.seed?.id ? 'Vídeo inicial' : 'Confirmado', options))))
+  const confirmedGrid = element('div', 'video-grid')
+  confirmedGrid.append(...confirmed.map((video) => sequenceCard(video, options)))
+  root.append(confirmedGrid)
   if (group.story.is_followed) {
     const pending = [...group.pending].sort((a, b) => byChapter(a.video, b.video))
     if (pending.length) root.append(groupSection('Possíveis continuações', pending.map((item) =>
-      sequenceCard(item.video, 'Sugestão', options, item))))
-    else root.append(notice('Nenhuma continuação pendente para esta história.'))
+      sequenceCard(item.video, options, item))))
   }
   return root
 }

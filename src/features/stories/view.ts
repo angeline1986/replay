@@ -7,6 +7,8 @@ import { youtubeSearchView } from '../videos/youtube-search.ts'
 import type { YouTubeResult } from '../../shared/saved-youtube.ts'
 import type { StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
 
+const completeIconUrl = new URL('../../assets/icons/check-double-solid-full.svg', import.meta.url).href
+
 interface StoryViewOptions {
   data: StoryDashboard
   mode?: 'active' | 'completed'
@@ -52,10 +54,6 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   const count = Number(Boolean(group.seed)) + group.confirmed.length
   hero.append(element('span', 'follow-count',
     `${count} vídeo${count === 1 ? '' : 's'} confirmado${count === 1 ? '' : 's'}`))
-  if (group.pending.length) {
-    hero.append(element('span', 'follow-alert',
-      `+${group.pending.length} continuação${group.pending.length === 1 ? '' : 'ões'} encontrada${group.pending.length === 1 ? '' : 's'}`))
-  }
   card.append(hero)
   const info = element('div', 'follow-info')
   info.append(element('h2', '', group.story.name))
@@ -70,10 +68,21 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   info.append(tags)
   card.append(info)
   const footer = element('div', 'follow-footer')
-  footer.append(button(`Ver sequência (${count + group.pending.length})`,
+  const continuations = group.confirmed.length + group.pending.length
+  if (continuations) footer.append(button(`Ver sequência (+${continuations})`,
     () => options.onOpenSequence(group.story), 'follow-expand'))
-  footer.append(button(options.mode === 'completed' ? 'Retomar' : 'Concluir',
-    () => options.onComplete(group.story, options.mode !== 'completed'), 'follow-complete'))
+  const complete = button(options.mode === 'completed' ? 'Retomar' : '',
+    () => options.onComplete(group.story, options.mode !== 'completed'),
+    `follow-complete${options.mode === 'completed' ? '' : ' is-icon'}`)
+  if (options.mode !== 'completed') {
+    complete.title = 'Concluir história'
+    complete.setAttribute('aria-label', complete.title)
+    const glyph = element('span', 'supplied-svg-icon')
+    glyph.style.maskImage = `url("${completeIconUrl}")`
+    glyph.style.webkitMaskImage = `url("${completeIconUrl}")`
+    complete.append(glyph)
+  }
+  footer.append(complete)
   if (cover) {
     const link = element('a', 'follow-open', '↗')
     link.href = validVideoUrl(cover.youtube_video_id)

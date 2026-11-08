@@ -10,10 +10,9 @@
 .follow-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .follow-play { position: relative; z-index: 1; padding: 8px 13px; border-radius: 100%;
   background: #14141ab5; color: white; font-size: 17px; }
-.follow-count, .follow-alert { position: absolute; z-index: 2; padding: 5px 8px;
+.follow-count { position: absolute; z-index: 2; padding: 5px 8px;
   border-radius: 5px; font-size: 11px; font-weight: 700; color: #fff; }
 .follow-count { bottom: 9px; left: 10px; background: #17171cbd; }
-.follow-alert { top: 9px; right: 10px; background: #dc8a12; }
 .follow-info { flex: 1; padding: 13px 14px 12px; min-height: 135px; }
 .follow-info h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; margin: 0 0 9px;
@@ -31,6 +30,10 @@
 .follow-complete { padding: 0; border: 0; background: transparent; color: #5545cb;
   font-family: inherit; font-size: 12px; font-weight: 700; }
 .follow-complete:hover { text-decoration: underline; }
+.follow-complete.is-icon { display: grid; place-items: center; width: 28px; height: 28px;
+  border: 1px solid #dedbea; border-radius: 7px; cursor: pointer; }
+.follow-complete.is-icon:hover { background: #f0edff; }
+.follow-complete.is-icon .supplied-svg-icon { width: 16px; height: 16px; background: currentColor; }
 .follow-open { margin-left: auto; font-size: 18px; font-weight: 700; line-height: 1;
   text-decoration: none; color: #5545cb; }
 .video-open .follow-open { margin-left: 0; }
