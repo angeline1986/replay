@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Channel, Video, VideoState } from './model.ts'
+import { loadSavedYouTube } from './saved-youtube.ts'
 
 type CollectionFlag = 'is_favorite' | 'is_deprioritized' | 'is_queued'
 const fields = 'video_id,is_favorite,is_watched,is_deprioritized,is_queued'
@@ -34,4 +35,30 @@ export async function loadVideoCollection(
     })).filter((video) => Boolean(video.state?.[flag])))
   }
   return result.sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
+}
+
+export async function loadClassifiedChannelVideos(
+  db: SupabaseClient, userId: string, channel: Channel
+): Promise<Video[]> {
+  const states: VideoState[] = []
+  for (let offset = 0; ; offset += 500) {
+    const rows = data(await db.from('user_video_state').select(fields)
+      .eq('user_id', userId)
+      .or('is_favorite.eq.true,is_watched.eq.true,is_queued.eq.true,is_deprioritized.eq.true')
+      .range(offset, offset + 499)) as VideoState[]
+    states.push(...rows)
+    if (rows.length < 500) break
+  }
+  const result: Video[] = []
+  for (let offset = 0; offset < states.length; offset += 100) {
+    const batch = states.slice(offset, offset + 100)
+    const videos = data(await db.from('videos')
+      .select('id,channel_id,youtube_video_id,title,url,thumbnail_url,published_at,discovered_at')
+      .eq('channel_id', channel.id).in('id', batch.map((item) => item.video_id))) as Video[]
+    const byVideo = new Map(batch.map((item) => [item.video_id, item]))
+    result.push(...videos.map((video) => ({ ...video, channel, state: byVideo.get(video.id) })))
+  }
+  const external = (await loadSavedYouTube(db, userId))
+    .filter((video) => video.channel_id === channel.youtube_channel_id)
+  return [...result, ...external].sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
 }

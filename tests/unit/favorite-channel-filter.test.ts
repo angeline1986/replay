@@ -27,15 +27,14 @@ test('favoritos lista somente canais com vídeos favoritos', () => {
   globalThis.document = dom.window.document
   try {
     const favorites = videoView(options('favorites'))
-    const select = favorites.querySelector<HTMLSelectElement>(
-      'select[aria-label="Filtrar vídeos por canal"]')!
-    assert.deepEqual([...select.options].map((item) => item.value),
+    const select = favorites.querySelectorAll<HTMLButtonElement>('.favorite-channel-filter .channel-picker-option')
+    assert.deepEqual([...select].map((item) => item.dataset.channelId),
       ['', demoVideos[0].channel_id])
     assert.equal(favorites.querySelectorAll('.video-card').length, 1)
     const feed = videoView(options('videos'))
-    const feedSelect = feed.querySelector<HTMLSelectElement>(
-      'select[aria-label="Filtrar vídeos por canal"]')!
-    assert.equal(feedSelect.options.length, demoChannels.length + 1)
+    const feedSelect = feed.querySelectorAll('.favorite-channel-filter .channel-picker-option')
+    assert.equal(feedSelect.length, demoChannels.length + 1)
+    assert.ok(feed.querySelector('.favorite-channel-filter .channel-picker-trophy'))
   } finally {
     globalThis.document = original
     dom.window.close()
@@ -53,9 +52,8 @@ test('favoritos usa lista completa, não só vídeos da primeira página', () =>
     } }
     input.favoriteVideos = [other]
     const view = videoView(input)
-    const select = view.querySelector<HTMLSelectElement>(
-      'select[aria-label="Filtrar vídeos por canal"]')!
-    assert.deepEqual([...select.options].map((item) => item.value),
+    const select = view.querySelectorAll<HTMLButtonElement>('.favorite-channel-filter .channel-picker-option')
+    assert.deepEqual([...select].map((item) => item.dataset.channelId),
       ['', other.channel_id])
   } finally {
     globalThis.document = original

@@ -9,29 +9,25 @@ import { button, clear, element, notice } from '../shared/dom.ts'
 import { configured, currentUser, loadDashboard, loadVideoPage, sendMagicLink, signInWithGitHub, signOut, supabase } from '../shared/api.ts'
 import { authView } from '../features/auth/view.ts'
 import { channelView } from '../features/channels/view.ts'
+import { openMarkedChannel } from '../features/channels/marked.ts'
 import { videoView } from '../features/videos/view.ts'
 import { makeActions } from './actions.ts'
 import { channelRoute, routeFromHash } from './route.ts'
 import { createAuthGate } from './auth-gate.ts'
 import { sidebarView } from './shell.ts'
-import { loadStoryDashboard } from '../shared/stories-api.ts'
+import { storySnapshot } from './story-snapshot.ts'
 import { makeStoryActions } from './story-actions.ts'
 import { storiesView } from '../features/stories/view.ts'
-import type { Channel } from '../shared/model.ts'
 import { ChannelPages, channelBase, loadNext } from '../features/videos/channel-pages.ts'
 import { backfillMissingAvatars } from '../shared/channel-avatars.ts'
 import { lookupYouTube, toggleSavedYouTube } from '../shared/saved-youtube.ts'
+import { loadClassifiedChannelVideos } from '../shared/video-collections.ts'
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
 let authMessage = ''
 const channelPages = new ChannelPages()
 const actions = makeActions({ render, act, userId: () => userId })
 const storyActions = makeStoryActions({ render, act, userId: () => userId })
-async function storySnapshot(id: string, channels: Channel[]) {
-  try { return { data: await loadStoryDashboard(supabase!, id, channels), error: '' } }
-  catch { return { data: { groups: [], completed: [], pendingCount: 0 },
-    error: 'Minhas histórias indisponível. Confira a migration e as permissões.' } }
-}
 const auth = createAuthGate({
   load: async () => {
     const user = await currentUser()
@@ -144,9 +140,13 @@ function render(): void {
     ]).filter((id): id is string => !!id))
     main.append(state.page === 'stories' || state.page === 'completed' ? (state.storiesError
       ? notice(state.storiesError, 'error') : storiesView({
-        data: state.stories, mode: state.page === 'completed' ? 'completed' : 'active', selectedChannelId: state.storyChannelId, onChannelSelect: (id) => { state.storyChannelId = id; render() },
+        data: state.stories, mode: state.page === 'completed' ? 'completed' : 'active',
+        selectedChannelId: state.page === 'completed' ? state.completedChannelId : state.storyChannelId,
+        onChannelSelect: (id) => { if (state.page === 'completed') state.completedChannelId = id; else state.storyChannelId = id; render() },
+        query: state.completedQuery, onQuery: (value) => { state.completedQuery = value; render() },
+        sort: state.completedSort, onSort: (value) => { state.completedSort = value; render() },
+        onLookupYouTube: (input) => lookupYouTube(supabase!, input), onSaveYouTube: (video) => { void storyActions.addYouTubeCompleted(video) },
         onDecide: (item, status) => { void storyActions.decide(item, status) },
-        onRename: (story) => { void storyActions.rename(story) },
         onUnfollow: (story) => { void storyActions.unfollow(story) }, onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels
       })) : state.page !== 'channels' ? videoView({
       mode: state.page, videos: channelPages.videos(channelBase(state.videos, state.filter.channelId), state.filter.channelId), highlights: state.highlights,
@@ -181,8 +181,8 @@ function render(): void {
       busy: state.busy,
       onAdd: (input) => { void actions.createChannel(input) },
       onToggle: (channel) => { void actions.toggleChannel(channel) }, onTop: (channel) => { void actions.toggleTop(channel) },
-      onRemove: (channel) => { void actions.deleteChannel(channel) },
-      onOpen: (channel) => { location.hash = channelRoute(channel.id) }
+      onRemove: (channel) => { void actions.deleteChannel(channel) }, onOpen: (channel) => { location.hash = channelRoute(channel.id) },
+      onMarked: (channel) => { void openMarkedChannel(channel, () => loadClassifiedChannelVideos(supabase!, userId, channel)) }
     }))
   }
   root.append(shell)

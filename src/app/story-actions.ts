@@ -3,6 +3,9 @@ import { supabase } from '../shared/api.ts'
 import { attachStoryVideo, decideCandidate, followStory, renameStory, setStoryCompleted, unfollowStory } from '../shared/stories-api.ts'
 import type { Video } from '../shared/model.ts'
 import type { StoryCandidate, TrackedStory } from '../shared/story-model.ts'
+import { saveCompletedYouTube, type YouTubeResult } from '../shared/saved-youtube.ts'
+import { importChannelNow } from '../shared/import-channel.ts'
+import { distinctEnough } from '../shared/story-match.ts'
 
 interface Hooks {
   act: (operation: () => Promise<void>) => Promise<void>
@@ -20,7 +23,22 @@ function aliasesInput(current: string[] = []): string[] | null {
   return answer === null ? null : answer.split(',').map((item) => item.trim()).filter(Boolean)
 }
 
+function completedStoryName(video: YouTubeResult): string {
+  const title = video.title.trim().replace(/\s+/g, ' ').slice(0, 200)
+  return distinctEnough(title) ? title
+    : `${title.slice(0, 150)} · ${video.channel_name.slice(0, 25)} · ${video.youtube_video_id}`
+}
+
 export function makeStoryActions(hooks: Hooks) {
+  async function addYouTubeCompleted(video: YouTubeResult): Promise<void> {
+    await hooks.act(async () => {
+      const videoId = await saveCompletedYouTube(client(), hooks.userId(), video, importChannelNow)
+      const story = await followStory(client(), hooks.userId(), videoId, completedStoryName(video), [])
+      if (story.existing) await attachStoryVideo(client(), story.id, videoId)
+      await setStoryCompleted(client(), hooks.userId(), story.id, true)
+    })
+  }
+
   async function follow(video: Video): Promise<void> {
     // O título exibido no cartão identifica inicialmente a história.
     // Nome e aliases continuam editáveis em “Minhas histórias”.
@@ -123,5 +141,5 @@ export function makeStoryActions(hooks: Hooks) {
     await hooks.act(() => decideCandidate(client(), candidate.story_id, candidate.id, status))
   }
 
-  return { follow, rename, unfollow, complete, decide }
+  return { follow, rename, unfollow, complete, addYouTubeCompleted, decide }
 }

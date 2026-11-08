@@ -1,3 +1,4 @@
+@import '../shared/channel-picker.css';
 .filters { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 23px; }
 .filters input { flex: 1 1 230px; }
 .filters select { min-width: 145px; }
@@ -14,7 +15,7 @@
 .favorite-toolbar-controls input { flex: 1 1 190px; max-width: 340px; background: #f7f8fa; }
 .favorite-toolbar-controls select { flex: 0 1 145px; }
 .favorite-toolbar-controls .favorite-status { flex-basis: 110px; }
-.favorite-toolbar-controls .favorite-channel-filter { flex-basis: 100px; }
+.favorite-toolbar-controls .favorite-channel-filter { flex-basis: 150px; }
 .favorite-toolbar-controls .favorite-sort { flex-basis: 125px; }
 .favorite-toolbar-controls .header-action { display: inline-flex; align-items: center; justify-content: center; flex: none; min-height: 38px; padding: 8px 13px; font-family: inherit; font-size: 13px; font-weight: 650; line-height: 1.4; white-space: nowrap; }
 .channel-toolbar-form .channel-jump { flex: 0 1 190px; }

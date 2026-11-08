@@ -12,7 +12,7 @@ test('troféu fornecido marca e desmarca canais tops no cartão', () => {
     const marked: string[] = []
     const view = channelView({
       channels: demoChannels, requests: [], videos: demoVideos,
-      onAdd: () => {}, onToggle: () => {}, onRemove: () => {}, onOpen: () => {},
+      onAdd: () => {}, onToggle: () => {}, onRemove: () => {}, onOpen: () => {}, onMarked: () => {},
       onTop: (channel) => marked.push(channel.id)
     })
     const trophies = [...view.querySelectorAll<HTMLButtonElement>('.channel-top-button')]

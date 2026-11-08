@@ -21,6 +21,8 @@ export default {
     try { body = await req.json() } catch { return Response.json({ error: 'JSON inválido.' }, { status: 400 }) }
     const input = body && typeof body === 'object' && !Array.isArray(body)
       ? (body as Record<string, unknown>).url : null
+    const save = body && typeof body === 'object' && !Array.isArray(body)
+      ? (body as Record<string, unknown>).save === true : false
     const id = videoId(input)
     if (!id) return Response.json({ error: 'Cole um link válido de vídeo do YouTube.' }, { status: 400 })
     const key = Deno.env.get('YOUTUBE_API_KEY')
@@ -43,12 +45,26 @@ export default {
       !snippet.channelTitle || !snippet.publishedAt || !Number.isFinite(Date.parse(snippet.publishedAt))) {
       return Response.json({ error: 'Vídeo público não encontrado.' }, { status: 404 })
     }
-    return Response.json({
+    const result = {
       youtube_video_id: id, youtube_channel_id: snippet.channelId,
       channel_name: snippet.channelTitle.slice(0, 200), title: snippet.title.slice(0, 500),
       thumbnail_url: snippet.thumbnails?.high?.url ?? snippet.thumbnails?.medium?.url ??
         `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
       published_at: new Date(snippet.publishedAt).toISOString()
-    })
+    }
+    if (!save) return Response.json(result)
+    const channel = await ctx.supabase.from('channels').select('id').eq('owner_id', ctx.userClaims.id)
+      .eq('youtube_channel_id', snippet.channelId).maybeSingle()
+    if (channel.error || !channel.data) {
+      return Response.json({ error: 'Cadastre o canal antes de salvar o vídeo.' }, { status: 409 })
+    }
+    if (!ctx.supabaseAdmin) return Response.json({ error: 'Backend não configurado.' }, { status: 503 })
+    const saved = await ctx.supabaseAdmin.from('videos').upsert({
+      channel_id: channel.data.id, youtube_video_id: id, title: result.title,
+      url: `https://www.youtube.com/watch?v=${id}`, thumbnail_url: result.thumbnail_url,
+      published_at: result.published_at
+    }, { onConflict: 'channel_id,youtube_video_id' }).select('id').single()
+    if (saved.error || !saved.data) return Response.json({ error: 'Não foi possível salvar o vídeo.' }, { status: 503 })
+    return Response.json({ ...result, video_id: saved.data.id })
   })
 }

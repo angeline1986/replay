@@ -3,6 +3,7 @@ import test from 'node:test'
 import { JSDOM } from 'jsdom'
 import { videoId } from '../../supabase/functions/lookup-youtube-video/input.ts'
 import { videoView } from '../../src/features/videos/view.ts'
+import { youtubeSearchView } from '../../src/features/videos/youtube-search.ts'
 import { demoChannels, demoVideos } from '../../src/shared/demo.ts'
 
 test('aceita links comuns do YouTube e rejeita domínios parecidos', () => {
@@ -11,6 +12,25 @@ test('aceita links comuns do YouTube e rejeita domínios parecidos', () => {
   assert.equal(videoId('https://www.youtube.com/shorts/Hx2SPzq2h4Q'), 'Hx2SPzq2h4Q')
   assert.equal(videoId('https://youtube.com.evil.test/watch?v=Hx2SPzq2h4Q'), null)
   assert.equal(videoId('http://youtube.com/watch?v=Hx2SPzq2h4Q'), null)
+})
+
+test('Concluídos usa a mesma busca do YouTube com ação de adicionar', async () => {
+  const original = globalThis.document
+  const dom = new JSDOM('<!doctype html><html><body></body></html>')
+  globalThis.document = dom.window.document
+  try {
+    let saved = false
+    const result = { youtube_video_id: 'Hx2SPzq2h4Q', youtube_channel_id: 'UC1234567890123456789012',
+      channel_name: 'Canal público', title: 'Vídeo público', thumbnail_url: '', published_at: '2026-11-01T00:00:00Z' }
+    const view = youtubeSearchView('completed', async () => result, () => { saved = true })
+    view.querySelector<HTMLInputElement>('input')!.value = 'https://www.youtube.com/watch?v=Hx2SPzq2h4Q'
+    view.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { cancelable: true }))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    const button = view.querySelector<HTMLButtonElement>('.youtube-preview button')!
+    assert.equal(button.textContent, 'Adicionar aos concluídos')
+    button.click()
+    assert.equal(saved, true)
+  } finally { globalThis.document = original; dom.window.close() }
 })
 
 test('fila busca vídeo no YouTube e oferece adicioná-lo sem cadastrar canal', async () => {

@@ -3,6 +3,7 @@ import { filterVideos, validVideoUrl, type Channel, type Video, type VideoFilter
 import { iconButton } from './icons.ts'
 import { favoriteVideoGroups } from './favorites.ts'
 import { youtubeSearchView } from './youtube-search.ts'
+import { channelPicker } from '../../shared/channel-picker.ts'
 import type { YouTubeResult } from '../../shared/saved-youtube.ts'
 
 interface VideoViewOptions {
@@ -35,7 +36,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const heading = element('div', 'favorites-toolbar')
   const intro = element('div', 'favorite-page-title')
   const favoriteSource = options.favoriteVideos ?? options.videos
-  const title = collection ? collectionTitle : 'Últimos lançamentos'
+  const title = collection ? collectionTitle : 'Lançamentos'
   const countSource = collection ? (options.collectionVideos ?? favoriteSource) : options.videos
   const countBadge = element('span', 'favorite-total', String(countSource.length))
   intro.append(element('h1', '', title), countBadge)
@@ -66,32 +67,22 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     }))
     filters.append(status)
   }
-  const channel = element('select', 'favorite-channel-filter')
-  channel.setAttribute('aria-label', 'Filtrar vídeos por canal')
-  const allChannels = element('option', '', 'Canais')
-  allChannels.value = ''
-  channel.append(allChannels)
   const channelSource = options.collectionVideos ?? favoriteSource
   const favoriteChannelIds = new Set(channelSource.map((video) => video.channel_id))
   const availableChannels = collection
     ? options.channels.filter((item) => favoriteChannelIds.has(item.id))
     : options.channels
-  for (const item of availableChannels) {
-    const option = element('option', '', item.name)
-    option.value = item.id
-    channel.append(option)
-  }
+  const choices: Pick<Channel, 'id' | 'name' | 'is_top'>[] = [...availableChannels]
   if (options.mode === 'queue' || options.mode === 'deprioritized') {
     for (const video of channelSource.filter((item) => item.external)) {
-      if ([...channel.options].some((item) => item.value === video.channel_id)) continue
-      const option = element('option', '', video.channel?.name ?? 'Canal')
-      option.value = video.channel_id
-      channel.append(option)
+      if (choices.some((item) => item.id === video.channel_id)) continue
+      const monitored = options.channels.find((item) => item.youtube_channel_id === video.channel_id)
+      choices.push({ id: video.channel_id, name: video.channel?.name ?? 'Canal', is_top: Boolean(monitored?.is_top) })
     }
   }
-  channel.value = options.filter.channelId
-  channel.addEventListener('change', () => options.onFilter({ ...options.filter, channelId: channel.value }))
-  filters.append(channel)
+  filters.append(channelPicker({ channels: choices, value: options.filter.channelId,
+    placeholder: 'Canais', label: 'Filtrar vídeos por canal', className: 'favorite-channel-filter',
+    onChange: (id) => options.onFilter({ ...options.filter, channelId: id }) }))
   const sort = element('select', 'favorite-sort')
   sort.setAttribute('aria-label', 'Ordenar vídeos')
   for (const [value, label] of [['recent', 'Recentes'], ['az', 'Título A–Z']]) {

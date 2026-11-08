@@ -24,7 +24,7 @@ test('tela de canais dispara cadastro, pausa e abertura', () => withDocument((wi
     onToggle: (channel) => events.push(`toggle:${channel.id}`),
     onTop: (channel) => events.push(`top:${channel.id}`),
     onRemove: (channel) => events.push(`remove:${channel.id}`),
-    onOpen: (channel) => events.push(`open:${channel.id}`)
+    onOpen: (channel) => events.push(`open:${channel.id}`), onMarked: () => {}
   })
   const input = view.querySelector('input')!
   input.value = '@canal'
@@ -39,17 +39,16 @@ test('tela de canais dispara cadastro, pausa e abertura', () => withDocument((wi
   ])
 }))
 
-test('seletor de canais localiza o cartão sem cadastrar outro canal', () => withDocument((window) => {
+test('seletor de canais localiza o cartão sem cadastrar outro canal', () => withDocument(() => {
   const added: string[] = []
   const view = channelView({
     channels: demoChannels, requests: [], videos: demoVideos,
     onAdd: (input) => added.push(input),
-    onToggle: () => {}, onTop: () => {}, onRemove: () => {}, onOpen: () => {}
+    onToggle: () => {}, onTop: () => {}, onRemove: () => {}, onOpen: () => {}, onMarked: () => {}
   })
-  const select = view.querySelector<HTMLSelectElement>('.channel-jump')!
-  assert.equal(select.options.length, 3)
-  select.value = demoChannelIds[1]
-  select.dispatchEvent(new window.Event('change'))
+  const options = [...view.querySelectorAll<HTMLButtonElement>('.channel-jump .channel-picker-option')]
+  assert.equal(options.length, 3)
+  options[2].click()
   const cards = [...view.querySelectorAll('.channel-card')]
   assert.equal(cards[0].classList.contains('channel-card-selected'), false)
   assert.equal(cards[1].classList.contains('channel-card-selected'), true)
@@ -87,13 +86,13 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /<script>alert\(1\)<\/script>/)
   assert.equal(view.querySelector<HTMLAnchorElement>('.video-link')?.hostname, 'www.youtube.com')
-  assert.equal(view.querySelector<HTMLSelectElement>('select[aria-label="Filtrar vídeos por canal"]')?.selectedOptions[0].textContent, 'Canais')
+  assert.match(view.querySelector('[aria-label="Filtrar vídeos por canal"]')?.textContent ?? '', /Canais/)
   const actions = [...view.querySelectorAll<HTMLButtonElement>('.card-actions button')]
   actions.slice(0, 5).forEach((action) => action.click())
   assert.deepEqual(events, ['is_favorite', 'is_watched', 'follow', 'is_queued', 'is_deprioritized'])
 }))
 
-test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corrigir nome', () => withDocument(() => {
+test('Minhas histórias mostra pendências e executa confirmar e rejeitar', () => withDocument(() => {
   const events: string[] = []
   const story = { id: 'story', owner_id: 'owner', seed_video_id: demoVideos[0].id,
     name: 'Obra <Nova>', canonical_key: 'obra nova', aliases: [], is_followed: true, completed_at: null,
@@ -101,10 +100,10 @@ test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corri
   const candidate = { id: 'match', story_id: 'story', video_id: demoVideos[1].id,
     status: 'pending' as const, score: 95, reason: 'Nome da obra; mesmo canal.',
     detected_at: '2026-11-05T00:00:00Z', decided_at: null, video: demoVideos[1] }
-  const view = storiesView({ selectedChannelId: '', onChannelSelect: () => {}, data: { groups: [{ story, seed: demoVideos[0],
+  const view = storiesView({ selectedChannelId: '', onChannelSelect: () => {}, query: '', onQuery: () => {}, sort: 'recent', onSort: () => {}, onLookupYouTube: async () => { throw Error('unused') }, onSaveYouTube: () => {}, data: { groups: [{ story, seed: demoVideos[0],
     confirmed: [], pending: [candidate] }], completed: [], pendingCount: 1 },
   onDecide: (_item, status) => events.push(status),
-  onRename: () => events.push('rename'), onUnfollow: () => events.push('unfollow'), onComplete: () => {}, onToggleVideo: () => {} })
+  onUnfollow: () => events.push('unfollow'), onComplete: () => {}, onToggleVideo: () => {} })
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /Obra <Nova>/)
   assert.equal(view.querySelectorAll('.follow-grid').length, 1)
@@ -117,7 +116,6 @@ test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corri
   view.querySelector<HTMLButtonElement>('.follow-expand')!.click()
   assert.equal(view.querySelector('.follow-sequence')?.hasAttribute('hidden'), false)
 
-  view.querySelector<HTMLButtonElement>('.follow-rename')!.click()
   view.querySelector<HTMLButtonElement>('.follow-controls button')!.click()
 
   const decisions = view.querySelectorAll<HTMLButtonElement>(
@@ -126,7 +124,7 @@ test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corri
   decisions[0].click()
   decisions[1].click()
 
-  assert.deepEqual(events, ['rename', 'unfollow', 'confirmed', 'rejected'])
+  assert.deepEqual(events, ['unfollow', 'confirmed', 'rejected'])
   assert.match(sidebarView('stories', true, 1).textContent ?? '', /Minhas histórias \(1\)/)
 }))
 

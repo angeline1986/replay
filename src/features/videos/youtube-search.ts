@@ -2,7 +2,7 @@ import { button, element, notice } from '../../shared/dom.ts'
 import type { YouTubeResult } from '../../shared/saved-youtube.ts'
 
 export function youtubeSearchView(
-  mode: 'queue' | 'deprioritized', lookup: (input: string) => Promise<YouTubeResult>,
+  mode: 'queue' | 'deprioritized' | 'completed', lookup: (input: string) => Promise<YouTubeResult>,
   onSave: (video: YouTubeResult) => void
 ): HTMLElement {
   const section = element('section', 'youtube-search')
@@ -30,7 +30,7 @@ export function youtubeSearchView(
       image.referrerPolicy = 'no-referrer'
       const info = element('div', 'youtube-preview-info')
       info.append(element('strong', '', video.title), element('span', '', video.channel_name))
-      info.append(button(mode === 'queue' ? 'Adicionar à fila' : 'Despriorizar vídeo',
+      info.append(button(mode === 'queue' ? 'Adicionar à fila' : mode === 'completed' ? 'Adicionar aos concluídos' : 'Despriorizar vídeo',
         () => onSave(video), 'primary'))
       preview.append(image, info)
       result.replaceChildren(preview)

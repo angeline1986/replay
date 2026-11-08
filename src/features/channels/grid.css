@@ -1,7 +1,9 @@
+@import './marked.css';
 .channel-list { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .channel-toolbar-form .channel-top-filter { flex: 0 0 130px; }
-.compact-channel-card { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 10px;
-  min-width: 0; min-height: 154px; padding: 12px; box-shadow: 0 2px 8px #20283a08; }
+.compact-channel-card { display: grid; grid-template-rows: 50px 20px 21px minmax(0, 1fr);
+  align-items: stretch; gap: 6px; min-width: 0; height: 180px; padding: 12px;
+  box-shadow: 0 2px 8px #20283a08; }
 .compact-channel-card:hover { border-color: #c8c5e5; box-shadow: 0 5px 16px #20283a12; }
 .compact-channel-card.has-news { border-color: #c6c2f7; }
 .compact-channel-card.is-top { border-color: #ead9a6; box-shadow: 0 2px 9px #b8872430; }
@@ -20,10 +22,10 @@
 .channel-top-glyph { display: block; width: 14px; height: 14px; background: currentColor;
   mask-size: contain; mask-position: center; mask-repeat: no-repeat;
   -webkit-mask-size: contain; -webkit-mask-position: center; -webkit-mask-repeat: no-repeat; }
-.channel-card-identity { min-width: 0; flex: 1; }
+.channel-card-identity { display: flex; flex-direction: column; min-width: 0; flex: 1; height: 50px; }
 .channel-card-identity h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; margin: 0 0 3px; font-size: 13px; line-height: 1.25; }
-.channel-card-identity .channel-link { font-size: 10px; font-weight: 600; white-space: nowrap; }
+.channel-card-identity .channel-link { margin-top: auto; font-size: 10px; font-weight: 600; white-space: nowrap; }
 .channel-card-status { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-width: 0; }
 .channel-badge { flex: none; padding: 3px 6px; border-radius: 999px; background: #f0f2f6;
   color: #667085; font-size: 10px; font-weight: 700; white-space: nowrap; }
@@ -31,8 +33,11 @@
 .channel-badge.is-paused { background: #fff3df; color: #94620d; }
 .channel-checked { min-width: 0; overflow: hidden; text-overflow: ellipsis;
   white-space: nowrap; color: #8490a5; font-size: 10px; }
+.channel-marked-videos { justify-self: start; padding: 0; border: 0; background: transparent;
+  color: #5143d2; font-family: inherit; font-size: 11px; font-weight: 700; }
+.channel-marked-videos:hover { text-decoration: underline; }
 .channel-card-actions { display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: nowrap; gap: 4px; width: 100%; margin-top: auto; padding-top: 9px; border-top: 1px solid #edf0f5; }
+  flex-wrap: nowrap; gap: 4px; width: 100%; align-self: end; padding-top: 9px; border-top: 1px solid #edf0f5; }
 .channel-card-actions .channel-view-videos { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
   white-space: nowrap; padding: 6px 5px; border-color: transparent; background: #f0edff;
   color: #5143d2; font-size: 10px; text-align: center; }

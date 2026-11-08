@@ -17,7 +17,7 @@ export function sidebarView(
       ['favorites', '★', 'Vídeos favoritos'],
       ['stories', '◈', 'Minhas histórias'],
       ['channels', '▣', 'Canais monitorados'],
-      ['videos', '▷', 'Últimos lançamentos'],
+      ['videos', '▷', 'Lançamentos'],
       ['completed', '✓', 'Concluídos'],
       ['queue', '', 'Fila de espera'],
       ['deprioritized', '', 'Despriorizados']

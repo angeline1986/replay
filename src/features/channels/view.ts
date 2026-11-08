@@ -1,5 +1,6 @@
 import { button, element, notice } from '../../shared/dom.ts'
 import type { Channel, ChannelRequest, Video } from '../../shared/model.ts'
+import { channelPicker } from '../../shared/channel-picker.ts'
 
 const trophyUrl = new URL('../../assets/icons/trophy-solid-full.svg', import.meta.url).href
 
@@ -15,6 +16,7 @@ interface ChannelViewOptions {
   onTop: (channel: Channel) => void
   onRemove: (channel: Channel) => void
   onOpen: (channel: Channel) => void
+  onMarked: (channel: Channel) => void
 }
 
 export function channelView(options: ChannelViewOptions): HTMLElement {
@@ -37,27 +39,16 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   }
   topFilter.value = options.topFilter ?? 'all'
   topFilter.addEventListener('change', () => options.onTopFilter?.(topFilter.value as 'all' | 'top-first' | 'top-only'))
-  const select = element('select', 'channel-jump')
-  select.setAttribute('aria-label', 'Ir para canal cadastrado')
-  const placeholder = element('option', '', 'Selecionar canal…')
-  placeholder.value = ''
-  select.append(placeholder)
-  for (const item of visible) {
-    const option = element('option', '', item.name)
-    option.value = item.id
-    select.append(option)
-  }
-  select.disabled = visible.length === 0
   const cards = new Map<string, HTMLElement>()
-  select.addEventListener('change', () => {
-    for (const [id, card] of cards) {
-      card.classList.toggle('channel-card-selected', id === select.value)
-    }
-    const target = cards.get(select.value)
-    if (target && typeof target.scrollIntoView === 'function') {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  })
+  const jump = channelPicker({ channels: visible, value: '', placeholder: 'Selecionar canal…',
+    label: 'Ir para canal cadastrado', className: 'channel-jump', disabled: visible.length === 0,
+    onChange: (id) => {
+      for (const [cardId, card] of cards) card.classList.toggle('channel-card-selected', cardId === id)
+      const target = cards.get(id)
+      if (target && typeof target.scrollIntoView === 'function') {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    } })
   const field = element('input')
   field.name = 'channel'
   field.type = 'text'
@@ -68,7 +59,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   submit.type = 'submit'
   submit.disabled = Boolean(options.busy)
   field.disabled = Boolean(options.busy)
-  form.append(topFilter, select, field, submit)
+  form.append(topFilter, jump, field, submit)
   form.addEventListener('submit', (event) => {
     event.preventDefault()
     options.onAdd(field.value.trim())
@@ -130,6 +121,8 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     const badge = channel.is_active ? count ? `+${count} novo${count === 1 ? '' : 's'}` : '0 novas' : 'Pausado'
     status.append(element('span', `channel-badge${channel.is_active ? count ? ' has-news' : '' : ' is-paused'}`, badge),
       element('span', 'channel-checked', checkedLabel(channel.last_checked_at)))
+    const marked = button('Ver marcados', () => options.onMarked(channel), 'channel-marked-videos')
+    marked.title = 'Ver vídeos classificados deste canal'
     const actions = element('div', 'channel-actions channel-card-actions')
     const view = button(count ? `Ver vídeos (${count})` : 'Ver vídeos', () => options.onOpen(channel),
       `channel-view-videos${count ? ' has-news' : ''}`)
@@ -140,7 +133,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     remove.title = 'Remover canal'
     remove.setAttribute('aria-label', remove.title)
     actions.append(view, toggle, remove)
-    item.append(head, status, actions)
+    item.append(head, status, marked, actions)
     list.append(item)
   }
   root.append(list)

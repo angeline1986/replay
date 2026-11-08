@@ -19,6 +19,9 @@ export interface AppState {
   sort: 'recent' | 'az'
   channelTopFilter: 'all' | 'top-first' | 'top-only'
   storyChannelId: string
+  completedChannelId: string
+  completedQuery: string
+  completedSort: 'recent' | 'az'
   busy: boolean
   error: string
   importMessage: string
@@ -41,6 +44,9 @@ export const state: AppState = {
   sort: 'recent',
   channelTopFilter: 'all',
   storyChannelId: '',
+  completedChannelId: '',
+  completedQuery: '',
+  completedSort: 'recent',
   busy: false,
   error: '',
   importMessage: '',

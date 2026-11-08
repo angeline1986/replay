@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Video } from './model.ts'
+import { validVideoUrl, type Video } from './model.ts'
 
 export interface YouTubeResult {
   youtube_video_id: string
@@ -53,6 +53,26 @@ export async function lookupYouTube(db: SupabaseClient, input: string): Promise<
   }
   if (!data?.youtube_video_id || !data.title) throw new Error('Resposta inválida do YouTube.')
   return data
+}
+
+export async function saveCompletedYouTube(
+  db: SupabaseClient, userId: string, video: YouTubeResult,
+  importChannel: (input: { id: string }) => Promise<unknown>
+): Promise<string> {
+  const channel = await db.from('channels').select('id').eq('owner_id', userId)
+    .eq('youtube_channel_id', video.youtube_channel_id).maybeSingle()
+  if (channel.error) throw new Error(channel.error.message)
+  if (!channel.data) await importChannel({ id: video.youtube_channel_id })
+  const { data, error } = await db.functions.invoke<{ video_id?: string }>('lookup-youtube-video', {
+    body: { url: validVideoUrl(video.youtube_video_id), save: true }
+  })
+  if (error) {
+    const context = error.context as Response | undefined
+    const body = context && 'json' in context ? await context.json().catch(() => null) : null
+    throw new Error(body?.error ?? error.message)
+  }
+  if (!data?.video_id || !/^[a-f0-9-]{36}$/i.test(data.video_id)) throw new Error('Vídeo não foi salvo.')
+  return data.video_id
 }
 
 export async function saveYouTubeToCollection(
