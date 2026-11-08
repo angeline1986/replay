@@ -1,6 +1,8 @@
 import { button, element, notice } from '../../shared/dom.ts'
 import type { Channel, ChannelRequest, Video } from '../../shared/model.ts'
 
+const trophyUrl = new URL('../../assets/icons/trophy-solid-full.svg', import.meta.url).href
+
 interface ChannelViewOptions {
   channels: Channel[]
   requests: ChannelRequest[]
@@ -8,6 +10,7 @@ interface ChannelViewOptions {
   busy?: boolean
   onAdd: (input: string) => void
   onToggle: (channel: Channel) => void
+  onTop: (channel: Channel) => void
   onRemove: (channel: Channel) => void
   onOpen: (channel: Channel) => void
 }
@@ -75,7 +78,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   const list = element('div', 'channel-list')
   for (const channel of options.channels) {
     const count = options.videos.filter((video) => video.channel_id === channel.id && !video.state).length
-    const item = element('article', `channel-card compact-channel-card${count ? ' has-news' : ''}${channel.is_active ? '' : ' is-paused'}`)
+    const item = element('article', `channel-card compact-channel-card${count ? ' has-news' : ''}${channel.is_active ? '' : ' is-paused'}${channel.is_top ? ' is-top' : ''}`)
     cards.set(channel.id, item)
     const head = element('div', 'channel-card-head')
     const avatar = element('div', 'avatar channel-card-avatar', channel.name.slice(0, 1).toUpperCase())
@@ -96,7 +99,15 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     link.target = '_blank'
     link.rel = 'noopener noreferrer'
     detail.append(link)
-    head.append(avatar, detail)
+    const trophy = button('', () => options.onTop(channel), `channel-top-button${channel.is_top ? ' is-top' : ''}`)
+    trophy.title = channel.is_top ? 'Remover dos canais tops' : 'Marcar como canal top'
+    trophy.setAttribute('aria-label', trophy.title)
+    trophy.setAttribute('aria-pressed', String(channel.is_top))
+    const trophyGlyph = element('span', 'channel-top-glyph')
+    trophyGlyph.style.maskImage = `url("${trophyUrl}")`
+    trophyGlyph.style.webkitMaskImage = `url("${trophyUrl}")`
+    trophy.append(trophyGlyph)
+    head.append(avatar, detail, trophy)
     const status = element('div', 'channel-card-status')
     const badge = channel.is_active ? count ? `+${count} novo${count === 1 ? '' : 's'}` : '0 novas' : 'Pausado'
     status.append(element('span', `channel-badge${channel.is_active ? count ? ' has-news' : '' : ' is-paused'}`, badge),

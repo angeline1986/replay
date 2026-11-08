@@ -22,13 +22,14 @@ test('tela de canais dispara cadastro, pausa e abertura', () => withDocument((wi
     channels: demoChannels, requests: [], videos: demoVideos,
     onAdd: (input) => events.push(`add:${input}`),
     onToggle: (channel) => events.push(`toggle:${channel.id}`),
+    onTop: (channel) => events.push(`top:${channel.id}`),
     onRemove: (channel) => events.push(`remove:${channel.id}`),
     onOpen: (channel) => events.push(`open:${channel.id}`)
   })
   const input = view.querySelector('input')!
   input.value = '@canal'
   view.querySelector('form')!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
-  const buttons = [...view.querySelectorAll<HTMLButtonElement>('.channel-card button')]
+  const buttons = [...view.querySelectorAll<HTMLButtonElement>('.channel-card-actions button')]
   buttons[0].click()
   buttons[1].click()
   buttons[2].click()
@@ -43,7 +44,7 @@ test('seletor de canais localiza o cartão sem cadastrar outro canal', () => wit
   const view = channelView({
     channels: demoChannels, requests: [], videos: demoVideos,
     onAdd: (input) => added.push(input),
-    onToggle: () => {}, onRemove: () => {}, onOpen: () => {}
+    onToggle: () => {}, onTop: () => {}, onRemove: () => {}, onOpen: () => {}
   })
   const select = view.querySelector<HTMLSelectElement>('.channel-jump')!
   assert.equal(select.options.length, 3)

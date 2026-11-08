@@ -180,7 +180,7 @@ function render(): void {
       channels: state.channels, requests: state.requests, videos: state.videos,
       busy: state.busy,
       onAdd: (input) => { void actions.createChannel(input) },
-      onToggle: (channel) => { void actions.toggleChannel(channel) },
+      onToggle: (channel) => { void actions.toggleChannel(channel) }, onTop: (channel) => { void actions.toggleTop(channel) },
       onRemove: (channel) => { void actions.deleteChannel(channel) },
       onOpen: (channel) => { location.hash = channelRoute(channel.id) }
     }))

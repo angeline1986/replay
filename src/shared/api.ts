@@ -148,6 +148,11 @@ export async function setChannelActive(channel: Channel, active: boolean): Promi
   if (error) throw new Error(error.message)
 }
 
+export async function setChannelTop(channel: Channel, top: boolean): Promise<void> {
+  const { error } = await client().from('channels').update({ is_top: top }).eq('id', channel.id)
+  if (error) throw new Error(error.message)
+}
+
 export async function removeChannel(channel: Channel): Promise<void> {
   const { error } = await client().from('channels').delete().eq('id', channel.id)
   if (error) throw new Error(error.message)

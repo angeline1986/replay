@@ -8,12 +8,12 @@ export const demoChannelIds = [
 export const demoChannels: Channel[] = [
   {
     id: demoChannelIds[0], owner_id: owner, youtube_channel_id: 'UC0000000000000000000000',
-    handle: '@atelier', name: 'Ateliê Criativo', avatar_url: null, is_active: true,
+    handle: '@atelier', name: 'Ateliê Criativo', avatar_url: null, is_active: true, is_top: true,
     last_checked_at: '2026-10-31T10:00:00Z', last_success_at: '2026-10-31T10:00:00Z'
   },
   {
     id: demoChannelIds[1], owner_id: owner, youtube_channel_id: 'UC1111111111111111111111',
-    handle: '@ciencia', name: 'Ciência em Casa', avatar_url: null, is_active: true,
+    handle: '@ciencia', name: 'Ciência em Casa', avatar_url: null, is_active: true, is_top: false,
     last_checked_at: '2026-10-31T09:45:00Z', last_success_at: '2026-10-31T09:45:00Z'
   }
 ]

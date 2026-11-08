@@ -6,6 +6,7 @@ export interface Channel {
   name: string
   avatar_url: string | null
   is_active: boolean
+  is_top: boolean
   last_checked_at: string | null
   last_success_at: string | null
 }

@@ -1,5 +1,5 @@
 import { state } from './state.ts'
-import { addChannel, removeChannel, requestChannel, saveVideoState, setChannelActive, supabase } from '../shared/api.ts'
+import { addChannel, removeChannel, requestChannel, saveVideoState, setChannelActive, setChannelTop, supabase } from '../shared/api.ts'
 import { validChannelId, type Channel, type Video } from '../shared/model.ts'
 import { normalizeChannelInput } from '../features/channels/normalize.ts'
 import { importChannelNow } from '../shared/import-channel.ts'
@@ -40,7 +40,7 @@ export function makeActions(hooks: Hooks) {
         }
         state.channels.push({
           id: crypto.randomUUID(), owner_id: 'demo', youtube_channel_id: parsed.id!,
-          handle: null, name: parsed.id!, avatar_url: null, is_active: true,
+          handle: null, name: parsed.id!, avatar_url: null, is_active: true, is_top: false,
           last_checked_at: null, last_success_at: null
         })
         hooks.render()
@@ -68,6 +68,11 @@ export function makeActions(hooks: Hooks) {
     await hooks.act(() => setChannelActive(channel, !channel.is_active))
   }
 
+  async function toggleTop(channel: Channel): Promise<void> {
+    if (state.demo) { channel.is_top = !channel.is_top; hooks.render(); return }
+    await hooks.act(() => setChannelTop(channel, !channel.is_top))
+  }
+
   async function deleteChannel(channel: Channel): Promise<void> {
     if (!confirm(`Remover ${channel.name} e todos os vídeos e estados associados?`)) return
     if (state.demo) {
@@ -79,5 +84,5 @@ export function makeActions(hooks: Hooks) {
     await hooks.act(() => removeChannel(channel))
   }
 
-  return { toggleVideo, addYouTubeVideo, createChannel, toggleChannel, deleteChannel }
+  return { toggleVideo, addYouTubeVideo, createChannel, toggleChannel, toggleTop, deleteChannel }
 }
