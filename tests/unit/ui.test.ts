@@ -85,10 +85,8 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   assert.equal(view.querySelector<HTMLAnchorElement>('.video-link')?.hostname, 'www.youtube.com')
   assert.equal(view.querySelector<HTMLSelectElement>('select[aria-label="Filtrar vídeos por canal"]')?.selectedOptions[0].textContent, 'Todos os canais')
   const actions = [...view.querySelectorAll<HTMLButtonElement>('.card-actions button')]
-  actions[0].click()
-  actions[1].click()
-  actions[2].click()
-  assert.deepEqual(events, ['is_favorite', 'is_watched', 'follow'])
+  actions.slice(0, 5).forEach((action) => action.click())
+  assert.deepEqual(events, ['is_favorite', 'is_deprioritized', 'is_queued', 'is_watched', 'follow'])
 }))
 
 test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corrigir nome', () => withDocument(() => {
