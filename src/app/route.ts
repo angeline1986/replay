@@ -12,7 +12,7 @@ export function routeFromHash(hash: string): Route {
   if (hash === '#completed') return { page: 'completed', channelId: '' }
   if (hash === '#deprioritized') return { page: 'deprioritized', channelId: '' }
   if (hash === '#queue') return { page: 'queue', channelId: '' }
-  const channelId = hash.match(new RegExp(`^#videos/(${uuid})$`))?.[1] ?? ''
+  const channelId = hash.match(new RegExp(`^#videos/(${uuid})(?:/marked)?$`))?.[1] ?? ''
   return hash === '#videos' || channelId
     ? { page: 'videos', channelId }
     : { page: 'favorites', channelId: '' }
@@ -22,3 +22,6 @@ export function channelRoute(id: string): string {
   if (!new RegExp(`^${uuid}$`).test(id)) throw new Error('ID de canal inválido.')
   return `#videos/${id}`
 }
+
+export function markedRoute(id: string): string { return `${channelRoute(id)}/marked` }
+export function isMarkedRoute(hash: string): boolean { return hash.endsWith('/marked') && Boolean(routeFromHash(hash).channelId) }

@@ -11,6 +11,7 @@ export interface AppState {
   favoriteVideos: Video[]
   deprioritizedVideos: Video[]
   queuedVideos: Video[]
+  markedVideos: Video[]
   stories: StoryDashboard
   storiesError: string
   hasMore: boolean
@@ -36,10 +37,12 @@ export const state: AppState = {
   favoriteVideos: [],
   deprioritizedVideos: [],
   queuedVideos: [],
+  markedVideos: [],
   stories: { groups: [], completed: [], pendingCount: 0 },
   storiesError: '',
   hasMore: false,
-  filter: { query: '', status: 'all', channelId: routeFromHash(location.hash).channelId },
+  filter: { query: '', status: location.hash.endsWith('/marked') ? 'marked' : 'all',
+    channelId: routeFromHash(location.hash).channelId },
   page: routeFromHash(location.hash).page,
   sort: 'recent',
   channelTopFilter: 'all',

@@ -51,6 +51,12 @@ export function distinctEnough(value: string): boolean {
 
 export function parseStoryPosition(title: string): StoryPosition | null {
   const value = title.normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase('pt-BR')
+  const prefix = value.match(/^\s*[|[(]\s*0*(\d{1,4})(?:\s*[-–]\s*0*(\d{1,4}))?\s*[|)\]]/)
+  if (prefix) {
+    const first = Number(prefix[1])
+    const last = prefix[2] ? Number(prefix[2]) : first
+    if (first > 0 && last >= first) return { kind: 'part', first, last, season: null }
+  }
   const seasonEpisode = value.match(/\bs\s*(\d{1,2})\s*ep\s*0*(\d{1,4})\b/)
   if (seasonEpisode) {
     const number = Number(seasonEpisode[2])
@@ -93,24 +99,62 @@ function fuzzyAlias(aliases: string[], title: string): string | null {
   }) ?? null
 }
 
+function titleCore(value: string): string {
+  return normalizeStoryText(value.replace(/^\s*[|[(]\s*\d{1,4}(?:\s*[-–]\s*\d{1,4})?\s*[|)\]]/, ''))
+}
+
+function sharedWorkTerms(a: string, b: string): boolean {
+  const left = new Set(significant(a))
+  const right = new Set(significant(b))
+  const common = [...left].filter((word) => right.has(word)).length
+  return common >= 2 && common / Math.min(left.size, right.size) >= 0.35
+}
+
 export function proposeStoryMatch(story: TrackedPattern, video: CandidateVideo): StoryMatch | null {
   const aliases = [story.title, ...story.aliases]
-  const exact = exactAlias(aliases, video.title)
+  const sameCore = distinctEnough(titleCore(story.title)) && titleCore(story.title) === titleCore(video.title)
+  const exact = exactAlias(aliases, video.title) || (sameCore ? story.title : null)
   const sameChannel = story.channelIds.includes(video.channelId)
-  const approximate = !exact && sameChannel ? fuzzyAlias(aliases, video.title) : null
-  if (!exact && !approximate) return null
   const position = parseStoryPosition(video.title)
   const previous = story.lastPosition
   const comparable = Boolean(position && previous && position.kind === previous.kind &&
     position.season === previous.season)
   if (comparable && position!.last <= previous!.last) return null
   const forward = comparable && position!.first <= previous!.last + 2
+  const approximate = !exact && sameChannel ? fuzzyAlias(aliases, video.title) : null
+  const numbered = !exact && !approximate && sameChannel && forward &&
+    sharedWorkTerms(story.title, video.title)
+  if (!exact && !approximate && !numbered) return null
   if (!forward && Date.parse(video.publishedAt) <= Date.parse(story.latestPublishedAt)) return null
   if (approximate && !forward) return null
-  const score = exact ? (sameChannel ? (forward ? 95 : 80) : (forward ? 78 : 65)) : 62
+  const score = exact ? (sameChannel ? (forward ? 95 : 80) : (forward ? 78 : 65))
+    : numbered ? 72 : 62
   const confidence = score >= 85 ? 'alta' : 'média'
-  const reason = `${exact ? 'Nome da obra' : 'Título semelhante'}; ` +
+  const reason = `${exact ? 'Nome da obra' : numbered ? 'Capítulo numerado e título relacionado' : 'Título semelhante'}; ` +
     `${sameChannel ? 'mesmo canal' : 'outro canal'}; ` +
     `${forward ? 'numeração seguinte' : position ? 'numeração não consecutiva' : 'sem numeração'}.`
   return { score, confidence, reason, position }
+}
+
+export function findExistingChapters(
+  pattern: TrackedPattern, videos: Array<CandidateVideo & { id: string }>, knownIds: Set<string>,
+  bridgeIds = new Set<string>()
+): Array<{ id: string; match: StoryMatch }> {
+  const result: Array<{ id: string; match: StoryMatch }> = []
+  const cursor = { ...pattern }
+  const ordered = [...videos].sort((a, b) => Date.parse(a.publishedAt) - Date.parse(b.publishedAt))
+  for (const video of ordered) {
+    if (knownIds.has(video.id)) {
+      const match = bridgeIds.has(video.id) ? proposeStoryMatch(cursor, video) : null
+      if (match?.position) cursor.lastPosition = match.position
+      if (match) cursor.latestPublishedAt = video.publishedAt
+      continue
+    }
+    const match = proposeStoryMatch(cursor, video)
+    if (!match) continue
+    result.push({ id: video.id, match })
+    if (match.position) cursor.lastPosition = match.position
+    cursor.latestPublishedAt = video.publishedAt
+  }
+  return result
 }

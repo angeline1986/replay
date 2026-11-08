@@ -10,6 +10,6 @@ test('seguir vídeo não solicita escolha manual nem confirmação', () => {
   assert.doesNotMatch(follow, /\b(?:prompt|confirm)\s*\(/)
   assert.match(follow, /const name = video\.title\.trim\(\)/)
   assert.match(follow, /followStory\(client\(\), hooks\.userId\(\), video\.id, name, aliases\)/)
-  assert.match(follow, /if \(existingId\)/)
-  assert.match(follow, /attachStoryVideo\(client\(\), existingId, video\.id\)/)
+  assert.match(follow, /if \(result\.existing\) await attachStoryVideo\(client\(\), result\.id, video\.id\)/)
+  assert.match(follow, /scanStoryNow\(client\(\), result\.id\)/)
 })

@@ -55,7 +55,8 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     status.setAttribute('aria-label', 'Filtrar vídeos por status')
     const statuses = favorites
       ? [['all', 'Favoritos'], ['unwatched', 'Não vistos']]
-      : [['all', 'Lançamentos'], ['new', 'Novos'], ['unwatched', 'Não vistos'], ['favorites', 'Favoritos']]
+      : [['all', 'Lançamentos'], ['new', 'Novos'], ['unwatched', 'Não vistos'],
+        ['favorites', 'Favoritos'], ...(options.filter.channelId ? [['marked', 'Marcados']] : [])]
     for (const [value, label] of statuses) {
       const option = element('option', '', label)
       option.value = value
@@ -151,7 +152,11 @@ function videoCard(
   link.href = validVideoUrl(video.youtube_video_id)
   link.target = '_blank'
   link.rel = 'noopener noreferrer'
-  if (!video.state) body.append(element('span', 'new-badge', 'Novo'))
+  if (options.mode === 'videos') {
+    const badgeRow = element('div', 'video-badge-row')
+    if (!video.state) badgeRow.append(element('span', 'new-badge', 'Novo'))
+    body.append(badgeRow)
+  } else if (!video.state) body.append(element('span', 'new-badge', 'Novo'))
   body.append(title, meta)
   const actions = element('div', 'card-actions')
   const following = options.trackedVideoIds.has(video.id)

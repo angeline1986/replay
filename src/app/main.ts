@@ -6,26 +6,27 @@ import '../features/channels/grid.css'
 import '../features/videos/youtube-search.css'
 import { state } from './state.ts'
 import { button, clear, element, notice } from '../shared/dom.ts'
-import { configured, currentUser, loadDashboard, loadVideoPage, sendMagicLink, signInWithGitHub, signOut, supabase } from '../shared/api.ts'
+import { configured, currentUser, loadDashboard, sendMagicLink, signInWithGitHub, signOut, supabase } from '../shared/api.ts'
 import { authView } from '../features/auth/view.ts'
 import { channelView } from '../features/channels/view.ts'
-import { openMarkedChannel } from '../features/channels/marked.ts'
 import { videoView } from '../features/videos/view.ts'
 import { makeActions } from './actions.ts'
-import { channelRoute, routeFromHash } from './route.ts'
+import { channelRoute, isMarkedRoute, markedRoute, routeFromHash } from './route.ts'
 import { createAuthGate } from './auth-gate.ts'
 import { sidebarView } from './shell.ts'
-import { storySnapshot } from './story-snapshot.ts'
+import { scanExistingStories, storySnapshot } from './story-snapshot.ts'
 import { makeStoryActions } from './story-actions.ts'
 import { storiesView } from '../features/stories/view.ts'
-import { ChannelPages, channelBase, loadNext } from '../features/videos/channel-pages.ts'
+import { ChannelPages, channelBase } from '../features/videos/channel-pages.ts'
 import { backfillMissingAvatars } from '../shared/channel-avatars.ts'
 import { lookupYouTube, toggleSavedYouTube } from '../shared/saved-youtube.ts'
-import { loadClassifiedChannelVideos } from '../shared/video-collections.ts'
+import { loadMarkedPage } from './marked-page.ts'
+import { makeVideoLoader } from './video-loading.ts'
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = ''
 let authMessage = ''
 const channelPages = new ChannelPages()
+const loadMore = makeVideoLoader(channelPages, () => userId, render)
 const actions = makeActions({ render, act, userId: () => userId })
 const storyActions = makeStoryActions({ render, act, userId: () => userId })
 const auth = createAuthGate({
@@ -49,7 +50,10 @@ const auth = createAuthGate({
     state.storiesError = value?.storySnapshot.error ?? ''
     state.hasMore = value?.dashboard.hasMore ?? false
     channelPages.reset()
-    if (value?.id && state.page === 'videos' && state.filter.channelId) queueMicrotask(() => { void loadMore(true) })
+    if (value?.id && state.page === 'videos' && state.filter.channelId) queueMicrotask(() => {
+      if (state.filter.status === 'marked') void act(() => loadMarkedPage(state, supabase!, userId), false)
+      else void loadMore(true) })
+    if (value?.id && state.page === 'stories') queueMicrotask(discoverStories)
     state.error = ''
     authMessage = ''
   },
@@ -70,24 +74,11 @@ async function refresh(): Promise<void> {
   state.stories = stories.data
   state.storiesError = stories.error
   state.hasMore = data.hasMore
+  if (state.page === 'videos' && state.filter.status === 'marked') await loadMarkedPage(state, supabase!, userId)
   if (state.page !== 'videos' || !state.filter.channelId) channelPages.reset()
 }
-async function loadMore(initial = false): Promise<void> {
-  if (state.busy || state.demo || !(state.filter.channelId ? channelPages.hasMore(state.filter.channelId) : state.hasMore)) return
-  state.busy = true
-  render()
-  try {
-    const base = channelBase(state.videos, state.filter.channelId)
-    state.hasMore = await loadNext(state.filter.channelId, base, state.hasMore, channelPages,
-      (offset, limit, channel) => loadVideoPage(userId, state.channels, offset, limit, channel),
-      initial ? Math.max(0, 4 - base.length) : 4)
-  } catch (error) {
-    state.error = message(error)
-  } finally {
-    state.busy = false
-    render()
-  }
-}
+function discoverStories(): void { if (!state.demo && userId) void act(
+  () => scanExistingStories(state.stories, refresh, (text) => { state.error = text }), false) }
 function message(error: unknown): string { return error instanceof Error ? error.message : 'Não foi possível concluir a operação.' }
 async function act(operation: () => Promise<void>, reload = true): Promise<void> {
   state.error = ''
@@ -149,7 +140,8 @@ function render(): void {
         onDecide: (item, status) => { void storyActions.decide(item, status) },
         onUnfollow: (story) => { void storyActions.unfollow(story) }, onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels
       })) : state.page !== 'channels' ? videoView({
-      mode: state.page, videos: channelPages.videos(channelBase(state.videos, state.filter.channelId), state.filter.channelId), highlights: state.highlights,
+      mode: state.page, videos: state.filter.status === 'marked' ? state.markedVideos
+        : channelPages.videos(channelBase(state.videos, state.filter.channelId), state.filter.channelId), highlights: state.highlights,
       favoriteVideos: state.demo ? state.videos.filter((v) => v.state?.is_favorite) : state.favoriteVideos,
       collectionVideos: state.demo && state.page === 'deprioritized'
         ? state.videos.filter((v) => v.state?.is_deprioritized)
@@ -158,12 +150,17 @@ function render(): void {
             : state.page === 'queue' ? state.queuedVideos : undefined,
       channels: state.channels,
       filter: state.filter, sort: state.sort,
-      hasMore: state.filter.channelId ? channelPages.hasMore(state.filter.channelId) : state.hasMore, onLoadMore: () => { void loadMore() },
+      hasMore: state.filter.status === 'marked' ? false : state.filter.channelId
+        ? channelPages.hasMore(state.filter.channelId) : state.hasMore, onLoadMore: () => { void loadMore() },
       onSort: (sort) => { state.sort = sort; render() },
       onFilter: (filter) => {
         const active = document.activeElement as HTMLInputElement
         const caret = active?.type === 'search' ? active.selectionStart : null
-        if (state.page === 'videos' && filter.channelId !== state.filter.channelId) { location.hash = filter.channelId ? channelRoute(filter.channelId) : '#videos'; return }
+        if (state.page === 'videos' && (filter.channelId !== state.filter.channelId ||
+          (filter.status === 'marked') !== (state.filter.status === 'marked'))) {
+          location.hash = filter.channelId ? filter.status === 'marked'
+            ? markedRoute(filter.channelId) : channelRoute(filter.channelId) : '#videos'; return
+        }
         state.filter = filter
         render()
         if (caret !== null) {
@@ -182,7 +179,7 @@ function render(): void {
       onAdd: (input) => { void actions.createChannel(input) },
       onToggle: (channel) => { void actions.toggleChannel(channel) }, onTop: (channel) => { void actions.toggleTop(channel) },
       onRemove: (channel) => { void actions.deleteChannel(channel) }, onOpen: (channel) => { location.hash = channelRoute(channel.id) },
-      onMarked: (channel) => { void openMarkedChannel(channel, () => loadClassifiedChannelVideos(supabase!, userId, channel)) }
+      onMarked: (channel) => { location.hash = markedRoute(channel.id) }
     }))
   }
   root.append(shell)
@@ -190,10 +187,13 @@ function render(): void {
 window.addEventListener('hashchange', () => {
   const route = routeFromHash(location.hash)
   state.page = route.page
-  state.filter = { query: '', status: 'all', channelId: route.channelId }
+  state.filter = { query: '', status: isMarkedRoute(location.hash) ? 'marked' : 'all', channelId: route.channelId }
   state.sort = 'recent'; channelPages.reset()
   render()
-  if (route.page === 'videos' && route.channelId) void loadMore(true)
+  if (route.page === 'videos' && route.channelId) {
+    if (state.filter.status === 'marked') void act(() => loadMarkedPage(state, supabase!, userId), false)
+    else void loadMore(true) }
+  if (route.page === 'stories') discoverStories()
 })
 supabase?.auth.onAuthStateChange((event, session) => auth.handle(event, session?.user.id))
 if (!state.demo && configured) void auth.start()

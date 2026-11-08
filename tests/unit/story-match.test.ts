@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { parseStoryPosition, proposeStoryMatch, suggestStoryName,
+import { findExistingChapters, parseStoryPosition, proposeStoryMatch, suggestStoryName,
   type CandidateVideo, type TrackedPattern } from '../../src/shared/story-match.ts'
 
 const story: TrackedPattern = {
@@ -48,6 +48,10 @@ test('recusa falso positivo baseado apenas em termos genéricos ou mesmo canal',
 })
 
 test('aceita faixa de partes e episódio com temporada, sem confundir formatos', () => {
+  assert.deepEqual(parseStoryPosition('|31-38| Ele era chamado de INÚTIL'),
+    { kind: 'part', first: 31, last: 38, season: null })
+  assert.deepEqual(parseStoryPosition('|39| Ele era chamado de INÚTIL'),
+    { kind: 'part', first: 39, last: 39, season: null })
   assert.deepEqual(parseStoryPosition('PARTE 01 - 02'),
     { kind: 'part', first: 1, last: 2, season: null })
   assert.deepEqual(parseStoryPosition('TGCF AD S4 EP11 Farewell Scene'),
@@ -55,6 +59,35 @@ test('aceita faixa de partes e episódio com temporada, sem confundir formatos',
   assert.equal(parseStoryPosition('Capítulo 0'), null)
   assert.deepEqual(parseStoryPosition('O Cão do Império #parte03'),
     { kind: 'part', first: 3, last: 3, season: null })
+})
+
+test('encontra capítulos já cadastrados mesmo quando o título muda na sequência', () => {
+  const title = '|31-38| Ele era Chamado de INÚTIL da Família, mas Um Dia o Demônio Celestial DESPERTOU no seu Corpo!'
+  const pattern: TrackedPattern = { title, aliases: [], channelIds: ['geek'],
+    lastPosition: parseStoryPosition(title), latestPublishedAt: '2025-09-06T21:45:01Z' }
+  const titles = [
+    '|39| Ele era Chamado de INÚTIL da Família, mas Um Dia o Demônio Celestial DESPERTOU no seu Corpo!',
+    '|40| Ele era Chamado de INÚTIL da Família, mas Um Dia o Demônio Celestial DESPERTOU no seu Corpo!',
+    '|41| Ele era Chamado de INÚTIL da Família, mas Um Dia o Demônio Celestial DESPERTOU no seu Corpo!',
+    '|42| O Demônio Celestial DESPERTOU no Corpo do INÚTIL da Família Dimitri! - ManhwaRecap',
+    '|43| O Demônio Celestial DESPERTOU no Corpo do INÚTIL da Família Dimitri! - ManhwaRecap',
+    '|44| O Demônio Celestial DESPERTOU em Outro Mundo, mas escolheu não ter uma vida NORMAL! ManhwaRecap',
+    '|45| O Demônio Celestial DESPERTOU em Outro Mundo, mas escolheu não ter uma vida NORMAL! ManhwaRecap',
+    '|46| O Demônio Celestial DESPERTOU no Corpo do INÚTIL da Família Dimitri! - ManhwaRecap',
+    '|47| O Demônio Celestial DESPERTOU no Corpo do INÚTIL da Família Dimitri! - ManhwaRecap',
+    '|48| Ele era Chamado de INÚTIL da Família, mas Um Dia o Demônio Celestial DESPERTOU no seu Corpo!'
+  ]
+  const videos = titles.map((item, index) => ({ id: `part-${index + 39}`, title: item,
+    channelId: 'geek', publishedAt: new Date(Date.parse(pattern.latestPublishedAt) +
+      (index + 1) * 86400000).toISOString() }))
+  const found = findExistingChapters(pattern, [...videos].reverse(), new Set())
+  assert.equal(found.length, 10)
+  assert.equal(found.at(-1)?.match.position?.last, 48)
+  const continued = findExistingChapters(pattern, videos, new Set(['part-39']), new Set(['part-39']))
+  assert.equal(continued.length, 9)
+  assert.equal(continued[0].id, 'part-40')
+  assert.equal(proposeStoryMatch(pattern, { ...videos[0], channelId: 'other',
+    title: '|39| Outro príncipe conquistou um reino' }), null)
 })
 
 test('semelhança aproximada entre canais não cria candidato', () => {

@@ -3,6 +3,7 @@ import type { Channel, ChannelRequest, Video } from '../../shared/model.ts'
 import { channelPicker } from '../../shared/channel-picker.ts'
 
 const trophyUrl = new URL('../../assets/icons/trophy-solid-full.svg', import.meta.url).href
+const youtubeUrl = new URL('../../assets/icons/youtube-brands-solid-full.svg', import.meta.url).href
 
 interface ChannelViewOptions {
   channels: Channel[]
@@ -103,10 +104,16 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     const name = element('h2', '', channel.name)
     name.title = channel.name
     detail.append(name)
-    const link = element('a', 'channel-link', 'Ver no YouTube ↗')
+    const link = element('a', 'channel-link channel-youtube-link')
     link.href = `https://www.youtube.com/channel/${channel.youtube_channel_id}`
     link.target = '_blank'
     link.rel = 'noopener noreferrer'
+    link.title = 'Ver canal no YouTube'
+    link.setAttribute('aria-label', `Ver ${channel.name} no YouTube`)
+    const youtubeIcon = element('span', 'channel-youtube-icon')
+    youtubeIcon.style.maskImage = `url("${youtubeUrl}")`
+    youtubeIcon.style.webkitMaskImage = `url("${youtubeUrl}")`
+    link.append(youtubeIcon)
     detail.append(link)
     const trophy = button('', () => options.onTop(channel), `channel-top-button${channel.is_top ? ' is-top' : ''}`)
     trophy.title = channel.is_top ? 'Remover dos canais tops' : 'Marcar como canal top'

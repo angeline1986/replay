@@ -42,7 +42,7 @@ export interface ChannelRequest {
 
 export interface VideoFilter {
   query: string
-  status: 'all' | 'new' | 'unwatched' | 'favorites'
+  status: 'all' | 'new' | 'unwatched' | 'favorites' | 'marked'
   channelId: string
 }
 
@@ -51,6 +51,8 @@ export function filterVideos(videos: Video[], filter: VideoFilter): Video[] {
   return videos.filter((video) => {
     if (filter.channelId && video.channel_id !== filter.channelId) return false
     if (filter.status === 'favorites' && !video.state?.is_favorite) return false
+    if (filter.status === 'marked' && !video.state?.is_favorite && !video.state?.is_watched &&
+      !video.state?.is_queued && !video.state?.is_deprioritized) return false
     if (filter.status === 'unwatched' && video.state?.is_watched) return false
     if (filter.status === 'new' && video.state) return false
     const text = video.title.toLocaleLowerCase('pt-BR')

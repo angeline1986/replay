@@ -6,6 +6,8 @@ import type { StoryCandidate, TrackedStory } from '../shared/story-model.ts'
 import { saveCompletedYouTube, type YouTubeResult } from '../shared/saved-youtube.ts'
 import { importChannelNow } from '../shared/import-channel.ts'
 import { distinctEnough } from '../shared/story-match.ts'
+import { scanStoryNow } from '../shared/story-discovery.ts'
+import { rememberStoryScan } from './story-snapshot.ts'
 
 interface Hooks {
   act: (operation: () => Promise<void>) => Promise<void>
@@ -77,20 +79,17 @@ export function makeStoryActions(hooks: Hooks) {
       return
     }
     let completed = false
-    let existingId = ''
+    let scanFailed = false
     await hooks.act(async () => {
       const result = await followStory(client(), hooks.userId(), video.id, name, aliases)
-      existingId = result.existing ? result.id : ''
+      if (result.existing) await attachStoryVideo(client(), result.id, video.id)
+      try { await scanStoryNow(client(), result.id); rememberStoryScan(result.id) }
+      catch { scanFailed = true }
       completed = true
     })
     if (!completed) return
-    if (existingId) {
-      // Nome canônico idêntico: vincular sem pedir escolha numérica.
-      await hooks.act(async () => {
-        await attachStoryVideo(client(), existingId, video.id)
-      })
-    }
     location.hash = '#stories'
+    if (scanFailed) { state.error = 'História acompanhada. Não foi possível procurar capítulos agora.'; hooks.render() }
   }
 
   async function rename(story: TrackedStory): Promise<void> {

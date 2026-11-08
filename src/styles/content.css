@@ -40,6 +40,12 @@
 .favorite-video-card .card-actions { margin-top: auto; padding-top: 14px; flex-wrap: wrap; }
 .favorite-video-card .video-link { white-space: nowrap; }
 .video-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.video-grid .video-card { display: flex; flex-direction: column; min-width: 0; }
+.video-grid .video-body { display: flex; flex: 1; flex-direction: column; }
+.video-grid:not(.favorite-video-list) .video-badge-row { display: flex; align-items: flex-start; height: 21px; }
+.video-grid:not(.favorite-video-list) .video-body h2 { display: -webkit-box; -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; min-height: 63px; }
+.video-grid .video-body .card-actions { margin-top: auto; padding-top: 14px; }
 .video-card, .channel-card { border: 1px solid #e6e9f0; border-radius: 12px; background: #fff; overflow: hidden; }
 .video-art { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; background: linear-gradient(115deg, #6675ad, #adb8db); }
 .video-art img { position: absolute; width: 100%; height: 100%; object-fit: cover; }

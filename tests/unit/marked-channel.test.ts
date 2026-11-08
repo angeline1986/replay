@@ -47,6 +47,10 @@ test('botão do cartão abre os vídeos marcados do canal correto', () => {
     const cards = view.querySelectorAll('.channel-card')
     cards[1].querySelector<HTMLButtonElement>('.channel-marked-videos')!.click()
     assert.deepEqual(opened, [demoChannels[1].id])
+    const youtube = cards[1].querySelector<HTMLAnchorElement>('.channel-youtube-link')!
+    assert.equal(youtube.textContent, '')
+    assert.equal(youtube.getAttribute('aria-label'), `Ver ${demoChannels[1].name} no YouTube`)
+    assert.ok(youtube.querySelector('.channel-youtube-icon'))
     assert.equal(cards[0].querySelectorAll('.channel-card-head, .channel-card-status, .channel-marked-videos, .channel-card-actions').length, 4)
   } finally { globalThis.document = original; dom.window.close() }
 })
