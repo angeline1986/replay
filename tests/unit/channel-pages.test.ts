@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { ChannelPages, loadNext } from '../../src/features/videos/channel-pages.ts'
+import { ChannelPages, channelBase, loadNext } from '../../src/features/videos/channel-pages.ts'
 import type { Video } from '../../src/shared/model.ts'
 
 function video(n: number, channel: string): Video {
@@ -29,6 +29,31 @@ test('canal selecionado acrescenta quatro, quatro e três, com offset independen
   assert.deepEqual(offsets, [0])
   assert.equal(pages.hasMore('fox'), false)
   assert.equal(new Set(pages.videos(base, 'fox').map(v => v.id)).size, 15)
+})
+
+test('abrir canal mostra os quatro mais recentes antes do primeiro clique', async () => {
+  const pages = new ChannelPages()
+  const fox = Array.from({ length: 9 }, (_, i) => video(9 - i, 'fox'))
+  const base = channelBase([...fox.slice(0, 6), video(0, 'outro')], 'fox')
+  assert.deepEqual(base.map((item) => item.id), fox.slice(0, 4).map((item) => item.id))
+  await pages.load('fox', base, async (offset, limit) => fox.slice(offset, offset + limit),
+    Math.max(0, 4 - base.length))
+  assert.equal(pages.videos(base, 'fox').length, 4)
+  assert.equal(pages.hasMore('fox'), true)
+  await pages.load('fox', base, async (offset, limit) => fox.slice(offset, offset + limit))
+  assert.equal(pages.videos(base, 'fox').length, 8)
+})
+
+test('favoritar vídeo fora dos 50 gerais preserva os quatro carregados', async () => {
+  const pages = new ChannelPages()
+  const fox = Array.from({ length: 6 }, (_, i) => video(6 - i, 'fox'))
+  await pages.load('fox', [], async (offset, limit) => fox.slice(offset, offset + limit))
+  const selected = pages.videos([], 'fox')[0]
+  selected.state = { video_id: selected.id, is_favorite: true, is_watched: false }
+  const refreshedBase = channelBase([video(0, 'outro')], 'fox')
+  const shown = pages.videos(refreshedBase, 'fox')
+  assert.equal(shown.length, 4)
+  assert.equal(shown[0].state?.is_favorite, true)
 })
 
 test('paginação do canal inicia do zero mesmo com só alguns vídeos nos 50 gerais', async () => {

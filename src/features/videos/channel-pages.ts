@@ -9,6 +9,10 @@ interface Page {
 
 const BATCH = 20
 
+export function channelBase(videos: Video[], channelId: string): Video[] {
+  return channelId ? videos.filter((video) => video.channel_id === channelId).slice(0, 4) : videos
+}
+
 export class ChannelPages {
   private pages = new Map<string, Page>()
 
@@ -32,16 +36,16 @@ export class ChannelPages {
 
   async load(
     channelId: string, base: Video[],
-    fetchPage: (offset: number, limit: number) => Promise<Video[]>
+    fetchPage: (offset: number, limit: number) => Promise<Video[]>, count = 4
   ): Promise<void> {
     const page = this.pages.get(channelId) ?? {
       offset: 0, buffer: [], extra: [], exhausted: false
     }
     const seen = new Set([...base, ...page.extra].map((video) => video.id))
     let added = 0
-    // Reserva um quinto vídeo elegível para saber se o botão deve continuar.
+    // Reserva o próximo vídeo elegível para decidir se há mais páginas.
     let available = false
-    while (added < 4 || !available) {
+    while (added < count || !available) {
       if (!page.buffer.length) {
         if (page.exhausted) break
         const fetched = await fetchPage(page.offset, BATCH)
@@ -53,7 +57,7 @@ export class ChannelPages {
       const candidate = page.buffer[0]
       if (seen.has(candidate.id)) {
         page.buffer.shift()
-      } else if (added === 4) {
+      } else if (added === count) {
         available = true
       } else {
         page.buffer.shift()
@@ -68,10 +72,10 @@ export class ChannelPages {
 
 export async function loadNext(
   channelId: string, videos: Video[], hasMore: boolean, pages: ChannelPages,
-  fetchPage: (offset: number, limit: number, channelId?: string) => Promise<Video[]>
+  fetchPage: (offset: number, limit: number, channelId?: string) => Promise<Video[]>, count = 4
 ): Promise<boolean> {
   if (channelId) {
-    await pages.load(channelId, videos, (offset, limit) => fetchPage(offset, limit, channelId))
+    await pages.load(channelId, videos, (offset, limit) => fetchPage(offset, limit, channelId), count)
     return hasMore
   }
   const next = await fetchPage(videos.length, 5)

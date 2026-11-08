@@ -18,7 +18,7 @@ import { loadStoryDashboard } from '../shared/stories-api.ts'
 import { makeStoryActions } from './story-actions.ts'
 import { storiesView } from '../features/stories/view.ts'
 import type { Channel } from '../shared/model.ts'
-import { ChannelPages, loadNext } from '../features/videos/channel-pages.ts'
+import { ChannelPages, channelBase, loadNext } from '../features/videos/channel-pages.ts'
 import { backfillMissingAvatars } from '../shared/channel-avatars.ts'
 import { lookupYouTube, toggleSavedYouTube } from '../shared/saved-youtube.ts'
 const root = document.querySelector<HTMLElement>('#app')!
@@ -53,6 +53,7 @@ const auth = createAuthGate({
     state.storiesError = value?.storySnapshot.error ?? ''
     state.hasMore = value?.dashboard.hasMore ?? false
     channelPages.reset()
+    if (value?.id && state.page === 'videos' && state.filter.channelId) queueMicrotask(() => { void loadMore(true) })
     state.error = ''
     authMessage = ''
   },
@@ -73,15 +74,17 @@ async function refresh(): Promise<void> {
   state.stories = stories.data
   state.storiesError = stories.error
   state.hasMore = data.hasMore
-  channelPages.reset()
+  if (state.page !== 'videos' || !state.filter.channelId) channelPages.reset()
 }
-async function loadMore(): Promise<void> {
+async function loadMore(initial = false): Promise<void> {
   if (state.busy || state.demo || !(state.filter.channelId ? channelPages.hasMore(state.filter.channelId) : state.hasMore)) return
   state.busy = true
   render()
   try {
-    state.hasMore = await loadNext(state.filter.channelId, state.videos, state.hasMore, channelPages,
-      (offset, limit, channel) => loadVideoPage(userId, state.channels, offset, limit, channel))
+    const base = channelBase(state.videos, state.filter.channelId)
+    state.hasMore = await loadNext(state.filter.channelId, base, state.hasMore, channelPages,
+      (offset, limit, channel) => loadVideoPage(userId, state.channels, offset, limit, channel),
+      initial ? Math.max(0, 4 - base.length) : 4)
   } catch (error) {
     state.error = message(error)
   } finally {
@@ -146,7 +149,7 @@ function render(): void {
         onRename: (story) => { void storyActions.rename(story) },
         onUnfollow: (story) => { void storyActions.unfollow(story) }
       })) : state.page !== 'channels' ? videoView({
-      mode: state.page, videos: channelPages.videos(state.videos, state.filter.channelId), highlights: state.highlights,
+      mode: state.page, videos: channelPages.videos(channelBase(state.videos, state.filter.channelId), state.filter.channelId), highlights: state.highlights,
       favoriteVideos: state.demo ? state.videos.filter((v) => v.state?.is_favorite) : state.favoriteVideos,
       collectionVideos: state.demo && state.page === 'deprioritized'
         ? state.videos.filter((v) => v.state?.is_deprioritized)
@@ -159,14 +162,13 @@ function render(): void {
       onSort: (sort) => { state.sort = sort; render() },
       onFilter: (filter) => {
         const active = document.activeElement as HTMLInputElement
-        const searching = active?.type === 'search'
-        const caret = searching ? active.selectionStart : null
+        const caret = active?.type === 'search' ? active.selectionStart : null
+        if (state.page === 'videos' && filter.channelId !== state.filter.channelId) { location.hash = filter.channelId ? channelRoute(filter.channelId) : '#videos'; return }
         state.filter = filter
         render()
-        if (searching) {
+        if (caret !== null) {
           const next = root.querySelector<HTMLInputElement>('input[type="search"]')
-          next?.focus()
-          if (caret !== null) next?.setSelectionRange(caret, caret)
+          next?.focus(); next?.setSelectionRange(caret, caret)
         }
       },
       onToggle: (video, key) => { void actions.toggleVideo(video, key) },
@@ -180,10 +182,7 @@ function render(): void {
       onAdd: (input) => { void actions.createChannel(input) },
       onToggle: (channel) => { void actions.toggleChannel(channel) },
       onRemove: (channel) => { void actions.deleteChannel(channel) },
-      onOpen: (channel) => {
-        state.filter.channelId = channel.id
-        location.hash = channelRoute(channel.id)
-      }
+      onOpen: (channel) => { location.hash = channelRoute(channel.id) }
     }))
   }
   root.append(shell)
@@ -192,8 +191,9 @@ window.addEventListener('hashchange', () => {
   const route = routeFromHash(location.hash)
   state.page = route.page
   state.filter = { query: '', status: 'all', channelId: route.channelId }
-  state.sort = 'recent'
+  state.sort = 'recent'; channelPages.reset()
   render()
+  if (route.page === 'videos' && route.channelId) void loadMore(true)
 })
 supabase?.auth.onAuthStateChange((event, session) => auth.handle(event, session?.user.id))
 if (!state.demo && configured) void auth.start()
