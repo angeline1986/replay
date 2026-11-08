@@ -1,6 +1,5 @@
 import { button, element, notice } from '../../shared/dom.ts'
 import type { Channel, ChannelRequest, Video } from '../../shared/model.ts'
-import { statsView } from '../stats/view.ts'
 
 interface ChannelViewOptions {
   channels: Channel[]
@@ -15,16 +14,12 @@ interface ChannelViewOptions {
 
 export function channelView(options: ChannelViewOptions): HTMLElement {
   const root = element('section', 'content')
-  const heading = element('div', 'page-head')
-  const intro = element('div')
-  intro.append(
-    element('p', 'eyebrow', 'SEUS CANAIS'),
-    element('h1', '', 'Canais monitorados'),
-    element('p', 'subtitle', 'Veja cada canal cadastrado e seus últimos lançamentos.')
-  )
+  const heading = element('div', 'favorites-toolbar')
+  const intro = element('div', 'favorite-page-title')
+  intro.append(element('h1', '', 'Canais monitorados'),
+    element('span', 'favorite-total', String(options.channels.length)))
   heading.append(intro)
-  root.append(heading, statsView(options.channels, options.videos))
-  const form = element('form', 'add-channel')
+  const form = element('form', 'favorite-toolbar-controls channel-toolbar-form')
   const select = element('select', 'channel-jump')
   select.setAttribute('aria-label', 'Ir para canal cadastrado')
   const placeholder = element('option', '', 'Selecionar canal…')
@@ -52,7 +47,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   field.required = true
   field.placeholder = 'URL, @handle ou ID UC…'
   field.setAttribute('aria-label', 'URL, arroba ou ID do canal')
-  const submit = element('button', 'primary', 'Adicionar canal')
+  const submit = element('button', 'primary', 'Add Canal')
   submit.type = 'submit'
   submit.disabled = Boolean(options.busy)
   field.disabled = Boolean(options.busy)
@@ -61,7 +56,8 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     event.preventDefault()
     options.onAdd(field.value.trim())
   })
-  root.append(form)
+  heading.append(form)
+  root.append(heading)
   const pending = options.requests.filter((item) => item.status !== 'resolved')
   if (pending.length) {
     const list = element('div', 'request-list')
@@ -72,12 +68,6 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     }
     root.append(list)
   }
-  const sectionTitle = element('div', 'section-title')
-  sectionTitle.append(
-    element('h2', '', 'Seus canais'),
-    element('span', 'result-count', `${options.channels.length} canal${options.channels.length === 1 ? '' : 'is'}`)
-  )
-  root.append(sectionTitle)
   if (!options.channels.length) {
     root.append(notice('Nenhum canal cadastrado. Adicione o primeiro para começar.'))
     return root

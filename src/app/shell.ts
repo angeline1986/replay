@@ -1,4 +1,5 @@
 import { button, element } from '../shared/dom.ts'
+import { iconGlyph } from '../features/videos/icons.ts'
 import type { Route } from './route.ts'
 
 export function sidebarView(
@@ -14,20 +15,25 @@ export function sidebarView(
     nav.setAttribute('aria-label', 'Navegação principal')
     for (const [route, symbol, label] of [
       ['favorites', '★', 'Vídeos favoritos'],
-      ['deprioritized', '♥̸', 'Despriorizados'],
-      ['queue', '⌛', 'Fila de espera'],
       ['stories', '◈', 'Minhas histórias'],
       ['channels', '▣', 'Canais monitorados'],
-      ['videos', '▷', 'Últimos lançamentos']
+      ['videos', '▷', 'Últimos lançamentos'],
+      ['queue', '', 'Fila de espera'],
+      ['deprioritized', '', 'Despriorizados']
     ] as const) {
       const count = route === 'stories' && pendingStories ? ` (${pendingStories})` : ''
-      const link = element('a', '', `${symbol}  ${label}${count}`)
+      const link = element('a')
+      const icon = element('span', 'nav-icon', symbol)
+      icon.setAttribute('aria-hidden', 'true')
+      if (route === 'queue') icon.append(iconGlyph('hourglass'))
+      if (route === 'deprioritized') icon.append(iconGlyph('heart-crack'))
+      link.append(icon, element('span', '', `${label}${count}`))
       link.href = `#${route}`
       if (page === route) link.setAttribute('aria-current', 'page')
       nav.append(link)
     }
     sidebar.append(nav)
   }
-  if (showNav && onSignOut) sidebar.append(button('Sair', onSignOut, 'ghost sidebar-logout'))
+  if (showNav && onSignOut) sidebar.append(button('Sair', onSignOut, 'primary sidebar-logout'))
   return sidebar
 }

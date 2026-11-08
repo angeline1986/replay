@@ -114,21 +114,16 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
 
 export function storiesView(options: StoryViewOptions): HTMLElement {
   const root = element('section', 'content')
-  const intro = element('div', 'page-head')
-  const heading = element('div')
-  heading.append(element('p', 'eyebrow', 'SUAS LEITURAS'),
-    element('h1', '', 'Minhas histórias'),
-    element('p', 'subtitle', 'Acompanhe suas histórias e confirme novas continuações.'))
-  intro.append(heading)
-  root.append(intro)
+  const heading = element('div', 'favorites-toolbar')
+  const title = element('div', 'favorite-page-title')
+  title.append(element('h1', '', 'Minhas histórias'),
+    element('span', 'favorite-total', String(options.data.groups.length)))
+  heading.append(title)
+  root.append(heading)
   if (!options.data.groups.length) {
     root.append(notice('Você ainda não acompanha histórias. Use “Acompanhar esta história” em um vídeo.'))
     return root
   }
-  const header = element('div', 'section-title follow-heading')
-  header.append(element('h2', '', 'Histórias em acompanhamento'),
-    element('span', 'result-count', `${options.data.groups.length} histórias ativas`))
-  root.append(header)
   const grid = element('div', 'video-grid follow-grid')
   for (const group of options.data.groups) grid.append(storyCard(group, options))
   root.append(grid)

@@ -1,6 +1,6 @@
 /* Histórias: mesmo grid e formato de cards do feed principal */
 .follow-heading { margin: 24px 0 15px; }
-.follow-grid { align-items: start; }
+.follow-grid { align-items: start; margin-top: 18px; }
 .follow-card { display: flex; flex-direction: column; min-width: 0; overflow: hidden;
   border: 1px solid #e0e3eb; border-radius: 15px; background: #fff; }
 .follow-hero { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9;
