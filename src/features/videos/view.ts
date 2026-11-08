@@ -24,29 +24,34 @@ interface VideoViewOptions {
 export function videoView(options: VideoViewOptions): HTMLElement {
   const root = element('section', 'content')
   const favorites = options.mode === 'favorites'
-  const heading = element('div', 'page-head')
+  const heading = element('div', favorites ? 'favorites-toolbar' : 'page-head')
   const intro = element('div')
-  intro.append(
-    element('p', 'eyebrow', favorites ? 'SEUS DESTAQUES' : 'FEED GERAL'),
-    element('h1', '', favorites ? 'Vídeos favoritos' : 'Últimos lançamentos'),
-    element('p', 'subtitle', favorites
-      ? 'Os vídeos do YouTube que você marcou como favoritos.'
-      : 'Novos vídeos dos canais que você monitora.')
-  )
-  const add = element('a', 'primary header-action', '+ Adicionar canal')
+  const favoriteSource = options.favoriteVideos ?? options.videos
+  if (favorites) {
+    const title = element('div', 'favorite-page-title')
+    title.append(element('h1', '', 'Vídeos favoritos'))
+    title.append(element('span', 'favorite-total', String(favoriteSource.filter((video) => video.state?.is_favorite).length)))
+    intro.append(title)
+  } else {
+    intro.append(
+      element('p', 'eyebrow', 'FEED GERAL'),
+      element('h1', '', 'Últimos lançamentos'),
+      element('p', 'subtitle', 'Novos vídeos dos canais que você monitora.')
+    )
+  }
+  const add = element('a', 'primary header-action', 'Add Canal')
   add.href = '#channels'
-  heading.append(intro, add)
-  root.append(heading, statsView(options.channels, options.videos, options.favoriteVideos?.length))
+  heading.append(intro)
 
-  const filters = element('div', 'filters')
+  const filters = element('div', favorites ? 'favorite-toolbar-controls' : 'filters')
   const search = element('input')
   search.type = 'search'
-  search.placeholder = 'Buscar por vídeo ou canal'
+  search.placeholder = favorites ? '⌕  Buscar vídeo ou canal...' : 'Buscar por vídeo ou canal'
   search.setAttribute('aria-label', 'Buscar por vídeo ou canal')
   search.value = options.filter.query
   search.addEventListener('input', () => options.onFilter({ ...options.filter, query: search.value }))
   filters.append(search)
-  const status = element('select')
+  const status = element('select', favorites ? 'favorite-status' : '')
   status.setAttribute('aria-label', 'Filtrar vídeos por status')
   const statuses = favorites
     ? [['all', 'Todos os favoritos'], ['unwatched', 'Não vistos']]
@@ -60,13 +65,12 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   status.addEventListener('change', () => options.onFilter({
     ...options.filter, status: status.value as VideoFilter['status']
   }))
-  filters.append(status)
+  if (!favorites) filters.append(status)
   const channel = element('select')
   channel.setAttribute('aria-label', 'Filtrar vídeos por canal')
   const allChannels = element('option', '', 'Todos os canais')
   allChannels.value = ''
   channel.append(allChannels)
-  const favoriteSource = options.favoriteVideos ?? options.videos
   const favoriteChannelIds = new Set(favoriteSource
     .filter((video) => video.state?.is_favorite).map((video) => video.channel_id))
   const availableChannels = favorites
@@ -82,7 +86,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   filters.append(channel)
   const sort = element('select')
   sort.setAttribute('aria-label', 'Ordenar vídeos')
-  for (const [value, label] of [['recent', 'Mais recentes'], ['az', 'Título A–Z']]) {
+  for (const [value, label] of [['recent', favorites ? 'Recentes' : 'Mais recentes'], ['az', 'Título A–Z']]) {
     const option = element('option', '', label)
     option.value = value
     sort.append(option)
@@ -90,7 +94,14 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   sort.value = options.sort
   sort.addEventListener('change', () => options.onSort(sort.value as VideoViewOptions['sort']))
   filters.append(sort)
-  root.append(filters)
+  if (favorites) {
+    filters.append(add)
+    heading.append(filters)
+    root.append(heading)
+  } else {
+    heading.append(add)
+    root.append(heading, statsView(options.channels, options.videos, options.favoriteVideos?.length), filters)
+  }
 
   // Com ambos os selects em "Todos", mostrar apenas o último vídeo de cada canal.
   const onePerChannel = !favorites && options.filter.status === 'all' && !options.filter.channelId
@@ -102,8 +113,10 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const sectionTitle = element('div', 'section-title')
   sectionTitle.append(
     element('h2', '', favorites ? 'Minha seleção' : 'Publicações recentes'),
+    ...(favorites ? [status] : []),
     element('span', 'result-count', `${filtered.length} vídeo${filtered.length === 1 ? '' : 's'}`)
   )
+  if (favorites) sectionTitle.classList.add('favorite-section-title')
   root.append(sectionTitle)
   if (!filtered.length) {
     root.append(notice(favorites

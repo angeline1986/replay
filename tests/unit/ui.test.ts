@@ -141,7 +141,7 @@ test('página de favoritos mostra somente marcados e ordena pelo título', () =>
   })
   const titles = [...view.querySelectorAll('.video-card h2')].map((title) => title.textContent)
   assert.deepEqual(titles, ['Amora', 'Zebra'])
-  assert.match(view.textContent ?? '', /Seus favoritos2/)
+  assert.match(view.textContent ?? '', /Vídeos favoritos2/)
 }))
 
 test('Todos os lançamentos e Todos os canais exibem só o último vídeo de cada canal', () => withDocument(() => {

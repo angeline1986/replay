@@ -19,7 +19,6 @@ export interface AppState {
   error: string
   importMessage: string
   demo: boolean
-  userEmail: string
 }
 
 export const state: AppState = {
@@ -37,6 +36,5 @@ export const state: AppState = {
   busy: false,
   error: '',
   importMessage: '',
-  demo: import.meta.env.VITE_DEMO === 'true',
-  userEmail: ''
+  demo: import.meta.env.VITE_DEMO === 'true'
 }

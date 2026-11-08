@@ -12,7 +12,7 @@ import { supabase } from '../shared/api.ts'
 import { makeActions } from './actions.ts'
 import { channelRoute, routeFromHash } from './route.ts'
 import { createAuthGate } from './auth-gate.ts'
-import { accountBar, sidebarView } from './shell.ts'
+import { sidebarView } from './shell.ts'
 import { loadStoryDashboard } from '../shared/stories-api.ts'
 import { makeStoryActions } from './story-actions.ts'
 import { storiesView } from '../features/stories/view.ts'
@@ -43,7 +43,6 @@ const auth = createAuthGate({
   },
   commit: (value) => {
     userId = value?.id ?? ''
-    state.userEmail = value?.email ?? ''
     state.channels = value?.dashboard.channels ?? []
     state.requests = value?.dashboard.requests ?? []
     state.videos = value?.dashboard.videos ?? []
@@ -114,11 +113,10 @@ function render(): void {
   syncRequestLoader(state.busy || (!state.demo && configured && auth.phase === 'initializing'))
   const shell = element('div', 'app-shell')
   const signedIn = state.demo || auth.phase === 'signed_in'
-  shell.append(sidebarView(state.page, signedIn, state.stories.pendingCount))
+  shell.append(sidebarView(state.page, signedIn, state.stories.pendingCount, !state.demo && signedIn
+    ? () => { void act(async () => { await signOut(); location.reload() }, false) }
+    : undefined))
   const workspace = element('div', 'workspace')
-  workspace.append(accountBar(state.userEmail, () => {
-    void act(async () => { await signOut(); location.reload() }, false)
-  }))
   const main = element('main', 'workspace-main')
   workspace.append(main)
   shell.append(workspace)
