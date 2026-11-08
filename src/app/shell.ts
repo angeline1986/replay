@@ -14,6 +14,8 @@ export function sidebarView(
     nav.setAttribute('aria-label', 'Navegação principal')
     for (const [route, symbol, label] of [
       ['favorites', '★', 'Vídeos favoritos'],
+      ['deprioritized', '♥̸', 'Despriorizados'],
+      ['queue', '⌛', 'Fila de espera'],
       ['stories', '◈', 'Minhas histórias'],
       ['channels', '▣', 'Canais monitorados'],
       ['videos', '▷', 'Últimos lançamentos']

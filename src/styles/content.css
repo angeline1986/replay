@@ -153,5 +153,26 @@
 .card-actions .icon-action:hover:not(:disabled) { color: #5545cb; background: #f7f6fd; }
 .card-actions .icon-star.is-active { color: #cf911c; background: #fff8e9; }
 .card-actions .icon-eye.is-active { color: #5545cb; background: #f0edff; }
+.card-actions .icon-heart-crack.is-active { color: #d64d64; background: #fff0f2; }
+.card-actions .icon-hourglass.is-active { color: #bc7d1b; background: #fff7e8; }
 .card-actions .icon-runner.is-active { color: #5545cb; background: #f0edff; }
 .card-actions .icon-action:disabled { opacity: .75; cursor: default; }
+
+/* Cabeçalhos, controles e cartões seguem a mesma superfície do dashboard. */
+.page-head { min-height: 62px; padding: 12px 16px; border: 1px solid #e2e6ef;
+  border-radius: 12px; background: #fff; box-shadow: 0 2px 8px #20283a08; }
+.page-head h1 { font-size: 21px; letter-spacing: -.55px; }
+.page-head .eyebrow { margin-bottom: 2px; font-size: 9px; }
+.page-head .subtitle { margin-top: 2px; font-size: 12px; }
+.filters input, .filters select, .add-channel input, .add-channel select,
+.auth-form input { min-height: 40px; font-family: inherit; font-size: 13px; }
+.stats { margin: 16px 0; gap: 10px; }
+.stat { padding: 14px 16px; border-radius: 11px; }
+.stat strong { font-size: 24px; }
+.add-channel { padding: 12px; border-radius: 11px; }
+.channel-card { border-color: #e2e6ef; border-radius: 11px; }
+.request-list { border-color: #e2e6ef; border-radius: 11px; }
+.section-title { margin-top: 20px; }
+.channel-actions button, .story-actions button, .follow-controls button,
+.follow-candidate-actions button { font-family: inherit; font-size: 12px; }
+@media (max-width: 700px) { .page-head { align-items: flex-start; padding: 11px; } }

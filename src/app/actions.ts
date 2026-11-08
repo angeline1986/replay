@@ -11,7 +11,7 @@ interface Hooks {
 }
 
 export function makeActions(hooks: Hooks) {
-  async function toggleVideo(video: Video, key: 'is_favorite' | 'is_watched'): Promise<void> {
+  async function toggleVideo(video: Video, key: 'is_favorite' | 'is_watched' | 'is_deprioritized' | 'is_queued'): Promise<void> {
     video.state ??= { video_id: video.id, is_favorite: false, is_watched: false }
     video.state[key] = !video.state[key]
     if (state.demo) { hooks.render(); return }

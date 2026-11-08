@@ -5,17 +5,18 @@ import { iconButton } from './icons.ts'
 import { favoriteVideoGroups } from './favorites.ts'
 
 interface VideoViewOptions {
-  mode: 'favorites' | 'videos'
+  mode: 'favorites' | 'videos' | 'deprioritized' | 'queue'
   videos: Video[]
   highlights?: Video[]
   favoriteVideos?: Video[]
+  collectionVideos?: Video[]
   channels: Channel[]
   filter: VideoFilter
   sort: 'recent' | 'az'
   hasMore: boolean
   onFilter: (next: VideoFilter) => void
   onSort: (next: 'recent' | 'az') => void
-  onToggle: (video: Video, key: 'is_favorite' | 'is_watched') => void
+  onToggle: (video: Video, key: 'is_favorite' | 'is_watched' | 'is_deprioritized' | 'is_queued') => void
   onFollow: (video: Video) => void
   trackedVideoIds: Set<string>
   onLoadMore: () => void
@@ -24,14 +25,18 @@ interface VideoViewOptions {
 export function videoView(options: VideoViewOptions): HTMLElement {
   const root = element('section', 'content')
   const favorites = options.mode === 'favorites'
-  const heading = element('div', favorites ? 'favorites-toolbar' : 'page-head')
+  const collection = options.mode !== 'videos'
+  const collectionTitle = options.mode === 'deprioritized' ? 'Despriorizados'
+    : options.mode === 'queue' ? 'Fila de espera' : 'Vídeos favoritos'
+  const heading = element('div', collection ? 'favorites-toolbar' : 'page-head')
   const intro = element('div')
   const favoriteSource = options.favoriteVideos ?? options.videos
   let favoriteCountBadge: HTMLElement | null = null
-  if (favorites) {
+  if (collection) {
     const title = element('div', 'favorite-page-title')
-    title.append(element('h1', '', 'Vídeos favoritos'))
-    favoriteCountBadge = element('span', 'favorite-total', String(favoriteSource.filter((video) => video.state?.is_favorite).length))
+    title.append(element('h1', '', collectionTitle))
+    const countSource = options.collectionVideos ?? favoriteSource
+    favoriteCountBadge = element('span', 'favorite-total', String(countSource.length))
     title.append(favoriteCountBadge)
     intro.append(title)
   } else {
@@ -45,18 +50,19 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   add.href = '#channels'
   heading.append(intro)
 
-  const filters = element('div', favorites ? 'favorite-toolbar-controls' : 'filters')
+  const filters = element('div', collection ? 'favorite-toolbar-controls' : 'filters')
   const search = element('input')
   search.type = 'search'
-  search.placeholder = favorites ? '⌕  Vídeo ou canal...' : 'Buscar por vídeo ou canal'
-  search.setAttribute('aria-label', 'Buscar por vídeo ou canal')
+  search.placeholder = collection ? '⌕  Vídeo ou canal...' : 'Vídeo ou canal'
+  search.setAttribute('aria-label', 'Vídeo ou canal')
   search.value = options.filter.query
   search.addEventListener('input', () => options.onFilter({ ...options.filter, query: search.value }))
   filters.append(search)
-  const status = element('select', favorites ? 'favorite-status' : '')
+  const status = element('select', collection ? 'favorite-status' : '')
   status.setAttribute('aria-label', 'Filtrar vídeos por status')
-  const statuses = favorites
-    ? [['all', 'Favoritos'], ['unwatched', 'Não vistos']]
+  const collectionLabel = favorites ? 'Favoritos' : options.mode === 'queue' ? 'Fila de espera' : 'Despriorizados'
+  const statuses = collection
+    ? [['all', collectionLabel], ['unwatched', 'Não vistos']]
     : [['all', 'Todos os lançamentos'], ['new', 'Novos'], ['unwatched', 'Não vistos'], ['favorites', 'Favoritos']]
   for (const [value, label] of statuses) {
     const option = element('option', '', label)
@@ -68,14 +74,14 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     ...options.filter, status: status.value as VideoFilter['status']
   }))
   filters.append(status)
-  const channel = element('select', favorites ? 'favorite-channel-filter' : '')
+  const channel = element('select', collection ? 'favorite-channel-filter' : '')
   channel.setAttribute('aria-label', 'Filtrar vídeos por canal')
-  const allChannels = element('option', '', favorites ? 'Canais' : 'Todos os canais')
+  const allChannels = element('option', '', collection ? 'Canais' : 'Todos os canais')
   allChannels.value = ''
   channel.append(allChannels)
-  const favoriteChannelIds = new Set(favoriteSource
-    .filter((video) => video.state?.is_favorite).map((video) => video.channel_id))
-  const availableChannels = favorites
+  const channelSource = options.collectionVideos ?? favoriteSource
+  const favoriteChannelIds = new Set(channelSource.map((video) => video.channel_id))
+  const availableChannels = collection
     ? options.channels.filter((item) => favoriteChannelIds.has(item.id))
     : options.channels
   for (const item of availableChannels) {
@@ -86,7 +92,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   channel.value = options.filter.channelId
   channel.addEventListener('change', () => options.onFilter({ ...options.filter, channelId: channel.value }))
   filters.append(channel)
-  const sort = element('select', favorites ? 'favorite-sort' : '')
+  const sort = element('select', collection ? 'favorite-sort' : '')
   sort.setAttribute('aria-label', 'Ordenar vídeos')
   for (const [value, label] of [['recent', favorites ? 'Recentes' : 'Mais recentes'], ['az', 'Título A–Z']]) {
     const option = element('option', '', label)
@@ -96,7 +102,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   sort.value = options.sort
   sort.addEventListener('change', () => options.onSort(sort.value as VideoViewOptions['sort']))
   filters.append(sort)
-  if (favorites) {
+  if (collection) {
     filters.append(add)
     heading.append(filters)
     root.append(heading)
@@ -106,15 +112,17 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   }
 
   // Com ambos os selects em "Todos", mostrar apenas o último vídeo de cada canal.
-  const onePerChannel = !favorites && options.filter.status === 'all' && !options.filter.channelId
-  const source = favorites ? (options.favoriteVideos ?? options.videos)
+  const onePerChannel = !collection && options.filter.status === 'all' && !options.filter.channelId
+  const source = collection ? (options.collectionVideos ?? options.favoriteVideos ?? options.videos)
     : onePerChannel ? (options.highlights ?? options.videos) : options.videos
   const filtered = filterVideos(source, options.filter)
-    .filter((video) => !favorites || video.state?.is_favorite)
+    .filter((video) => options.mode !== 'favorites' || video.state?.is_favorite)
+    .filter((video) => options.mode !== 'deprioritized' || video.state?.is_deprioritized)
+    .filter((video) => options.mode !== 'queue' || video.state?.is_queued)
   if (options.sort === 'az') filtered.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'))
   if (favoriteCountBadge) favoriteCountBadge.textContent = String(filtered.length)
   const sectionTitle = element('div', 'section-title')
-  if (!favorites) {
+  if (!collection) {
     sectionTitle.append(
       element('h2', '', 'Publicações recentes'),
       element('span', 'result-count', `${filtered.length} vídeo${filtered.length === 1 ? '' : 's'}`)
@@ -122,17 +130,19 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     root.append(sectionTitle)
   }
   if (!filtered.length) {
-    root.append(notice(favorites
-      ? 'Nenhum favorito encontrado. Marque um vídeo no feed para vê-lo aqui.'
-      : 'Nenhum vídeo encontrado. Ajuste os filtros ou cadastre um canal.'))
-  } else if (favorites) {
+    const empty = options.mode === 'deprioritized' ? 'Nenhum vídeo despriorizado ainda.'
+      : options.mode === 'queue' ? 'Sua fila de espera está vazia.'
+        : favorites ? 'Nenhum favorito encontrado. Marque um vídeo no feed para vê-lo aqui.'
+          : 'Nenhum vídeo encontrado. Ajuste os filtros ou cadastre um canal.'
+    root.append(notice(empty))
+  } else if (collection) {
     root.append(favoriteVideoGroups(filtered, options.channels, options.sort, (video) => videoCard(video, options)))
   } else {
     const grid = element('div', 'video-grid')
     for (const video of filtered) grid.append(videoCard(video, options))
     root.append(grid)
   }
-  if (options.hasMore && !onePerChannel && !favorites) root.append(button('Carregar mais vídeos', options.onLoadMore, 'load-more'))
+  if (options.hasMore && !onePerChannel && !collection) root.append(button('Carregar mais vídeos', options.onLoadMore, 'load-more'))
   return root
 }
 
@@ -140,7 +150,7 @@ function videoCard(
   video: Video,
   options: VideoViewOptions
 ): HTMLElement {
-  const card = element('article', options.mode === 'favorites' ? 'video-card favorite-video-card' : 'video-card')
+  const card = element('article', options.mode !== 'videos' ? 'video-card favorite-video-card' : 'video-card')
   const image = element('div', 'video-art')
   if (video.thumbnail_url) {
     const img = element('img')
@@ -166,12 +176,18 @@ function videoCard(
   const following = options.trackedVideoIds.has(video.id)
   const favorite = Boolean(video.state?.is_favorite)
   const watched = Boolean(video.state?.is_watched)
+  const deprioritized = Boolean(video.state?.is_deprioritized)
+  const queued = Boolean(video.state?.is_queued)
   const follow = iconButton(following ? 'História já acompanhada' : 'Acompanhar esta história',
     'runner', () => options.onFollow(video), following)
   follow.disabled = following
   actions.append(
     iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
       'star', () => options.onToggle(video, 'is_favorite'), favorite),
+    iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo',
+      'heart-crack', () => options.onToggle(video, 'is_deprioritized'), deprioritized),
+    iconButton(queued ? 'Remover da fila de espera' : 'Adicionar à fila de espera',
+      'hourglass', () => options.onToggle(video, 'is_queued'), queued),
     iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto',
       watched ? 'eye' : 'eye-slash', () => options.onToggle(video, 'is_watched'), watched),
     follow

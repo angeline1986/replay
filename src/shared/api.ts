@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Channel, ChannelRequest, Video, VideoState } from './model.ts'
+import { loadVideoCollection } from './video-collections.ts'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -58,16 +59,19 @@ export async function signInWithGitHub(): Promise<void> {
 }
 
 export async function loadDashboard(userId: string): Promise<{
-  channels: Channel[]; requests: ChannelRequest[]; videos: Video[]; highlights: Video[]; favorites: Video[]; hasMore: boolean
+  channels: Channel[]; requests: ChannelRequest[]; videos: Video[]; highlights: Video[];
+  favorites: Video[]; deprioritized: Video[]; queued: Video[]; hasMore: boolean
 }> {
   const channels = unwrap(await client().from('channels').select('*').order('name')) as Channel[]
   const requests = unwrap(await client().from('channel_requests')
     .select('id,handle,status,error_message').order('created_at', { ascending: false }).limit(20)) as ChannelRequest[]
-  const [videos, highlights, favorites] = await Promise.all([
+  const [videos, highlights, favorites, deprioritized, queued] = await Promise.all([
     loadVideoPage(userId, channels, 0), loadLatestChannelVideos(userId, channels),
-    loadFavoriteVideos(userId, channels)
+    loadVideoCollection(client(), userId, channels, 'is_favorite'),
+    loadVideoCollection(client(), userId, channels, 'is_deprioritized'),
+    loadVideoCollection(client(), userId, channels, 'is_queued')
   ])
-  return { channels, requests, videos, highlights, favorites, hasMore: videos.length === 50 }
+  return { channels, requests, videos, highlights, favorites, deprioritized, queued, hasMore: videos.length === 50 }
 }
 
 export async function loadVideoPage(userId: string, channels: Channel[], offset: number, limit = 50, channelId?: string): Promise<Video[]> {
@@ -78,7 +82,7 @@ export async function loadVideoPage(userId: string, channels: Channel[], offset:
     .range(offset, offset + limit - 1)) as Video[]
   if (!videos.length) return []
   const states = unwrap(await client().from('user_video_state')
-    .select('video_id,is_favorite,is_watched').eq('user_id', userId)
+    .select('video_id,is_favorite,is_watched,is_deprioritized,is_queued').eq('user_id', userId)
     .in('video_id', videos.map((video) => video.id))) as VideoState[]
   const byChannel = new Map(channels.map((item) => [item.id, item]))
   const byVideo = new Map(states.map((item) => [item.video_id, item]))
@@ -105,40 +109,11 @@ export async function loadLatestChannelVideos(userId: string, channels: Channel[
   }
   if (!videos.length) return []
   const states = unwrap(await client().from('user_video_state')
-    .select('video_id,is_favorite,is_watched').eq('user_id', userId)
+    .select('video_id,is_favorite,is_watched,is_deprioritized,is_queued').eq('user_id', userId)
     .in('video_id', videos.map((video) => video.id))) as VideoState[]
   const byVideo = new Map(states.map((item) => [item.video_id, item]))
   return videos.map((video) => ({ ...video, state: byVideo.get(video.id) }))
     .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
-}
-
-// Favoritos independem da paginação cronológica do feed geral.
-export async function loadFavoriteVideos(userId: string, channels: Channel[]): Promise<Video[]> {
-  const ids: string[] = []
-  for (let offset = 0; ; offset += 500) {
-    const states = unwrap(await client().from('user_video_state')
-      .select('video_id').eq('user_id', userId).eq('is_favorite', true)
-      .range(offset, offset + 499)) as { video_id: string }[]
-    ids.push(...states.map((state) => state.video_id))
-    if (states.length < 500) break
-  }
-  if (!ids.length) return []
-  const byChannel = new Map(channels.map((channel) => [channel.id, channel]))
-  const favorites: Video[] = []
-  for (let offset = 0; offset < ids.length; offset += 100) {
-    const batch = ids.slice(offset, offset + 100)
-    const videos = unwrap(await client().from('videos')
-      .select('id,channel_id,youtube_video_id,title,url,thumbnail_url,published_at,discovered_at')
-      .in('id', batch)) as Video[]
-    const states = unwrap(await client().from('user_video_state')
-      .select('video_id,is_favorite,is_watched').eq('user_id', userId)
-      .in('video_id', batch)) as VideoState[]
-    const byVideo = new Map(states.map((state) => [state.video_id, state]))
-    favorites.push(...videos.map((video) => ({
-      ...video, channel: byChannel.get(video.channel_id), state: byVideo.get(video.id)
-    })).filter((video) => video.state?.is_favorite))
-  }
-  return favorites.sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
 }
 
 export async function requestChannel(userId: string, handle: string): Promise<void> {
@@ -151,6 +126,7 @@ export async function saveVideoState(userId: string, video: Video): Promise<void
   const { error } = await client().from('user_video_state').upsert({
     user_id: userId, video_id: video.id,
     is_favorite: state.is_favorite, is_watched: state.is_watched,
+    is_deprioritized: state.is_deprioritized ?? false, is_queued: state.is_queued ?? false,
     watched_at: state.is_watched ? new Date().toISOString() : null
   }, { onConflict: 'user_id,video_id' })
   if (error) throw new Error(error.message)

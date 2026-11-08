@@ -9,11 +9,13 @@ export interface AppState {
   videos: Video[]
   highlights: Video[]
   favoriteVideos: Video[]
+  deprioritizedVideos: Video[]
+  queuedVideos: Video[]
   stories: StoryDashboard
   storiesError: string
   hasMore: boolean
   filter: VideoFilter
-  page: 'favorites' | 'videos' | 'channels' | 'stories'
+  page: 'favorites' | 'videos' | 'channels' | 'stories' | 'deprioritized' | 'queue'
   sort: 'recent' | 'az'
   busy: boolean
   error: string
@@ -27,6 +29,8 @@ export const state: AppState = {
   videos: import.meta.env.VITE_DEMO === 'true' ? structuredClone(demoVideos) : [],
   highlights: import.meta.env.VITE_DEMO === 'true' ? structuredClone(demoVideos) : [],
   favoriteVideos: [],
+  deprioritizedVideos: [],
+  queuedVideos: [],
   stories: { groups: [], pendingCount: 0 },
   storiesError: '',
   hasMore: false,

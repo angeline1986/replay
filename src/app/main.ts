@@ -26,13 +26,11 @@ let authMessage = ''
 const channelPages = new ChannelPages()
 const actions = makeActions({ render, act, userId: () => userId })
 const storyActions = makeStoryActions({ render, act, userId: () => userId })
-
 async function storySnapshot(id: string, channels: Channel[]) {
   try { return { data: await loadStoryDashboard(supabase!, id, channels), error: '' } }
   catch { return { data: { groups: [], pendingCount: 0 },
     error: 'Minhas histórias indisponível. Confira a migration e as permissões.' } }
 }
-
 const auth = createAuthGate({
   load: async () => {
     const user = await currentUser()
@@ -48,6 +46,8 @@ const auth = createAuthGate({
     state.videos = value?.dashboard.videos ?? []
     state.highlights = value?.dashboard.highlights ?? []
     state.favoriteVideos = value?.dashboard.favorites ?? []
+    state.deprioritizedVideos = value?.dashboard.deprioritized ?? []
+    state.queuedVideos = value?.dashboard.queued ?? []
     state.stories = value?.storySnapshot.data ?? { groups: [], pendingCount: 0 }
     state.storiesError = value?.storySnapshot.error ?? ''
     state.hasMore = value?.dashboard.hasMore ?? false
@@ -58,7 +58,6 @@ const auth = createAuthGate({
   onError: (error) => { state.error = message(error) },
   onChange: render
 })
-
 async function refresh(): Promise<void> {
   if (state.demo || !userId) return
   const data = await loadDashboard(userId)
@@ -67,13 +66,14 @@ async function refresh(): Promise<void> {
   state.videos = data.videos
   state.highlights = data.highlights
   state.favoriteVideos = data.favorites
+  state.deprioritizedVideos = data.deprioritized
+  state.queuedVideos = data.queued
   const stories = await storySnapshot(userId, data.channels)
   state.stories = stories.data
   state.storiesError = stories.error
   state.hasMore = data.hasMore
   channelPages.reset()
 }
-
 async function loadMore(): Promise<void> {
   if (state.busy || state.demo || !(state.filter.channelId ? channelPages.hasMore(state.filter.channelId) : state.hasMore)) return
   state.busy = true
@@ -88,11 +88,9 @@ async function loadMore(): Promise<void> {
     render()
   }
 }
-
 function message(error: unknown): string {
   return error instanceof Error ? error.message : 'Não foi possível concluir a operação.'
 }
-
 async function act(operation: () => Promise<void>, reload = true): Promise<void> {
   state.error = ''
   state.busy = true
@@ -107,7 +105,6 @@ async function act(operation: () => Promise<void>, reload = true): Promise<void>
     render()
   }
 }
-
 function render(): void {
   clear(root)
   syncRequestLoader(state.busy || (!state.demo && configured && auth.phase === 'initializing'))
@@ -152,6 +149,11 @@ function render(): void {
       })) : state.page !== 'channels' ? videoView({
       mode: state.page, videos: channelPages.videos(state.videos, state.filter.channelId), highlights: state.highlights,
       favoriteVideos: state.demo ? state.videos.filter((v) => v.state?.is_favorite) : state.favoriteVideos,
+      collectionVideos: state.demo && state.page === 'deprioritized'
+        ? state.videos.filter((v) => v.state?.is_deprioritized)
+        : state.demo && state.page === 'queue' ? state.videos.filter((v) => v.state?.is_queued)
+          : state.page === 'deprioritized' ? state.deprioritizedVideos
+            : state.page === 'queue' ? state.queuedVideos : undefined,
       channels: state.channels,
       filter: state.filter, sort: state.sort,
       hasMore: state.filter.channelId ? channelPages.hasMore(state.filter.channelId) : state.hasMore, onLoadMore: () => { void loadMore() },
@@ -184,7 +186,6 @@ function render(): void {
   }
   root.append(shell)
 }
-
 window.addEventListener('hashchange', () => {
   const route = routeFromHash(location.hash)
   state.page = route.page
