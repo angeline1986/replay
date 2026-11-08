@@ -31,7 +31,7 @@ export function youtubeSearchView(
       const info = element('div', 'youtube-preview-info')
       info.append(element('strong', '', video.title), element('span', '', video.channel_name))
       const action = button(video.already_added
-        ? mode === 'queue' ? 'Já está na fila' : mode === 'completed' ? 'Já está nos concluídos' : 'Já está despriorizado'
+        ? 'Já está no RePlay'
         : mode === 'queue' ? 'Adicionar à fila' : mode === 'completed' ? 'Adicionar aos concluídos' : 'Despriorizar vídeo',
       () => onSave(video), 'primary')
       action.disabled = Boolean(video.already_added)

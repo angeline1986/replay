@@ -72,22 +72,22 @@ test('fila busca vídeo no YouTube e oferece adicioná-lo sem cadastrar canal', 
   }
 })
 
-test('vídeo já presente na fila aparece sem ação duplicada', async () => {
+test('vídeo já existente no RePlay aparece sem ação duplicada', async () => {
   const original = globalThis.document
   const dom = new JSDOM('<!doctype html><html><body></body></html>')
   globalThis.document = dom.window.document
   try {
     let saved = false
     const view = youtubeSearchView('queue', async () => ({
-      youtube_video_id: 'Hx2SPzq2h4Q', youtube_channel_id: 'UC1234567890123456789012',
+      youtube_video_id: 'zFSLNkNWPKA', youtube_channel_id: 'UC1234567890123456789012',
       channel_name: 'Canal', title: 'Vídeo', thumbnail_url: '',
       published_at: '2026-11-01T00:00:00Z', already_added: true
     }), () => { saved = true })
-    view.querySelector<HTMLInputElement>('input')!.value = 'https://www.youtube.com/watch?v=Hx2SPzq2h4Q'
+    view.querySelector<HTMLInputElement>('input')!.value = 'https://www.youtube.com/watch?v=zFSLNkNWPKA&t=2s'
     view.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { cancelable: true }))
     await new Promise((resolve) => setTimeout(resolve, 0))
     const action = view.querySelector<HTMLButtonElement>('.youtube-preview button')!
-    assert.equal(action.textContent, 'Já está na fila')
+    assert.equal(action.textContent, 'Já está no RePlay')
     assert.equal(action.disabled, true)
     action.click()
     assert.equal(saved, false)

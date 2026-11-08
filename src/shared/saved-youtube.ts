@@ -48,10 +48,9 @@ export async function loadSavedYouTube(db: SupabaseClient, userId: string): Prom
 }
 
 export async function lookupYouTube(
-  db: SupabaseClient, userId: string, input: string,
-  collection: 'queue' | 'deprioritized' | 'completed'
+  db: SupabaseClient, userId: string, input: string
 ): Promise<YouTubeLookupResult> {
-  const local = await localYouTubeVideo(db, userId, input, collection)
+  const local = await localYouTubeVideo(db, userId, input)
   if (local) return local
   const { data, error } = await db.functions.invoke<YouTubeResult>('lookup-youtube-video', {
     body: { url: input }
