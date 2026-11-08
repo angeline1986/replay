@@ -7,7 +7,7 @@ export function favoriteVideoGroups(
   const groups = new Map<string, Video[]>()
   for (const video of videos) groups.set(video.channel_id, [...(groups.get(video.channel_id) ?? []), video])
   const ordered = [...groups.entries()].sort(([leftId, left], [rightId, right]) => sort === 'az'
-    ? channelName(left[0], channels).localeCompare(channelName(right[0], channels), 'pt-BR')
+    ? left[0].title.localeCompare(right[0].title, 'pt-BR')
     : Date.parse(right[0].published_at) - Date.parse(left[0].published_at))
   const result = element('div', 'favorite-channel-groups')
   ordered.forEach(([channelId, items], index) => {
