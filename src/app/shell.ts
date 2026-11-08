@@ -18,6 +18,7 @@ export function sidebarView(
       ['stories', '◈', 'Minhas histórias'],
       ['channels', '▣', 'Canais monitorados'],
       ['videos', '▷', 'Últimos lançamentos'],
+      ['completed', '✓', 'Concluídos'],
       ['queue', '', 'Fila de espera'],
       ['deprioritized', '', 'Despriorizados']
     ] as const) {

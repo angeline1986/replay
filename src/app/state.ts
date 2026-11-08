@@ -15,9 +15,10 @@ export interface AppState {
   storiesError: string
   hasMore: boolean
   filter: VideoFilter
-  page: 'favorites' | 'videos' | 'channels' | 'stories' | 'deprioritized' | 'queue'
+  page: 'favorites' | 'videos' | 'channels' | 'stories' | 'completed' | 'deprioritized' | 'queue'
   sort: 'recent' | 'az'
   channelTopFilter: 'all' | 'top-first' | 'top-only'
+  storyChannelId: string
   busy: boolean
   error: string
   importMessage: string
@@ -32,13 +33,14 @@ export const state: AppState = {
   favoriteVideos: [],
   deprioritizedVideos: [],
   queuedVideos: [],
-  stories: { groups: [], pendingCount: 0 },
+  stories: { groups: [], completed: [], pendingCount: 0 },
   storiesError: '',
   hasMore: false,
   filter: { query: '', status: 'all', channelId: routeFromHash(location.hash).channelId },
   page: routeFromHash(location.hash).page,
   sort: 'recent',
   channelTopFilter: 'all',
+  storyChannelId: '',
   busy: false,
   error: '',
   importMessage: '',

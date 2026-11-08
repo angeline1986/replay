@@ -1,6 +1,6 @@
 import { state } from './state.ts'
 import { supabase } from '../shared/api.ts'
-import { attachStoryVideo, decideCandidate, followStory, renameStory, unfollowStory } from '../shared/stories-api.ts'
+import { attachStoryVideo, decideCandidate, followStory, renameStory, setStoryCompleted, unfollowStory } from '../shared/stories-api.ts'
 import type { Video } from '../shared/model.ts'
 import type { StoryCandidate, TrackedStory } from '../shared/story-model.ts'
 
@@ -27,9 +27,14 @@ export function makeStoryActions(hooks: Hooks) {
     const name = video.title.trim()
     const aliases: string[] = []
     if (state.demo) {
-      const existing = state.stories.groups.find((group) =>
+      const existing = [...state.stories.groups, ...state.stories.completed].find((group) =>
         group.story.canonical_key === name.toLocaleLowerCase('pt-BR').trim())
       if (existing) {
+        if (existing.story.completed_at) {
+          existing.story.completed_at = null; existing.story.is_followed = true
+          state.stories.completed = state.stories.completed.filter((group) => group !== existing)
+          state.stories.groups.push(existing)
+        }
         const already = existing.story.seed_video_id === video.id ||
           existing.confirmed.some((item) => item.video_id === video.id)
         const rejected = existing.pending.some((item) => item.video_id === video.id)
@@ -45,7 +50,7 @@ export function makeStoryActions(hooks: Hooks) {
       const id = crypto.randomUUID()
       state.stories.groups.push({
         story: { id, owner_id: 'demo', seed_video_id: video.id, name, aliases,
-          canonical_key: name.toLocaleLowerCase('pt-BR'), is_followed: true,
+          canonical_key: name.toLocaleLowerCase('pt-BR'), is_followed: true, completed_at: null,
           last_scanned_at: null, created_at: new Date().toISOString() },
         seed: video, confirmed: [], pending: []
       })
@@ -89,6 +94,22 @@ export function makeStoryActions(hooks: Hooks) {
     await hooks.act(() => unfollowStory(client(), hooks.userId(), story.id))
   }
 
+  async function complete(story: TrackedStory, completed: boolean): Promise<void> {
+    if (state.demo) {
+      const from = completed ? state.stories.groups : state.stories.completed
+      const to = completed ? state.stories.completed : state.stories.groups
+      const group = from.find((item) => item.story.id === story.id)
+      if (!group) return
+      story.completed_at = completed ? new Date().toISOString() : null
+      story.is_followed = !completed
+      from.splice(from.indexOf(group), 1)
+      to.push(group)
+      hooks.render()
+      return
+    }
+    await hooks.act(() => setStoryCompleted(client(), hooks.userId(), story.id, completed))
+  }
+
   async function decide(candidate: StoryCandidate, status: 'confirmed' | 'rejected'): Promise<void> {
     if (state.demo) {
       const group = state.stories.groups.find((item) => item.story.id === candidate.story_id)
@@ -102,5 +123,5 @@ export function makeStoryActions(hooks: Hooks) {
     await hooks.act(() => decideCandidate(client(), candidate.story_id, candidate.id, status))
   }
 
-  return { follow, rename, unfollow, decide }
+  return { follow, rename, unfollow, complete, decide }
 }

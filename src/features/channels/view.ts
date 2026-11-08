@@ -30,7 +30,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   const form = element('form', 'favorite-toolbar-controls channel-toolbar-form')
   const topFilter = element('select', 'channel-top-filter')
   topFilter.setAttribute('aria-label', 'Filtrar canais tops')
-  for (const [value, label] of [['all', 'Todos'], ['top-first', 'Tops primeiro'], ['top-only', 'Só tops']] as const) {
+  for (const [value, label] of [['all', 'Todos'], ['top-first', '+ Topzera'], ['top-only', 'Só Topzera']] as const) {
     const option = element('option', '', label)
     option.value = value
     topFilter.append(option)

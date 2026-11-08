@@ -8,6 +8,7 @@ export interface TrackedStory {
   canonical_key: string
   aliases: string[]
   is_followed: boolean
+  completed_at: string | null
   last_scanned_at: string | null
   created_at: string
 }
@@ -33,5 +34,6 @@ export interface StoryGroup {
 
 export interface StoryDashboard {
   groups: StoryGroup[]
+  completed: StoryGroup[]
   pendingCount: number
 }

@@ -41,7 +41,7 @@ export async function followStory(
   check(current.error)
   if (current.data) {
     if (!current.data.is_followed) {
-      const reopened = await db.from('tracked_stories').update({ is_followed: true })
+      const reopened = await db.from('tracked_stories').update({ is_followed: true, completed_at: null })
         .eq('id', current.data.id).eq('owner_id', ownerId).select('id').single()
       check(reopened.error)
     }
@@ -67,6 +67,16 @@ export async function renameStory(
 export async function unfollowStory(db: SupabaseClient, ownerId: string, storyId: string): Promise<void> {
   const result = await db.from('tracked_stories').update({ is_followed: false })
     .eq('id', storyId).eq('owner_id', ownerId).select('id')
+  check(result.error)
+  if (result.data?.length !== 1) throw new Error('História não encontrada.')
+}
+
+export async function setStoryCompleted(
+  db: SupabaseClient, ownerId: string, storyId: string, completed: boolean
+): Promise<void> {
+  const result = await db.from('tracked_stories').update({
+    is_followed: !completed, completed_at: completed ? new Date().toISOString() : null
+  }).eq('id', storyId).eq('owner_id', ownerId).select('id')
   check(result.error)
   if (result.data?.length !== 1) throw new Error('História não encontrada.')
 }
@@ -126,20 +136,21 @@ export async function loadStoryDashboard(
   const stories: TrackedStory[] = []
   for (let page = 0; ; page += 500) {
     const result = await db.from('tracked_stories')
-      .select('id,owner_id,seed_video_id,name,canonical_key,aliases,is_followed,last_scanned_at,created_at')
-      .eq('owner_id', ownerId).eq('is_followed', true)
+      .select('id,owner_id,seed_video_id,name,canonical_key,aliases,is_followed,completed_at,last_scanned_at,created_at')
+      .eq('owner_id', ownerId)
       .order('created_at', { ascending: false }).order('id').range(page, page + 499)
     check(result.error)
     const batch = (result.data ?? []) as TrackedStory[]
     stories.push(...batch)
     if (batch.length < 500) break
   }
-  if (!stories.length) return { groups: [], pendingCount: 0 }
-  const matches = await loadMatches(db, stories.map((item) => item.id))
-  const ids = [...new Set([...stories.map((item) => item.seed_video_id).filter((id): id is string => !!id),
+  const visibleStories = stories.filter((item) => item.is_followed || item.completed_at)
+  if (!visibleStories.length) return { groups: [], completed: [], pendingCount: 0 }
+  const matches = await loadMatches(db, visibleStories.map((item) => item.id))
+  const ids = [...new Set([...visibleStories.map((item) => item.seed_video_id).filter((id): id is string => !!id),
     ...matches.map((item) => item.video_id)])]
   const videos = await loadStoryVideos(db, ownerId, ids, channels)
-  const groups = stories.map((story) => {
+  const groups = visibleStories.map((story) => {
     const related = matches.filter((item) => item.story_id === story.id)
       .map((item) => ({ ...item, video: videos.get(item.video_id) }))
       .filter((item): item is MatchRow & { video: Video } => !!item.video)
@@ -148,5 +159,7 @@ export async function loadStoryDashboard(
         .sort((a, b) => Date.parse(a.video.published_at) - Date.parse(b.video.published_at)),
       pending: related.filter((item) => item.status === 'pending') }
   })
-  return { groups, pendingCount: groups.reduce((total, group) => total + group.pending.length, 0) }
+  const active = groups.filter((group) => group.story.is_followed)
+  return { groups: active, completed: groups.filter((group) => Boolean(group.story.completed_at)),
+    pendingCount: active.reduce((total, group) => total + group.pending.length, 0) }
 }

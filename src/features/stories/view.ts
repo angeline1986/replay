@@ -2,15 +2,20 @@ import { button, element, notice } from '../../shared/dom.ts'
 import { iconButton, iconGlyph } from '../videos/icons.ts'
 import { validVideoUrl, type Channel, type Video } from '../../shared/model.ts'
 import { parseStoryPosition } from '../../shared/story-match.ts'
+import { storyChannelGroups, storyChannelId } from './groups.ts'
 import type { StoryCandidate, StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
 
 interface StoryViewOptions {
   data: StoryDashboard
+  mode?: 'active' | 'completed'
   channels?: Channel[]
+  selectedChannelId: string
+  onChannelSelect: (id: string) => void
   onToggleVideo: (video: Video, key: 'is_favorite' | 'is_watched') => void
   onDecide: (candidate: StoryCandidate, status: 'confirmed' | 'rejected') => void
   onRename: (story: TrackedStory) => void
   onUnfollow: (story: TrackedStory) => void
+  onComplete: (story: TrackedStory, completed: boolean) => void
 }
 
 function videoActions(video: Video, options: StoryViewOptions): HTMLElement {
@@ -39,7 +44,7 @@ function videoLink(video: Video, subtitle: string, options: StoryViewOptions): H
 function sequence(group: StoryDashboard['groups'][number], options: StoryViewOptions): HTMLElement {
   const body = element('div', 'follow-sequence')
   const controls = element('div', 'follow-controls')
-  controls.append(button('Deixar de acompanhar', () => options.onUnfollow(group.story)))
+  if (options.mode !== 'completed') controls.append(button('Deixar de acompanhar', () => options.onUnfollow(group.story)))
   body.append(controls, element('h3', '', 'Vídeos confirmados'))
   if (group.seed) body.append(videoLink(group.seed, 'Vídeo inicial', options))
   for (const item of group.confirmed) {
@@ -48,13 +53,13 @@ function sequence(group: StoryDashboard['groups'][number], options: StoryViewOpt
   if (!group.seed && !group.confirmed.length) {
     body.append(element('p', 'muted small', 'Nenhum vídeo confirmado disponível.'))
   }
-  body.append(element('h3', '', `Possíveis continuações (${group.pending.length})`))
-  if (!group.pending.length) {
+  if (options.mode !== 'completed') body.append(element('h3', '', `Possíveis continuações (${group.pending.length})`))
+  if (options.mode !== 'completed' && !group.pending.length) {
     body.append(element('p', 'muted small', group.story.last_scanned_at
       ? 'Nenhuma sugestão pendente.'
       : 'A primeira verificação ocorrerá após a próxima coleta.'))
   }
-  for (const candidate of group.pending) {
+  for (const candidate of options.mode === 'completed' ? [] : group.pending) {
     const item = element('div', 'follow-candidate')
     item.append(videoLink(candidate.video,
       `Confiança ${candidate.score >= 85 ? 'alta' : 'média'} · ${candidate.reason}`, options))
@@ -97,7 +102,8 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
     `${cover?.channel?.name ?? 'Canal'} · ${cover ? new Date(cover.published_at).toLocaleDateString('pt-BR') : 'Sem vídeo'}`))
   const tags = element('div', 'follow-tags')
   const following = element('span', 'follow-tag follow-tag-icon')
-  following.append(iconGlyph('runner'))
+  if (options.mode === 'completed') following.textContent = 'Concluída'
+  else { following.append(iconGlyph('runner')); following.title = 'Acompanhando esta história' }
   tags.append(following)
   if (cover) tags.append(videoActions(cover, options))
   const position = cover ? parseStoryPosition(cover.title) : null
@@ -117,6 +123,8 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   }, 'follow-expand')
   expand.setAttribute('aria-expanded', 'false')
   footer.append(expand, button('Renomear', () => options.onRename(group.story), 'follow-rename'))
+  footer.append(button(options.mode === 'completed' ? 'Retomar' : 'Concluir',
+    () => options.onComplete(group.story, options.mode !== 'completed'), 'follow-complete'))
   if (cover) {
     const link = element('a', 'follow-open', 'Abrir ↗')
     link.href = validVideoUrl(cover.youtube_video_id)
@@ -129,44 +137,42 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
 }
 
 export function storiesView(options: StoryViewOptions): HTMLElement {
+  const source = options.mode === 'completed' ? options.data.completed : options.data.groups
+  const visible = source.filter((group) => options.mode === 'completed' ||
+    !options.selectedChannelId || storyChannelId(group) === options.selectedChannelId)
   const root = element('section', 'content')
   const heading = element('div', 'favorites-toolbar')
   const title = element('div', 'favorite-page-title')
-  title.append(element('h1', '', 'Minhas histórias'),
-    element('span', 'favorite-total', String(options.data.groups.length)))
+  title.append(element('h1', '', options.mode === 'completed' ? 'Concluídos' : 'Minhas histórias'),
+    element('span', 'favorite-total', String(visible.length)))
   heading.append(title)
+  if (options.mode !== 'completed') {
+    const controls = element('div', 'favorite-toolbar-controls')
+    const select = element('select', 'favorite-channel-filter')
+    select.setAttribute('aria-label', 'Filtrar histórias por canal')
+    const all = element('option', '', 'Todos os canais')
+    all.value = ''
+    select.append(all)
+    for (const id of new Set(source.map(storyChannelId))) {
+      const group = source.find((item) => storyChannelId(item) === id)!
+      const name = options.channels?.find((item) => item.id === id)?.name ??
+        (group.seed ?? group.confirmed[0]?.video)?.channel?.name ?? 'Canal'
+      const option = element('option', '', name)
+      option.value = id
+      select.append(option)
+    }
+    select.value = options.selectedChannelId
+    select.addEventListener('change', () => options.onChannelSelect(select.value))
+    controls.append(select)
+    heading.append(controls)
+  }
   root.append(heading)
-  if (!options.data.groups.length) {
-    root.append(notice('Você ainda não acompanha histórias. Use “Acompanhar esta história” em um vídeo.'))
+  if (!source.length) {
+    root.append(notice(options.mode === 'completed' ? 'Nenhuma história concluída.' :
+      'Você ainda não acompanha histórias. Use “Acompanhar esta história” em um vídeo.'))
     return root
   }
-  const byChannel = new Map<string, StoryDashboard['groups']>()
-  for (const group of options.data.groups) {
-    const id = (group.seed ?? group.confirmed[0]?.video)?.channel_id ?? ''
-    byChannel.set(id, [...(byChannel.get(id) ?? []), group])
-  }
-  const groups = element('div', 'favorite-channel-groups')
-  for (const [id, items] of byChannel) {
-    const channel = options.channels?.find((item) => item.id === id)
-    const name = channel?.name ?? (items[0].seed ?? items[0].confirmed[0]?.video)?.channel?.name ?? 'Canal'
-    const section = element('section', groups.childElementCount ? 'favorite-channel-group' : 'favorite-channel-group first-channel-group')
-    const heading = element('div', 'favorite-channel-heading')
-    const avatar = element('span', 'avatar favorite-channel-avatar', name.slice(0, 1).toUpperCase())
-    if (channel?.avatar_url) {
-      const image = element('img')
-      image.src = channel.avatar_url
-      image.alt = ''
-      image.loading = 'lazy'
-      image.referrerPolicy = 'no-referrer'
-      avatar.replaceChildren(image)
-    }
-    heading.append(avatar, element('h3', '', name),
-      element('span', 'result-count', `${items.length} história${items.length === 1 ? '' : 's'}`))
-    const grid = element('div', 'video-grid follow-grid')
-    for (const item of items) grid.append(storyCard(item, options))
-    section.append(heading, grid)
-    groups.append(section)
-  }
-  root.append(groups)
+  if (!visible.length) { root.append(notice('Nenhuma história deste canal.')); return root }
+  root.append(storyChannelGroups(visible, options.channels ?? [], (group) => storyCard(group, options)))
   return root
 }

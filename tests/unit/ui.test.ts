@@ -76,6 +76,7 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   assert.deepEqual(icons.map((node) => node.getAttribute('aria-label')),
     ['Adicionar aos favoritos', 'Marcar como visto', 'Acompanhar esta história',
       'Adicionar à fila de espera', 'Despriorizar vídeo'])
+  assert.deepEqual(icons.map((node) => node.dataset.tooltip), icons.map((node) => node.getAttribute('aria-label')))
   assert.deepEqual(icons.map((node) => node.querySelector('svg')?.getAttribute('viewBox')),
     ['0 0 640 640', '0 0 640 640', '0 0 640 640', undefined, undefined])
   assert.match(icons[3].querySelector<HTMLElement>('.supplied-svg-icon')?.style.maskImage ?? '', /hourglass-half-solid-full\.svg/)
@@ -95,15 +96,15 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
 test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corrigir nome', () => withDocument(() => {
   const events: string[] = []
   const story = { id: 'story', owner_id: 'owner', seed_video_id: demoVideos[0].id,
-    name: 'Obra <Nova>', canonical_key: 'obra nova', aliases: [], is_followed: true,
+    name: 'Obra <Nova>', canonical_key: 'obra nova', aliases: [], is_followed: true, completed_at: null,
     last_scanned_at: '2026-11-05T00:00:00Z', created_at: '2026-11-04T00:00:00Z' }
   const candidate = { id: 'match', story_id: 'story', video_id: demoVideos[1].id,
     status: 'pending' as const, score: 95, reason: 'Nome da obra; mesmo canal.',
     detected_at: '2026-11-05T00:00:00Z', decided_at: null, video: demoVideos[1] }
-  const view = storiesView({ data: { groups: [{ story, seed: demoVideos[0],
-    confirmed: [], pending: [candidate] }], pendingCount: 1 },
+  const view = storiesView({ selectedChannelId: '', onChannelSelect: () => {}, data: { groups: [{ story, seed: demoVideos[0],
+    confirmed: [], pending: [candidate] }], completed: [], pendingCount: 1 },
   onDecide: (_item, status) => events.push(status),
-  onRename: () => events.push('rename'), onUnfollow: () => events.push('unfollow'), onToggleVideo: () => {} })
+  onRename: () => events.push('rename'), onUnfollow: () => events.push('unfollow'), onComplete: () => {}, onToggleVideo: () => {} })
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /Obra <Nova>/)
   assert.equal(view.querySelectorAll('.follow-grid').length, 1)

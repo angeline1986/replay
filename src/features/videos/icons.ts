@@ -38,8 +38,8 @@ export function iconButton(
   active = false
 ): HTMLButtonElement {
   const node = button('', action, `icon-action icon-${icon}${active ? ' is-active' : ''}`)
-  node.title = label
   node.setAttribute('aria-label', label)
+  node.setAttribute('data-tooltip', label)
   node.setAttribute('aria-pressed', String(active))
   const svg = iconGlyph(icon)
   node.append(svg)

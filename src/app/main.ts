@@ -29,7 +29,7 @@ const actions = makeActions({ render, act, userId: () => userId })
 const storyActions = makeStoryActions({ render, act, userId: () => userId })
 async function storySnapshot(id: string, channels: Channel[]) {
   try { return { data: await loadStoryDashboard(supabase!, id, channels), error: '' } }
-  catch { return { data: { groups: [], pendingCount: 0 },
+  catch { return { data: { groups: [], completed: [], pendingCount: 0 },
     error: 'Minhas histórias indisponível. Confira a migration e as permissões.' } }
 }
 const auth = createAuthGate({
@@ -49,7 +49,7 @@ const auth = createAuthGate({
     state.favoriteVideos = value?.dashboard.favorites ?? []
     state.deprioritizedVideos = value?.dashboard.deprioritized ?? []
     state.queuedVideos = value?.dashboard.queued ?? []
-    state.stories = value?.storySnapshot.data ?? { groups: [], pendingCount: 0 }
+    state.stories = value?.storySnapshot.data ?? { groups: [], completed: [], pendingCount: 0 }
     state.storiesError = value?.storySnapshot.error ?? ''
     state.hasMore = value?.dashboard.hasMore ?? false
     channelPages.reset()
@@ -142,12 +142,12 @@ function render(): void {
       group.story.seed_video_id, ...group.confirmed.map((item) => item.video_id),
       ...group.pending.map((item) => item.video_id)
     ]).filter((id): id is string => !!id))
-    main.append(state.page === 'stories' ? (state.storiesError
+    main.append(state.page === 'stories' || state.page === 'completed' ? (state.storiesError
       ? notice(state.storiesError, 'error') : storiesView({
-        data: state.stories,
+        data: state.stories, mode: state.page === 'completed' ? 'completed' : 'active', selectedChannelId: state.storyChannelId, onChannelSelect: (id) => { state.storyChannelId = id; render() },
         onDecide: (item, status) => { void storyActions.decide(item, status) },
         onRename: (story) => { void storyActions.rename(story) },
-        onUnfollow: (story) => { void storyActions.unfollow(story) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels
+        onUnfollow: (story) => { void storyActions.unfollow(story) }, onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels
       })) : state.page !== 'channels' ? videoView({
       mode: state.page, videos: channelPages.videos(channelBase(state.videos, state.filter.channelId), state.filter.channelId), highlights: state.highlights,
       favoriteVideos: state.demo ? state.videos.filter((v) => v.state?.is_favorite) : state.favoriteVideos,
