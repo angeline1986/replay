@@ -10,11 +10,15 @@
 .favorite-page-title h1 { margin: 0; font-size: 20px; font-weight: 720; letter-spacing: -.55px; }
 .favorite-total { display: grid; place-items: center; min-width: 25px; height: 25px; padding: 0 7px; border-radius: 8px; background: #f0edff; color: #5143d2; font-size: 12px; font-weight: 750; }
 .favorite-toolbar-controls { display: flex; align-items: center; justify-content: flex-end; gap: 7px; flex: 1; min-width: 0; }
-.favorite-toolbar-controls input, .favorite-toolbar-controls select { min-width: 0; height: 38px; padding: 8px 10px; border: 1px solid #e1e5ed; border-radius: 8px; background: #fff; color: #303a4f; font-size: 13px; }
+.favorite-toolbar-controls input, .favorite-toolbar-controls select { min-width: 0; height: 38px; padding: 8px 10px; border: 1px solid #e1e5ed; border-radius: 8px; background: #fff; color: #303a4f; font-family: inherit; font-size: 13px; font-weight: 500; line-height: 1.4; }
 .favorite-toolbar-controls input { flex: 1 1 190px; max-width: 340px; background: #f7f8fa; }
 .favorite-toolbar-controls select { flex: 0 1 145px; }
-.favorite-toolbar-controls .header-action { display: inline-flex; align-items: center; justify-content: center; flex: none; min-height: 38px; padding: 8px 13px; white-space: nowrap; }
+.favorite-toolbar-controls .favorite-status { flex-basis: 110px; }
+.favorite-toolbar-controls .favorite-channel-filter { flex-basis: 100px; }
+.favorite-toolbar-controls .favorite-sort { flex-basis: 125px; }
+.favorite-toolbar-controls .header-action { display: inline-flex; align-items: center; justify-content: center; flex: none; min-height: 38px; padding: 8px 13px; font-family: inherit; font-size: 13px; font-weight: 650; line-height: 1.4; white-space: nowrap; }
 .favorite-toolbar-controls input:focus, .favorite-toolbar-controls select:focus { border-color: #8b80e8; background: #fff; }
+.favorite-toolbar-controls :focus-visible { outline: 2px solid #8b80e8; outline-offset: 1px; }
 .section-title { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0 13px; }
 .section-title h2 { margin: 0; font-size: 18px; }
 .result-count { color: #778095; font-size: 13px; }

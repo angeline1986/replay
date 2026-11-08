@@ -48,7 +48,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const filters = element('div', favorites ? 'favorite-toolbar-controls' : 'filters')
   const search = element('input')
   search.type = 'search'
-  search.placeholder = favorites ? '⌕  Buscar vídeo ou canal...' : 'Buscar por vídeo ou canal'
+  search.placeholder = favorites ? '⌕  Vídeo ou canal...' : 'Buscar por vídeo ou canal'
   search.setAttribute('aria-label', 'Buscar por vídeo ou canal')
   search.value = options.filter.query
   search.addEventListener('input', () => options.onFilter({ ...options.filter, query: search.value }))
@@ -56,7 +56,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   const status = element('select', favorites ? 'favorite-status' : '')
   status.setAttribute('aria-label', 'Filtrar vídeos por status')
   const statuses = favorites
-    ? [['all', 'Todos os favoritos'], ['unwatched', 'Não vistos']]
+    ? [['all', 'Favoritos'], ['unwatched', 'Não vistos']]
     : [['all', 'Todos os lançamentos'], ['new', 'Novos'], ['unwatched', 'Não vistos'], ['favorites', 'Favoritos']]
   for (const [value, label] of statuses) {
     const option = element('option', '', label)
@@ -68,9 +68,9 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     ...options.filter, status: status.value as VideoFilter['status']
   }))
   filters.append(status)
-  const channel = element('select')
+  const channel = element('select', favorites ? 'favorite-channel-filter' : '')
   channel.setAttribute('aria-label', 'Filtrar vídeos por canal')
-  const allChannels = element('option', '', 'Todos os canais')
+  const allChannels = element('option', '', favorites ? 'Canais' : 'Todos os canais')
   allChannels.value = ''
   channel.append(allChannels)
   const favoriteChannelIds = new Set(favoriteSource
@@ -86,7 +86,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   channel.value = options.filter.channelId
   channel.addEventListener('change', () => options.onFilter({ ...options.filter, channelId: channel.value }))
   filters.append(channel)
-  const sort = element('select')
+  const sort = element('select', favorites ? 'favorite-sort' : '')
   sort.setAttribute('aria-label', 'Ordenar vídeos')
   for (const [value, label] of [['recent', favorites ? 'Recentes' : 'Mais recentes'], ['az', 'Título A–Z']]) {
     const option = element('option', '', label)
