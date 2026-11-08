@@ -42,7 +42,7 @@ export function channelPicker(options: {
   }
   function update(): void {
     const choice = choices.find((item) => item.id === selected) ?? choices[0]
-    trigger.replaceChildren(label(choice), element('span', 'channel-picker-chevron', '⌄'))
+    trigger.replaceChildren(label(choice))
     trigger.title = choice.name
     for (const node of nodes) node.setAttribute('aria-selected', String(node.dataset.channelId === selected))
   }

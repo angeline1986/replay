@@ -59,6 +59,7 @@ test('histórias têm filtro, divisores por canal e ações de favorito e visto'
     onOpenSequence: (story: TrackedStory) => opened.push(story.id), onComplete: () => {},
     onToggleVideo: (video: Video, key: string) => events.push(`${video.id}:${key}`) }
   const view = storiesView(options)
+  assert.equal(view.querySelector('.favorite-channel-filter .channel-picker-trigger')?.textContent, 'Canais')
   assert.deepEqual([...view.querySelectorAll('.favorite-channel-heading h3')].map((node) => node.textContent),
     demoChannels.map((channel) => channel.name))
   assert.ok(view.querySelector('.favorite-channel-filter .channel-picker-trophy'))
@@ -161,6 +162,7 @@ test('página Concluídos mostra apenas histórias encerradas e permite retomar'
     onOpenSequence: () => {}, onToggleVideo: () => {},
     onComplete: (item: TrackedStory, completed: boolean) => resumed.push(`${item.id}:${completed}`) }
   const view = storiesView({ ...options, sort: 'recent' })
+  assert.equal(view.querySelector('.favorite-channel-filter .channel-picker-trigger')?.textContent, 'Canais')
   assert.equal(routeFromHash('#completed').page, 'completed')
   assert.match(view.textContent ?? '', /Concluídos/)
   assert.equal(view.querySelectorAll('.follow-card').length, 1)

@@ -7,7 +7,6 @@
 .channel-picker-trigger:disabled { opacity: .6; cursor: default; }
 .channel-picker-label { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .channel-picker-label > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.channel-picker-chevron { flex: none; color: #67738a; font-size: 16px; line-height: 1; }
 .channel-picker-trophy { display: inline-block; flex: 0 0 13px; width: 13px; height: 13px;
   background: #ac791a; mask-size: contain; mask-position: center; mask-repeat: no-repeat;
   -webkit-mask-size: contain; -webkit-mask-position: center; -webkit-mask-repeat: no-repeat; }

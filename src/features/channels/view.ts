@@ -41,7 +41,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   topFilter.value = options.topFilter ?? 'all'
   topFilter.addEventListener('change', () => options.onTopFilter?.(topFilter.value as 'all' | 'top-first' | 'top-only'))
   const cards = new Map<string, HTMLElement>()
-  const jump = channelPicker({ channels: visible, value: '', placeholder: 'Selecionar canal…',
+  const jump = channelPicker({ channels: visible, value: '', placeholder: 'Canais',
     label: 'Ir para canal cadastrado', className: 'channel-jump', disabled: visible.length === 0,
     onChange: (id) => {
       for (const [cardId, card] of cards) card.classList.toggle('channel-card-selected', cardId === id)

@@ -38,7 +38,7 @@ export function storyToolbar(options: {
       is_top: Boolean(channel?.is_top) }
   })
   controls.append(channelPicker({ channels: choices, value: options.selectedChannelId,
-    placeholder: options.completed ? 'Canais' : 'Todos os canais',
+    placeholder: 'Canais',
     label: options.completed ? 'Filtrar concluídos por canal' : 'Filtrar histórias por canal',
     className: 'favorite-channel-filter', onChange: options.onChannelSelect }))
   const sort = element('select', 'favorite-sort')

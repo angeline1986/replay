@@ -26,6 +26,7 @@ test('tela de canais dispara cadastro, pausa e abertura', () => withDocument((wi
     onRemove: (channel) => events.push(`remove:${channel.id}`),
     onOpen: (channel) => events.push(`open:${channel.id}`), onMarked: () => {}
   })
+  assert.equal(view.querySelector('.channel-jump .channel-picker-trigger')?.textContent, 'Canais')
   const input = view.querySelector('input')!
   input.value = '@canal'
   view.querySelector('form')!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))

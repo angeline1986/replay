@@ -27,6 +27,7 @@ test('favoritos lista somente canais com vídeos favoritos', () => {
   globalThis.document = dom.window.document
   try {
     const favorites = videoView(options('favorites'))
+    assert.equal(favorites.querySelector('.favorite-channel-filter .channel-picker-trigger')?.textContent, 'Canais')
     const select = favorites.querySelectorAll<HTMLButtonElement>('.favorite-channel-filter .channel-picker-option')
     assert.deepEqual([...select].map((item) => item.dataset.channelId),
       ['', demoVideos[0].channel_id])
