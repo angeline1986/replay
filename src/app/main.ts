@@ -147,7 +147,7 @@ function render(): void {
         data: state.stories,
         onDecide: (item, status) => { void storyActions.decide(item, status) },
         onRename: (story) => { void storyActions.rename(story) },
-        onUnfollow: (story) => { void storyActions.unfollow(story) }
+        onUnfollow: (story) => { void storyActions.unfollow(story) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels
       })) : state.page !== 'channels' ? videoView({
       mode: state.page, videos: channelPages.videos(channelBase(state.videos, state.filter.channelId), state.filter.channelId), highlights: state.highlights,
       favoriteVideos: state.demo ? state.videos.filter((v) => v.state?.is_favorite) : state.favoriteVideos,
@@ -177,7 +177,7 @@ function render(): void {
       onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) },
       onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds
     }) : channelView({
-      channels: state.channels, requests: state.requests, videos: state.videos,
+      channels: state.channels, requests: state.requests, videos: state.videos, topFilter: state.channelTopFilter, onTopFilter: (value) => { state.channelTopFilter = value; render() },
       busy: state.busy,
       onAdd: (input) => { void actions.createChannel(input) },
       onToggle: (channel) => { void actions.toggleChannel(channel) }, onTop: (channel) => { void actions.toggleTop(channel) },

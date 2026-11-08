@@ -5,6 +5,8 @@ const trophyUrl = new URL('../../assets/icons/trophy-solid-full.svg', import.met
 
 interface ChannelViewOptions {
   channels: Channel[]
+  topFilter?: 'all' | 'top-first' | 'top-only'
+  onTopFilter?: (value: 'all' | 'top-first' | 'top-only') => void
   requests: ChannelRequest[]
   videos: Video[]
   busy?: boolean
@@ -16,24 +18,36 @@ interface ChannelViewOptions {
 }
 
 export function channelView(options: ChannelViewOptions): HTMLElement {
+  const visible = options.topFilter === 'top-only' ? options.channels.filter((item) => item.is_top)
+    : options.topFilter === 'top-first' ? [...options.channels].sort((a, b) => Number(b.is_top) - Number(a.is_top))
+      : options.channels
   const root = element('section', 'content')
   const heading = element('div', 'favorites-toolbar')
   const intro = element('div', 'favorite-page-title')
   intro.append(element('h1', '', 'Canais monitorados'),
-    element('span', 'favorite-total', String(options.channels.length)))
+    element('span', 'favorite-total', String(visible.length)))
   heading.append(intro)
   const form = element('form', 'favorite-toolbar-controls channel-toolbar-form')
+  const topFilter = element('select', 'channel-top-filter')
+  topFilter.setAttribute('aria-label', 'Filtrar canais tops')
+  for (const [value, label] of [['all', 'Todos'], ['top-first', 'Tops primeiro'], ['top-only', 'Só tops']] as const) {
+    const option = element('option', '', label)
+    option.value = value
+    topFilter.append(option)
+  }
+  topFilter.value = options.topFilter ?? 'all'
+  topFilter.addEventListener('change', () => options.onTopFilter?.(topFilter.value as 'all' | 'top-first' | 'top-only'))
   const select = element('select', 'channel-jump')
   select.setAttribute('aria-label', 'Ir para canal cadastrado')
   const placeholder = element('option', '', 'Selecionar canal…')
   placeholder.value = ''
   select.append(placeholder)
-  for (const item of options.channels) {
+  for (const item of visible) {
     const option = element('option', '', item.name)
     option.value = item.id
     select.append(option)
   }
-  select.disabled = options.channels.length === 0
+  select.disabled = visible.length === 0
   const cards = new Map<string, HTMLElement>()
   select.addEventListener('change', () => {
     for (const [id, card] of cards) {
@@ -54,7 +68,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
   submit.type = 'submit'
   submit.disabled = Boolean(options.busy)
   field.disabled = Boolean(options.busy)
-  form.append(select, field, submit)
+  form.append(topFilter, select, field, submit)
   form.addEventListener('submit', (event) => {
     event.preventDefault()
     options.onAdd(field.value.trim())
@@ -75,8 +89,12 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     root.append(notice('Nenhum canal cadastrado. Adicione o primeiro para começar.'))
     return root
   }
+  if (!visible.length) {
+    root.append(notice('Nenhum canal top. Marque o troféu em um cartão para vê-lo aqui.'))
+    return root
+  }
   const list = element('div', 'channel-list')
-  for (const channel of options.channels) {
+  for (const channel of visible) {
     const count = options.videos.filter((video) => video.channel_id === channel.id && !video.state).length
     const item = element('article', `channel-card compact-channel-card${count ? ' has-news' : ''}${channel.is_active ? '' : ' is-paused'}${channel.is_top ? ' is-top' : ''}`)
     cards.set(channel.id, item)

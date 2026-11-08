@@ -103,7 +103,7 @@ test('Minhas histórias mostra pendências e executa confirmar, rejeitar e corri
   const view = storiesView({ data: { groups: [{ story, seed: demoVideos[0],
     confirmed: [], pending: [candidate] }], pendingCount: 1 },
   onDecide: (_item, status) => events.push(status),
-  onRename: () => events.push('rename'), onUnfollow: () => events.push('unfollow') })
+  onRename: () => events.push('rename'), onUnfollow: () => events.push('unfollow'), onToggleVideo: () => {} })
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /Obra <Nova>/)
   assert.equal(view.querySelectorAll('.follow-grid').length, 1)

@@ -1,23 +1,38 @@
 import { button, element, notice } from '../../shared/dom.ts'
-import { iconGlyph } from '../videos/icons.ts'
-import { validVideoUrl, type Video } from '../../shared/model.ts'
+import { iconButton, iconGlyph } from '../videos/icons.ts'
+import { validVideoUrl, type Channel, type Video } from '../../shared/model.ts'
 import { parseStoryPosition } from '../../shared/story-match.ts'
 import type { StoryCandidate, StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
 
 interface StoryViewOptions {
   data: StoryDashboard
+  channels?: Channel[]
+  onToggleVideo: (video: Video, key: 'is_favorite' | 'is_watched') => void
   onDecide: (candidate: StoryCandidate, status: 'confirmed' | 'rejected') => void
   onRename: (story: TrackedStory) => void
   onUnfollow: (story: TrackedStory) => void
 }
 
-function videoLink(video: Video, subtitle: string): HTMLElement {
+function videoActions(video: Video, options: StoryViewOptions): HTMLElement {
+  const actions = element('div', 'card-actions follow-video-actions')
+  const favorite = Boolean(video.state?.is_favorite)
+  const watched = Boolean(video.state?.is_watched)
+  actions.append(iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos', 'star',
+    () => options.onToggleVideo(video, 'is_favorite'), favorite),
+    iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto', watched ? 'eye' : 'eye-slash',
+      () => options.onToggleVideo(video, 'is_watched'), watched))
+  return actions
+}
+
+function videoLink(video: Video, subtitle: string, options: StoryViewOptions): HTMLElement {
   const row = element('div', 'follow-video')
+  const detail = element('div', 'follow-video-detail')
   const a = element('a', '', video.title)
   a.href = validVideoUrl(video.youtube_video_id)
   a.target = '_blank'
   a.rel = 'noopener noreferrer'
-  row.append(a, element('p', 'video-meta', subtitle))
+  detail.append(a, element('p', 'video-meta', subtitle))
+  row.append(detail, videoActions(video, options))
   return row
 }
 
@@ -26,9 +41,9 @@ function sequence(group: StoryDashboard['groups'][number], options: StoryViewOpt
   const controls = element('div', 'follow-controls')
   controls.append(button('Deixar de acompanhar', () => options.onUnfollow(group.story)))
   body.append(controls, element('h3', '', 'Vídeos confirmados'))
-  if (group.seed) body.append(videoLink(group.seed, 'Vídeo inicial'))
+  if (group.seed) body.append(videoLink(group.seed, 'Vídeo inicial', options))
   for (const item of group.confirmed) {
-    body.append(videoLink(item.video, 'Continuação confirmada'))
+    body.append(videoLink(item.video, 'Continuação confirmada', options))
   }
   if (!group.seed && !group.confirmed.length) {
     body.append(element('p', 'muted small', 'Nenhum vídeo confirmado disponível.'))
@@ -42,7 +57,7 @@ function sequence(group: StoryDashboard['groups'][number], options: StoryViewOpt
   for (const candidate of group.pending) {
     const item = element('div', 'follow-candidate')
     item.append(videoLink(candidate.video,
-      `Confiança ${candidate.score >= 85 ? 'alta' : 'média'} · ${candidate.reason}`))
+      `Confiança ${candidate.score >= 85 ? 'alta' : 'média'} · ${candidate.reason}`, options))
     const actions = element('div', 'follow-candidate-actions')
     actions.append(
       button('Confirmar continuação', () => options.onDecide(candidate, 'confirmed')),
@@ -84,6 +99,7 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   const following = element('span', 'follow-tag follow-tag-icon')
   following.append(iconGlyph('runner'))
   tags.append(following)
+  if (cover) tags.append(videoActions(cover, options))
   const position = cover ? parseStoryPosition(cover.title) : null
   if (position) {
     const label = position.kind === 'part' ? 'Parte' :
@@ -124,8 +140,33 @@ export function storiesView(options: StoryViewOptions): HTMLElement {
     root.append(notice('Você ainda não acompanha histórias. Use “Acompanhar esta história” em um vídeo.'))
     return root
   }
-  const grid = element('div', 'video-grid follow-grid')
-  for (const group of options.data.groups) grid.append(storyCard(group, options))
-  root.append(grid)
+  const byChannel = new Map<string, StoryDashboard['groups']>()
+  for (const group of options.data.groups) {
+    const id = (group.seed ?? group.confirmed[0]?.video)?.channel_id ?? ''
+    byChannel.set(id, [...(byChannel.get(id) ?? []), group])
+  }
+  const groups = element('div', 'favorite-channel-groups')
+  for (const [id, items] of byChannel) {
+    const channel = options.channels?.find((item) => item.id === id)
+    const name = channel?.name ?? (items[0].seed ?? items[0].confirmed[0]?.video)?.channel?.name ?? 'Canal'
+    const section = element('section', groups.childElementCount ? 'favorite-channel-group' : 'favorite-channel-group first-channel-group')
+    const heading = element('div', 'favorite-channel-heading')
+    const avatar = element('span', 'avatar favorite-channel-avatar', name.slice(0, 1).toUpperCase())
+    if (channel?.avatar_url) {
+      const image = element('img')
+      image.src = channel.avatar_url
+      image.alt = ''
+      image.loading = 'lazy'
+      image.referrerPolicy = 'no-referrer'
+      avatar.replaceChildren(image)
+    }
+    heading.append(avatar, element('h3', '', name),
+      element('span', 'result-count', `${items.length} história${items.length === 1 ? '' : 's'}`))
+    const grid = element('div', 'video-grid follow-grid')
+    for (const item of items) grid.append(storyCard(item, options))
+    section.append(heading, grid)
+    groups.append(section)
+  }
+  root.append(groups)
   return root
 }

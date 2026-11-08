@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Channel, Video } from './model.ts'
+import type { Channel, Video, VideoState } from './model.ts'
 import { distinctEnough, normalizeStoryText } from './story-match.ts'
 import type { StoryCandidate, StoryDashboard, TrackedStory } from './story-model.ts'
 
@@ -101,16 +101,20 @@ async function loadMatches(db: SupabaseClient, storyIds: string[]): Promise<Matc
   return rows
 }
 
-async function loadStoryVideos(db: SupabaseClient, ids: string[], channels: Channel[]): Promise<Map<string, Video>> {
+async function loadStoryVideos(db: SupabaseClient, ownerId: string, ids: string[], channels: Channel[]): Promise<Map<string, Video>> {
   const byChannel = new Map(channels.map((item) => [item.id, item]))
   const videos = new Map<string, Video>()
   for (let offset = 0; offset < ids.length; offset += 100) {
-    const result = await db.from('videos')
-      .select('id,channel_id,youtube_video_id,title,url,thumbnail_url,published_at,discovered_at')
-      .in('id', ids.slice(offset, offset + 100))
-    check(result.error)
+    const batch = ids.slice(offset, offset + 100)
+    const [result, states] = await Promise.all([
+      db.from('videos').select('id,channel_id,youtube_video_id,title,url,thumbnail_url,published_at,discovered_at').in('id', batch),
+      db.from('user_video_state').select('video_id,is_favorite,is_watched,is_deprioritized,is_queued')
+        .eq('user_id', ownerId).in('video_id', batch)
+    ])
+    check(result.error); check(states.error)
+    const byVideo = new Map(((states.data ?? []) as VideoState[]).map((state) => [state.video_id, state]))
     for (const video of (result.data ?? []) as Video[]) {
-      videos.set(video.id, { ...video, channel: byChannel.get(video.channel_id) })
+      videos.set(video.id, { ...video, channel: byChannel.get(video.channel_id), state: byVideo.get(video.id) })
     }
   }
   return videos
@@ -134,7 +138,7 @@ export async function loadStoryDashboard(
   const matches = await loadMatches(db, stories.map((item) => item.id))
   const ids = [...new Set([...stories.map((item) => item.seed_video_id).filter((id): id is string => !!id),
     ...matches.map((item) => item.video_id)])]
-  const videos = await loadStoryVideos(db, ids, channels)
+  const videos = await loadStoryVideos(db, ownerId, ids, channels)
   const groups = stories.map((story) => {
     const related = matches.filter((item) => item.story_id === story.id)
       .map((item) => ({ ...item, video: videos.get(item.video_id) }))

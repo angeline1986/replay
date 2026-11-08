@@ -17,6 +17,7 @@ export interface AppState {
   filter: VideoFilter
   page: 'favorites' | 'videos' | 'channels' | 'stories' | 'deprioritized' | 'queue'
   sort: 'recent' | 'az'
+  channelTopFilter: 'all' | 'top-first' | 'top-only'
   busy: boolean
   error: string
   importMessage: string
@@ -37,6 +38,7 @@ export const state: AppState = {
   filter: { query: '', status: 'all', channelId: routeFromHash(location.hash).channelId },
   page: routeFromHash(location.hash).page,
   sort: 'recent',
+  channelTopFilter: 'all',
   busy: false,
   error: '',
   importMessage: '',
