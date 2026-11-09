@@ -71,8 +71,6 @@ function metrics(options: SummaryOptions, launchCount: number): HTMLElement {
 
 function table(rows: SummaryRow[], options: SummaryOptions): HTMLElement {
   const section = element('section', 'summary-table-section')
-  const toolbar = element('div', 'summary-table-toolbar')
-  toolbar.setAttribute('aria-label', 'Filtros dos vídeos')
   const channels = new Map<string, Pick<Channel, 'id' | 'name' | 'is_top'>>()
   for (const { video } of rows) {
     const monitored = options.channels.find((item) => item.id === video.channel_id ||
@@ -89,19 +87,24 @@ function table(rows: SummaryRow[], options: SummaryOptions): HTMLElement {
     { value: 'heart-crack', label: 'Despriorizados' },
     { value: 'check-double', label: 'Concluídos' }
   ]
-  toolbar.append(channelPicker({ channels: [...channels.values()].sort((a, b) =>
+  const channelFilter = channelPicker({ channels: [...channels.values()].sort((a, b) =>
     a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })),
-  value: '', placeholder: 'Canais', label: 'Filtrar tabela por canal',
+  value: '', placeholder: 'Canal', label: 'Filtrar tabela por canal',
   className: 'summary-channel-filter', disabled: !rows.length,
-  onChange: (id) => { selectedChannel = id; applyFilters() } }),
-  selectPicker({ choices: markChoices, value: 'all', label: 'Filtrar tabela por marcação',
-    className: 'summary-mark-filter', onChange: (value) => { selectedMark = value; applyFilters() } }))
-  section.append(toolbar)
+  onChange: (id) => { selectedChannel = id; applyFilters() } })
+  const markFilter = selectPicker({ choices: markChoices, value: 'all',
+    label: 'Filtrar tabela por marcação', className: 'summary-mark-filter',
+    onChange: (value) => { selectedMark = value; applyFilters() } })
   const scroll = element('div', 'summary-table-scroll')
   const table = element('table', 'summary-table')
   const head = element('thead')
   const header = element('tr')
-  for (const label of ['Canal', 'Vídeo', 'Data da adição', 'Marcações']) header.append(element('th', '', label))
+  const channelHeading = element('th')
+  channelHeading.append(channelFilter)
+  const markHeading = element('th')
+  markHeading.append(markFilter)
+  header.append(channelHeading, element('th', '', 'Vídeo'),
+    element('th', '', 'Data da adição'), markHeading)
   head.append(header)
   const body = element('tbody')
   const entries: { row: HTMLTableRowElement; channelId: string; icons: IconName[] }[] = []
@@ -142,7 +145,6 @@ function table(rows: SummaryRow[], options: SummaryOptions): HTMLElement {
         (selectedMark !== 'all' && !entry.icons.includes(selectedMark)))
       if (!entry.row.hidden) visible++
     }
-    scroll.hidden = visible === 0
     empty.hidden = visible > 0
   }
   section.append(scroll, empty)

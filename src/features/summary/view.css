@@ -8,13 +8,8 @@
 .summary-metric strong { font-size: 23px; line-height: 1; }
 .summary-table-section { border: 1px solid #e2e6ef; border-radius: 12px;
   background: #fff; box-shadow: 0 2px 8px #20283a08; }
-.summary-table-toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 16px;
-  border-bottom: 1px solid #e8ebf2; border-radius: 12px 12px 0 0; background: #fff; }
-.summary-table-toolbar .channel-picker { flex: 0 1 210px; }
-.summary-table-toolbar .custom-select { flex-basis: 175px; }
-.summary-table-toolbar .channel-picker-trigger { height: 36px; background: #f8f9fc; font-size: 12px; }
 .summary-table-section > .notice { margin: 16px 20px; }
-.summary-table-scroll { overflow-x: auto; }
+.summary-table-scroll { overflow: visible; }
 .summary-table { width: 100%; min-width: 820px; border-collapse: collapse;
   table-layout: fixed; text-align: left; }
 .summary-table th { padding: 11px 18px; border-bottom: 1px solid #e8ebf2;
@@ -28,6 +23,15 @@
 .summary-table th:nth-child(2) { width: 40%; }
 .summary-table th:nth-child(3) { width: 16%; }
 .summary-table th:last-child { width: 22%; }
+.summary-table th .channel-picker { width: 100%; }
+.summary-table th .channel-picker-trigger { height: auto; padding: 0; border: 0;
+  background: transparent; color: inherit; font-size: inherit; font-weight: inherit;
+  letter-spacing: inherit; cursor: pointer; }
+.summary-table th .channel-picker-trigger:hover { color: #5143d2; }
+.summary-table th .channel-picker-trigger::after { content: ''; flex: 0 0 5px;
+  width: 5px; height: 5px; margin-right: 3px; border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); }
+.summary-table th .summary-mark-filter .channel-picker-menu { right: 0; left: auto; }
 .summary-table td:first-child { font-weight: 650; overflow-wrap: anywhere; }
 .summary-table td:nth-child(3) { color: #778095; white-space: nowrap; }
 .summary-table a { display: -webkit-box; -webkit-box-orient: vertical;
@@ -43,7 +47,9 @@
 .summary-mark-hourglass { color: #bc7d1b; background: #fff7e8; }
 .summary-mark-heart-crack { color: #d64d64; background: #fff0f2; }
 @media (max-width: 700px) {
-  .summary-table-toolbar { padding: 12px; flex-wrap: wrap; }
-  .summary-table-toolbar .channel-picker { flex: 1 1 140px; }
   .summary-table th, .summary-table td { padding-right: 12px; padding-left: 12px; }
+}
+@media (max-width: 850px) {
+  .summary-table-scroll { overflow-x: auto; }
+  .summary-table-scroll:has(.channel-picker-menu:not([hidden])) { overflow: visible; }
 }

@@ -57,10 +57,13 @@ test('Resumo filtra a tabela por canal e marcação sem recarregar dados', () =>
       demoVideos: [favorite, queued] })
     dom.window.document.body.append(view)
     assert.equal(view.querySelector('.summary-table-section h2'), null)
+    assert.equal(view.querySelector('.summary-table-toolbar'), null)
     assert.equal(view.querySelectorAll('tbody tr').length, 2)
-    const channelFilter = view.querySelector('.summary-channel-filter')!
+    const channelFilter = view.querySelector('thead th:first-child .summary-channel-filter')!
     assert.ok(channelFilter.querySelector('[title="Ateliê Criativo"] .channel-picker-trophy'))
-    const markFilter = view.querySelector('.summary-mark-filter')!
+    const markFilter = view.querySelector('thead th:last-child .summary-mark-filter')!
+    assert.equal(channelFilter.querySelector('.channel-picker-trigger')?.textContent, 'Canal')
+    assert.equal(markFilter.querySelector('.channel-picker-trigger')?.textContent, 'Marcações')
     const select = (filter: Element, id: string) => {
       (filter.querySelector(`[data-channel-id="${id}"]`) as HTMLElement).click()
     }
@@ -68,7 +71,9 @@ test('Resumo filtra a tabela por canal e marcação sem recarregar dados', () =>
     const rows = [...view.querySelectorAll<HTMLTableRowElement>('tbody tr')]
     assert.deepEqual(rows.map((row) => row.hidden), [false, true])
     select(markFilter, 'hourglass')
-    assert.equal(view.querySelector('.summary-table-scroll')?.hasAttribute('hidden'), true)
+    assert.equal(view.querySelector('.summary-table-scroll')?.hasAttribute('hidden'), false)
+    assert.equal(channelFilter.querySelector('.channel-picker-trigger')?.textContent, 'Ateliê Criativo')
+    assert.equal((view.querySelector('.summary-table-section .notice') as HTMLElement).hidden, false)
     assert.match(view.querySelector('.summary-table-section .notice')?.textContent ?? '',
       /Nenhum vídeo corresponde aos filtros/)
     select(channelFilter, demoChannels[1].id)
