@@ -16,8 +16,8 @@ interface StoryViewOptions {
   onChannelSelect: (id: string) => void
   query: string
   onQuery: (value: string) => void
-  sort: 'recent' | 'az'
-  onSort: (value: 'recent' | 'az') => void
+  sort: 'recent' | 'az' | 'sequence'
+  onSort: (value: 'recent' | 'az' | 'sequence') => void
   onLookupYouTube: (input: string) => Promise<YouTubeLookupResult>
   onSaveYouTube: (video: YouTubeResult) => void
   onToggleVideo: (video: Video, key: 'is_favorite' | 'is_watched') => void
@@ -89,6 +89,8 @@ export function storiesView(options: StoryViewOptions): HTMLElement {
   const source = options.mode === 'completed' ? options.data.completed : options.data.groups
   const query = options.mode === 'completed' ? options.query.trim().toLocaleLowerCase('pt-BR') : ''
   const visible = source.filter((group) => {
+    if (options.mode !== 'completed' && options.sort === 'sequence' &&
+      group.confirmed.length + group.pending.length === 0) return false
     if (options.selectedChannelId && storyChannelId(group) !== options.selectedChannelId) return false
     const channel = options.channels?.find((item) => item.id === storyChannelId(group))
     const titles = [group.seed?.title, ...group.confirmed.map((item) => item.video.title)].filter(Boolean)

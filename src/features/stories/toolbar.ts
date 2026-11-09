@@ -13,8 +13,8 @@ export function storyToolbar(options: {
   onChannelSelect: (id: string) => void
   query: string
   onQuery: (value: string) => void
-  sort: 'recent' | 'az'
-  onSort: (value: 'recent' | 'az') => void
+  sort: 'recent' | 'az' | 'sequence'
+  onSort: (value: 'recent' | 'az' | 'sequence') => void
 }): HTMLElement {
   const controls = element('div', 'favorite-toolbar-controls')
   if (options.completed) {
@@ -43,7 +43,8 @@ export function storyToolbar(options: {
     label: options.completed ? 'Filtrar concluídos por canal' : 'Filtrar histórias por canal',
     className: 'favorite-channel-filter', onChange: options.onChannelSelect }))
   controls.append(selectPicker({
-    choices: [{ value: 'recent', label: 'Recentes' }, { value: 'az', label: 'A–Z' }],
+    choices: [{ value: 'recent', label: 'Recentes' }, { value: 'az', label: 'A–Z' },
+      ...(options.completed ? [] : [{ value: 'sequence' as const, label: 'Sequência' }])],
     value: options.sort,
     label: options.completed ? 'Ordenar histórias concluídas' : 'Ordenar minhas histórias',
     className: 'favorite-sort', onChange: options.onSort

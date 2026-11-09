@@ -20,7 +20,7 @@ export interface AppState {
   sort: 'recent' | 'az'
   channelTopFilter: 'all' | 'top-first' | 'top-only'
   storyChannelId: string
-  storySort: 'recent' | 'az'
+  storySort: 'recent' | 'az' | 'sequence'
   completedChannelId: string
   completedQuery: string
   completedSort: 'recent' | 'az'
