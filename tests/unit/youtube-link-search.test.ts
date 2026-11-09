@@ -94,6 +94,30 @@ test('vídeo já na fila aparece sem ação duplicada', async () => {
   } finally { globalThis.document = original; dom.window.close() }
 })
 
+test('vídeo já na fila pode ser localizado no feed sem adicioná-lo de novo', async () => {
+  const original = globalThis.document
+  const dom = new JSDOM('<!doctype html><html><body></body></html>')
+  globalThis.document = dom.window.document
+  try {
+    const id = 'PkHMJNqs-tk'
+    let revealed = '', saved = false
+    const view = youtubeSearchView('queue', async () => ({
+      youtube_video_id: id, youtube_channel_id: 'UC1234567890123456789012',
+      channel_name: 'Velko Manhwa', title: 'Vídeo', thumbnail_url: '',
+      published_at: '2026-11-01T00:00:00Z', already_added: true
+    }), () => { saved = true }, (youtubeId) => { revealed = youtubeId })
+    view.querySelector<HTMLInputElement>('input')!.value = `https://www.youtube.com/watch?v=${id}`
+    view.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { cancelable: true }))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    const action = view.querySelector<HTMLButtonElement>('.youtube-preview button')!
+    assert.equal(action.textContent, 'Mostrar na fila')
+    assert.equal(action.disabled, false)
+    action.click()
+    assert.equal(revealed, id)
+    assert.equal(saved, false)
+  } finally { globalThis.document = original; dom.window.close() }
+})
+
 test('vídeo importado, mas fora da fila, pode ser adicionado sem nova busca no YouTube', async () => {
   const original = globalThis.document
   const dom = new JSDOM('<!doctype html><html><body></body></html>')

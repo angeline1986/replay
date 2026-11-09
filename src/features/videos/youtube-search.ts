@@ -4,7 +4,7 @@ import type { YouTubeLookupResult, YouTubeResult } from '../../shared/saved-yout
 
 export function youtubeSearchView(
   mode: 'queue' | 'deprioritized' | 'completed', lookup: (input: string) => Promise<YouTubeLookupResult>,
-  onSave: (video: YouTubeResult) => void
+  onSave: (video: YouTubeResult) => void, onReveal?: (youtubeId: string) => void
 ): HTMLElement {
   const section = element('section', 'youtube-search')
   const form = element('form', 'youtube-search-form')
@@ -41,11 +41,13 @@ export function youtubeSearchView(
       if (video.from_replay && !video.already_added) {
         info.append(element('span', 'youtube-local-note', 'Importado no RePlay; ainda fora desta lista.'))
       }
+      const canReveal = Boolean(video.already_added && onReveal && mode !== 'completed')
       const action = button(video.already_added
-        ? mode === 'queue' ? 'Já está na fila' : mode === 'completed' ? 'Já está nos concluídos' : 'Já está despriorizado'
+        ? canReveal ? mode === 'queue' ? 'Mostrar na fila' : 'Mostrar nos despriorizados'
+          : mode === 'queue' ? 'Já está na fila' : mode === 'completed' ? 'Já está nos concluídos' : 'Já está despriorizado'
         : mode === 'queue' ? 'Adicionar à fila' : mode === 'completed' ? 'Adicionar aos concluídos' : 'Despriorizar vídeo',
-      () => onSave(video), 'primary')
-      action.disabled = Boolean(video.already_added)
+      () => canReveal ? onReveal?.(video.youtube_video_id) : onSave(video), 'primary')
+      action.disabled = Boolean(video.already_added && !canReveal)
       info.append(action)
       preview.append(imageLink, info)
       result.replaceChildren(preview)

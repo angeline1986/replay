@@ -171,7 +171,7 @@ function render(): void {
       onToggle: (video, key) => { void actions.toggleVideo(video, key) },
       onSaveYouTube: (video, mode) => { void actions.addYouTubeVideo(video, mode) },
       onLookupYouTube: (input) => lookupYouTube(supabase!, userId, input, state.page as 'queue' | 'deprioritized'),
-      onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) },
+      onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) }, onRevealVideo: (id, mode) => actions.revealCollectionVideo(id, mode),
       onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds
     })) : channelView({
       channels: state.channels, requests: state.requests, videos: state.videos, topFilter: state.channelTopFilter, onTopFilter: (value) => { state.channelTopFilter = value; render() },

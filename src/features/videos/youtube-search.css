@@ -19,6 +19,8 @@
 .youtube-preview-info button { margin-top: 3px; padding: 8px 12px; border: 0;
   border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 650; }
 .youtube-preview-info button:disabled { opacity: .65; cursor: default; }
+.favorite-video-card.just-added-video { outline: 3px solid #5545cb;
+  outline-offset: 3px; box-shadow: 0 8px 24px #5545cb30; }
 @media (max-width: 700px) {
   .youtube-search-form, .youtube-preview { align-items: stretch; flex-direction: column; }
   .youtube-preview-link { width: 100%; }

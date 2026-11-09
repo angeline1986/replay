@@ -13,6 +13,26 @@ interface Hooks {
 }
 
 export function makeActions(hooks: Hooks) {
+  function revealCollectionVideo(youtubeId: string, mode: 'queue' | 'deprioritized'): void {
+    if (state.page !== mode) return
+    const videos = mode === 'queue' ? state.queuedVideos : state.deprioritizedVideos
+    if (!videos.some((video) => video.youtube_video_id === youtubeId)) {
+      state.error = 'Vídeo salvo, mas ainda não apareceu na lista. Atualize a página.'
+      hooks.render()
+      return
+    }
+    state.filter = { query: '', status: 'all', channelId: '' }
+    state.sort = 'recent'
+    hooks.render()
+    document.querySelector<HTMLElement>(`[data-youtube-video-id="${youtubeId}"]`)?.classList.add('just-added-video')
+    const delay = document.querySelector('.replay-loader-overlay') ? 900 : 0
+    window.setTimeout(() => {
+      if (state.page !== mode) return
+      const target = document.querySelector<HTMLElement>(`[data-youtube-video-id="${youtubeId}"]`)
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, delay)
+  }
+
   async function toggleVideo(video: Video, key: 'is_favorite' | 'is_watched' | 'is_deprioritized' | 'is_queued'): Promise<void> {
     const db = supabase
     if (video.external && !state.demo && db) {
@@ -34,6 +54,7 @@ export function makeActions(hooks: Hooks) {
     if (state.busy || !db) return
     const flag = mode === 'queue' ? 'is_queued' : 'is_deprioritized'
     await hooks.act(() => addYouTubeWithChannel(db, hooks.userId(), video, flag, importChannelNow))
+    if (!state.error) revealCollectionVideo(video.youtube_video_id, mode)
   }
 
   async function createChannel(input: string): Promise<void> {
@@ -94,5 +115,6 @@ export function makeActions(hooks: Hooks) {
     await hooks.act(() => removeChannel(channel))
   }
 
-  return { toggleVideo, addYouTubeVideo, createChannel, toggleChannel, toggleTop, deleteChannel }
+  return { toggleVideo, addYouTubeVideo, revealCollectionVideo,
+    createChannel, toggleChannel, toggleTop, deleteChannel }
 }

@@ -25,6 +25,7 @@ interface VideoViewOptions {
   onSaveYouTube?: (video: YouTubeResult, mode: 'queue' | 'deprioritized') => void
   onLookupYouTube?: (input: string) => Promise<YouTubeLookupResult>
   onToggleSaved?: (video: Video, key: 'is_queued' | 'is_deprioritized') => void
+  onRevealVideo?: (youtubeId: string, mode: 'queue' | 'deprioritized') => void
 }
 
 export function videoView(options: VideoViewOptions): HTMLElement {
@@ -99,7 +100,8 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   root.append(heading)
   if ((options.mode === 'queue' || options.mode === 'deprioritized') && options.onSaveYouTube && options.onLookupYouTube) {
     root.append(youtubeSearchView(options.mode, options.onLookupYouTube, (video) => options.onSaveYouTube?.(video,
-      options.mode as 'queue' | 'deprioritized')))
+      options.mode as 'queue' | 'deprioritized'), options.onRevealVideo
+      ? (id) => options.onRevealVideo?.(id, options.mode as 'queue' | 'deprioritized') : undefined))
   }
 
   // Com ambos os selects em "Todos", mostrar apenas o último vídeo de cada canal.
@@ -141,6 +143,7 @@ function videoCard(
   options: VideoViewOptions
 ): HTMLElement {
   const card = element('article', options.mode !== 'videos' ? 'video-card favorite-video-card' : 'video-card')
+  card.dataset.youtubeVideoId = video.youtube_video_id
   const image = element('a', 'video-art')
   image.href = validVideoUrl(video.youtube_video_id)
   image.target = '_blank'
