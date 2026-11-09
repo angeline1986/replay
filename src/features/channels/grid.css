@@ -32,23 +32,22 @@
 .channel-badge.is-paused { background: #fff3df; color: #94620d; }
 .channel-checked { min-width: 0; overflow: hidden; text-overflow: ellipsis;
   white-space: nowrap; color: #8490a5; font-size: 11px; }
-.channel-card-actions { display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: nowrap; gap: 4px; width: 100%; align-self: end; padding-top: 9px; border-top: 1px solid #edf0f5; }
-.channel-card-actions .channel-view-videos { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
-  white-space: nowrap; padding: 6px 5px; border-color: transparent; background: #f0edff;
-  color: #5143d2; font-size: 11px; text-align: center; }
-.channel-card-actions .channel-view-videos.has-news { background: #5143d2; color: #fff; }
-.compact-channel-card.is-paused .channel-view-videos.has-news { background: #f0edff; color: #5143d2; }
+.channel-card-actions { display: flex; align-items: center; gap: 7px; width: 100%;
+  align-self: end; padding-top: 9px; border-top: 1px solid #edf0f5; }
 .channel-card-actions .channel-card-shortcut { display: inline-grid; place-items: center;
-  flex: 0 0 30px; width: 30px; height: 30px; padding: 0; border: 1px solid #e0e3eb;
+  flex: 0 0 36px; width: 36px; height: 36px; padding: 0; border: 1px solid #e0e3eb;
   border-radius: 8px; background: #fff; text-decoration: none; cursor: pointer; }
-.channel-card-actions .channel-youtube-link { color: #e53549; }
+.channel-card-actions .channel-view-videos { color: #e53549; }
+.channel-card-actions .channel-view-videos.has-news { border-color: #5143d2; background: #5143d2; color: #fff; }
+.compact-channel-card.is-paused .channel-view-videos.has-news { border-color: #e0e3eb;
+  background: #f0edff; color: #5143d2; }
 .channel-card-actions .channel-marked-videos { color: #5143d2; }
 .channel-card-actions .channel-card-shortcut:hover { border-color: #c9c3f5; background: #f7f6fd; }
+.channel-card-actions .channel-view-videos.has-news:hover { background: #4031bd; color: #fff; }
 .channel-shortcut-icon { display: block; width: 16px; height: 16px; background: currentColor;
   mask: center / contain no-repeat; -webkit-mask: center / contain no-repeat; }
-.channel-options { position: relative; flex: 0 0 30px; }
-.channel-options .channel-options-trigger { width: 30px; height: 30px; padding: 0;
+.channel-options { position: relative; flex: 0 0 36px; margin-left: auto; }
+.channel-options .channel-options-trigger { width: 36px; height: 36px; padding: 0;
   border: 1px solid #e0e3eb; background: #fff; color: #66738a; font-size: 20px; line-height: 1; }
 .channel-options-trigger:hover, .channel-options-trigger[aria-expanded='true'] { background: #f0edff; color: #5143d2; }
 .channel-options-menu { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 20;

@@ -124,19 +124,15 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     if (!channel.is_active) status.append(element('span', 'channel-badge is-paused', 'Pausado'))
     status.append(element('span', 'channel-checked', checkedLabel(channel.last_checked_at)))
     const actions = element('div', 'channel-actions channel-card-actions')
-    const view = button(count ? `Ver vídeos (${count})` : 'Ver vídeos', () => options.onOpen(channel),
-      `channel-view-videos${count ? ' has-news' : ''}`)
-    const youtube = element('a', 'channel-card-shortcut channel-youtube-link')
-    youtube.href = avatar.href
-    youtube.target = '_blank'
-    youtube.rel = 'noopener noreferrer'
-    youtube.title = 'Ver canal no YouTube'
-    youtube.setAttribute('aria-label', `Ver ${channel.name} no YouTube`)
+    const view = button('', () => options.onOpen(channel),
+      `channel-card-shortcut channel-view-videos${count ? ' has-news' : ''}`)
+    view.title = count ? `Ver vídeos de ${channel.name} (${count} novos)` : `Ver vídeos de ${channel.name}`
+    view.setAttribute('aria-label', view.title)
     const youtubeIcon = element('span', 'channel-shortcut-icon')
     youtubeIcon.setAttribute('aria-hidden', 'true')
     youtubeIcon.style.maskImage = `url("${youtubeUrl}")`
     youtubeIcon.style.webkitMaskImage = `url("${youtubeUrl}")`
-    youtube.append(youtubeIcon)
+    view.append(youtubeIcon)
     const marked = button('', () => options.onMarked(channel), 'channel-card-shortcut channel-marked-videos')
     marked.title = 'Ver vídeos classificados deste canal'
     marked.setAttribute('aria-label', `Ver vídeos marcados de ${channel.name}`)
@@ -145,7 +141,7 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     markedIcon.style.maskImage = `url("${thumbtackUrl}")`
     markedIcon.style.webkitMaskImage = `url("${thumbtackUrl}")`
     marked.append(markedIcon)
-    actions.append(view, youtube, marked, channelCardMenu(channel, item, {
+    actions.append(view, marked, channelCardMenu(channel, item, {
       onTop: () => options.onTop(channel), onToggle: () => options.onToggle(channel),
       onRemove: () => options.onRemove(channel)
     }))

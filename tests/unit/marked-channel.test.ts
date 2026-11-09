@@ -50,10 +50,11 @@ test('botão do cartão abre os vídeos marcados do canal correto', () => {
     const youtube = cards[1].querySelector<HTMLAnchorElement>('.channel-avatar-link')!
     assert.equal(youtube.hostname, 'www.youtube.com')
     assert.equal(youtube.getAttribute('aria-label'), `Ver ${demoChannels[1].name} no YouTube`)
-    const youtubeShortcut = cards[1].querySelector<HTMLAnchorElement>('.channel-youtube-link')!
-    assert.equal(youtubeShortcut.href, youtube.href)
-    assert.match(youtubeShortcut.querySelector<HTMLElement>('.channel-shortcut-icon')?.style.maskImage ?? '',
+    const videosButton = cards[1].querySelector<HTMLButtonElement>('.channel-view-videos')!
+    assert.match(videosButton.getAttribute('aria-label') ?? '', /Ver vídeos de/)
+    assert.match(videosButton.querySelector<HTMLElement>('.channel-shortcut-icon')?.style.maskImage ?? '',
       /youtube-brands-solid-full\.svg/)
+    assert.equal(cards[1].querySelector('.channel-youtube-link'), null)
     assert.match(cards[1].querySelector<HTMLElement>('.channel-marked-videos .channel-shortcut-icon')?.style.maskImage ?? '',
       /thumbtack-solid-full\.svg/)
     assert.doesNotMatch(cards[1].textContent ?? '', /\+\d+ novos?/)
