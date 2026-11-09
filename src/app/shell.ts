@@ -19,9 +19,9 @@ export function sidebarView(
       ['channels', '▣', 'Canais monitorados'],
       ['videos', '▷', 'Lançamentos'],
       ['completed', '✓', 'Concluídos'],
-      ['usage', '▥', 'Consumo'],
       ['queue', '', 'Fila de espera'],
-      ['deprioritized', '', 'Despriorizados']
+      ['deprioritized', '', 'Despriorizados'],
+      ['usage', '▥', 'Consumo']
     ] as const) {
       const count = route === 'stories' && pendingStories ? ` (${pendingStories})` : ''
       const link = element('a')
