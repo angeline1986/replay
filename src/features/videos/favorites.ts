@@ -2,13 +2,14 @@ import { element } from '../../shared/dom.ts'
 import type { Channel, Video } from '../../shared/model.ts'
 
 export function favoriteVideoGroups(
-  videos: Video[], channels: Channel[], sort: 'recent' | 'az', renderCard: (video: Video) => HTMLElement
+  videos: Video[], channels: Channel[], sort: 'recent' | 'az', renderCard: (video: Video) => HTMLElement,
+  recentAt: (video: Video) => string = (video) => video.published_at
 ): HTMLElement {
   const groups = new Map<string, Video[]>()
   for (const video of videos) groups.set(video.channel_id, [...(groups.get(video.channel_id) ?? []), video])
   const ordered = [...groups.entries()].sort(([leftId, left], [rightId, right]) => sort === 'az'
     ? left[0].title.localeCompare(right[0].title, 'pt-BR')
-    : Date.parse(right[0].published_at) - Date.parse(left[0].published_at))
+    : Date.parse(recentAt(right[0])) - Date.parse(recentAt(left[0])))
   const result = element('div', 'favorite-channel-groups')
   ordered.forEach(([channelId, items], index) => {
     const channel = channels.find((item) => item.id === channelId)

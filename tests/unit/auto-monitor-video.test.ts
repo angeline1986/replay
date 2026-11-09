@@ -58,7 +58,8 @@ test('falha no cadastro não grava o vídeo como se o canal tivesse sido importa
 })
 
 test('vídeo antes salvo separadamente é fundido ao importado sem perder classificações', async () => {
-  const saved = { id: 'external-1', is_queued: true, is_deprioritized: false }
+  const saved = { id: 'external-1', is_queued: true, is_deprioritized: false,
+    queued_at: '2026-11-08T15:00:00Z' }
   const captured: { state?: Record<string, unknown> } = {}
   let deleted = ''
   function selection(data: unknown) {
@@ -81,6 +82,7 @@ test('vídeo antes salvo separadamente é fundido ao importado sem perder classi
   } } as unknown as SupabaseClient
   await saveYouTubeToCollection(db, 'owner-1', video, 'is_deprioritized')
   assert.equal(captured.state?.is_queued, true)
+  assert.equal(captured.state?.queued_at, saved.queued_at)
   assert.equal(captured.state?.is_deprioritized, true)
   assert.equal(deleted, 'external-1')
 })

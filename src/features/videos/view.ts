@@ -86,6 +86,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     onChange: (id) => options.onFilter({ ...options.filter, channelId: id }) }))
   const sort = element('select', 'favorite-sort')
   sort.setAttribute('aria-label', 'Ordenar vídeos')
+  if (options.mode === 'queue') sort.title = 'Recentes = adicionados por último à fila'
   for (const [value, label] of [['recent', 'Recentes'], ['az', 'Título A–Z']]) {
     const option = element('option', '', label)
     option.value = value
@@ -110,6 +111,8 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     .filter((video) => options.mode !== 'deprioritized' || video.state?.is_deprioritized)
     .filter((video) => options.mode !== 'queue' || video.state?.is_queued)
   if (options.sort === 'az') filtered.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'))
+  else if (options.mode === 'queue') filtered.sort((a, b) =>
+    Date.parse(queueDate(b)) - Date.parse(queueDate(a)))
   countBadge.textContent = String(filtered.length)
   if (!filtered.length) {
     const empty = options.mode === 'deprioritized' ? 'Nenhum vídeo despriorizado ainda.'
@@ -118,7 +121,8 @@ export function videoView(options: VideoViewOptions): HTMLElement {
           : 'Nenhum vídeo encontrado. Ajuste os filtros ou cadastre um canal.'
     root.append(notice(empty))
   } else if (collection) {
-    root.append(favoriteVideoGroups(filtered, options.channels, options.sort, (video) => videoCard(video, options)))
+    root.append(favoriteVideoGroups(filtered, options.channels, options.sort,
+      (video) => videoCard(video, options), options.mode === 'queue' ? queueDate : undefined))
   } else {
     const grid = element('div', 'video-grid')
     for (const video of filtered) grid.append(videoCard(video, options))
@@ -126,6 +130,10 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   }
   if (options.hasMore && !onePerChannel && !collection) root.append(button('Carregar mais vídeos', options.onLoadMore, 'load-more'))
   return root
+}
+
+function queueDate(video: Video): string {
+  return video.state?.queued_at ?? video.published_at
 }
 
 function videoCard(

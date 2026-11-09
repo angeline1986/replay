@@ -31,6 +31,7 @@ export interface VideoState {
   is_watched: boolean
   is_deprioritized?: boolean
   is_queued?: boolean
+  queued_at?: string | null
 }
 
 export interface ChannelRequest {

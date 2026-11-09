@@ -3,7 +3,7 @@ import type { Channel, Video, VideoState } from './model.ts'
 import { loadSavedYouTube } from './saved-youtube.ts'
 
 type CollectionFlag = 'is_favorite' | 'is_deprioritized' | 'is_queued'
-const fields = 'video_id,is_favorite,is_watched,is_deprioritized,is_queued'
+const fields = 'video_id,is_favorite,is_watched,is_deprioritized,is_queued,queued_at'
 
 function data<T>(result: { data: T | null; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message)

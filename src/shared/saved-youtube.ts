@@ -20,9 +20,10 @@ interface SavedVideo extends YouTubeResult {
   id: string
   is_queued: boolean
   is_deprioritized: boolean
+  queued_at: string | null
 }
 
-const fields = 'id,youtube_video_id,youtube_channel_id,channel_name,title,thumbnail_url,published_at,is_queued,is_deprioritized'
+const fields = 'id,youtube_video_id,youtube_channel_id,channel_name,title,thumbnail_url,published_at,is_queued,is_deprioritized,queued_at'
 
 function asVideo(row: SavedVideo): Video {
   return {
@@ -31,7 +32,7 @@ function asVideo(row: SavedVideo): Video {
     thumbnail_url: row.thumbnail_url, published_at: row.published_at, discovered_at: row.published_at,
     channel: { id: row.youtube_channel_id, name: row.channel_name }, external: true,
     state: { video_id: row.id, is_favorite: false, is_watched: false,
-      is_queued: row.is_queued, is_deprioritized: row.is_deprioritized }
+      is_queued: row.is_queued, is_deprioritized: row.is_deprioritized, queued_at: row.queued_at }
   }
 }
 
@@ -98,11 +99,11 @@ export async function saveYouTubeToCollection(
     .limit(1).maybeSingle()
   if (monitored.error) throw new Error(monitored.error.message)
   if (monitored.data) {
-    const saved = await db.from('saved_youtube_videos').select('id,is_queued,is_deprioritized')
+    const saved = await db.from('saved_youtube_videos').select('id,is_queued,is_deprioritized,queued_at')
       .eq('user_id', userId).eq('youtube_video_id', video.youtube_video_id).maybeSingle()
     if (saved.error) throw new Error(saved.error.message)
     const current = await db.from('user_video_state')
-      .select('is_favorite,is_watched,is_deprioritized,is_queued,watched_at')
+      .select('is_favorite,is_watched,is_deprioritized,is_queued,watched_at,queued_at')
       .eq('user_id', userId).eq('video_id', monitored.data.id).maybeSingle()
     if (current.error) throw new Error(current.error.message)
     const { error } = await db.from('user_video_state').upsert({
@@ -110,7 +111,9 @@ export async function saveYouTubeToCollection(
       is_favorite: current.data?.is_favorite ?? false, is_watched: current.data?.is_watched ?? false,
       watched_at: current.data?.watched_at ?? null,
       is_deprioritized: Boolean(current.data?.is_deprioritized || saved.data?.is_deprioritized),
-      is_queued: Boolean(current.data?.is_queued || saved.data?.is_queued), [flag]: true
+      is_queued: Boolean(current.data?.is_queued || saved.data?.is_queued), [flag]: true,
+      queued_at: current.data?.is_queued ? current.data.queued_at : saved.data?.is_queued
+        ? saved.data.queued_at : null
     }, { onConflict: 'user_id,video_id' })
     if (error) throw new Error(error.message)
     if (saved.data) {
@@ -119,14 +122,15 @@ export async function saveYouTubeToCollection(
     }
     return
   }
-  const current = await db.from('saved_youtube_videos').select('is_queued,is_deprioritized')
+  const current = await db.from('saved_youtube_videos').select('is_queued,is_deprioritized,queued_at')
     .eq('user_id', userId).eq('youtube_video_id', video.youtube_video_id).maybeSingle()
   if (current.error) throw new Error(current.error.message)
   const { error } = await db.from('saved_youtube_videos').upsert({
     youtube_video_id: video.youtube_video_id, youtube_channel_id: video.youtube_channel_id,
     channel_name: video.channel_name, title: video.title, thumbnail_url: video.thumbnail_url,
     published_at: video.published_at, user_id: userId, is_queued: current.data?.is_queued ?? false,
-    is_deprioritized: current.data?.is_deprioritized ?? false, [flag]: true
+    is_deprioritized: current.data?.is_deprioritized ?? false,
+    queued_at: current.data?.queued_at ?? null, [flag]: true
   }, { onConflict: 'user_id,youtube_video_id' })
   if (error) throw new Error(error.message)
 }
