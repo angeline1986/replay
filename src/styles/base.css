@@ -34,6 +34,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .sidebar-logout { display: block; width: calc(100% - 20px); margin: auto 10px 0; text-align: center; }
 .workspace { min-width: 0; }
 .workspace-main { width: 100%; max-width: 1440px; margin: 0 auto; padding: 28px 38px 70px; }
+.content:not(.summary-page):not(.usage-page) > .favorites-toolbar {
+  position: sticky; top: 12px; z-index: 50;
+}
 .page-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .page-head h1 { margin: 3px 0; font-size: clamp(25px, 3vw, 30px); letter-spacing: -1px; }
 .eyebrow { margin: 0; color: #6151dc; font-size: 11px; font-weight: 750; letter-spacing: 1.5px; }
@@ -65,6 +68,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   .nav a { flex: none; padding: 10px; white-space: nowrap; font-size: 12px; }
   .sidebar-logout { position: absolute; top: 12px; right: 14px; width: auto; margin: 0; padding: 8px 11px; }
   .workspace-main { padding: 20px 14px 50px; }
+  .content:not(.summary-page):not(.usage-page) > .favorites-toolbar { top: 8px; }
   .page-head { align-items: flex-start; }
   .header-action { max-width: 125px; text-align: center; }
 }
