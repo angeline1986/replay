@@ -5,6 +5,7 @@ import { normalizeChannelInput } from '../features/channels/normalize.ts'
 import { importChannelNow } from '../shared/import-channel.ts'
 import { addYouTubeWithChannel, type YouTubeResult } from '../shared/saved-youtube.ts'
 import { promoteSavedVideo } from '../shared/promote-saved-video.ts'
+import { storeFoundYouTubeVideo } from '../shared/find-video.ts'
 
 interface Hooks {
   render: () => void
@@ -13,9 +14,10 @@ interface Hooks {
 }
 
 export function makeActions(hooks: Hooks) {
-  function revealCollectionVideo(youtubeId: string, mode: 'queue' | 'deprioritized'): void {
+  function revealCollectionVideo(youtubeId: string, mode: 'queue' | 'deprioritized' | 'favorites'): void {
     if (state.page !== mode) return
-    const videos = mode === 'queue' ? state.queuedVideos : state.deprioritizedVideos
+    const videos = mode === 'queue' ? state.queuedVideos : mode === 'deprioritized'
+      ? state.deprioritizedVideos : state.demo ? state.videos.filter((item) => item.state?.is_favorite) : state.favoriteVideos
     if (!videos.some((video) => video.youtube_video_id === youtubeId)) {
       state.error = 'Vídeo salvo, mas ainda não apareceu na lista. Atualize a página.'
       hooks.render()
@@ -55,6 +57,24 @@ export function makeActions(hooks: Hooks) {
     const flag = mode === 'queue' ? 'is_queued' : 'is_deprioritized'
     await hooks.act(() => addYouTubeWithChannel(db, hooks.userId(), video, flag, importChannelNow))
     if (!state.error) revealCollectionVideo(video.youtube_video_id, mode)
+  }
+
+  async function favoriteFoundVideo(video: Video): Promise<void> {
+    if (!video.state?.is_favorite) await toggleVideo(video, 'is_favorite')
+    if (!state.error) revealCollectionVideo(video.youtube_video_id, 'favorites')
+  }
+
+  async function favoriteYouTube(video: YouTubeResult): Promise<void> {
+    const db = supabase
+    if (state.busy || !db) return
+    await hooks.act(async () => {
+      const stored = await storeFoundYouTubeVideo(db, hooks.userId(), video, state.channels)
+      stored.state ??= { video_id: stored.id, is_favorite: false, is_watched: false }
+      if (stored.state.is_favorite) return
+      stored.state.is_favorite = true
+      await saveVideoState(hooks.userId(), stored)
+    })
+    if (!state.error) revealCollectionVideo(video.youtube_video_id, 'favorites')
   }
 
   async function createChannel(input: string): Promise<void> {
@@ -115,6 +135,6 @@ export function makeActions(hooks: Hooks) {
     await hooks.act(() => removeChannel(channel))
   }
 
-  return { toggleVideo, addYouTubeVideo, revealCollectionVideo,
+  return { toggleVideo, addYouTubeVideo, revealCollectionVideo, favoriteFoundVideo, favoriteYouTube,
     createChannel, toggleChannel, toggleTop, deleteChannel }
 }

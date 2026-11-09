@@ -42,6 +42,22 @@ export function makeStoryActions(hooks: Hooks) {
     })
   }
 
+  async function followYouTube(video: YouTubeResult): Promise<void> {
+    let completed = false
+    let scanFailed = false
+    await hooks.act(async () => {
+      const videoId = await saveCompletedYouTube(client(), hooks.userId(), video, importChannelNow)
+      const result = await followStory(client(), hooks.userId(), videoId, completedStoryName(video), [])
+      if (result.existing) await attachStoryVideo(client(), result.id, videoId)
+      try { await scanStoryNow(client(), result.id); rememberStoryScan(result.id) }
+      catch { scanFailed = true }
+      completed = true
+    })
+    if (!completed) return
+    location.hash = '#stories'
+    if (scanFailed) { state.error = 'História acompanhada. Não foi possível procurar capítulos agora.'; hooks.render() }
+  }
+
   async function follow(video: Video): Promise<void> {
     // O título exibido no cartão identifica inicialmente a história.
     // Nome e aliases continuam editáveis em “Minhas histórias”.
@@ -142,5 +158,5 @@ export function makeStoryActions(hooks: Hooks) {
     await hooks.act(() => decideCandidate(client(), candidate.story_id, candidate.id, status))
   }
 
-  return { follow, rename, unfollow, complete, addYouTubeCompleted, decide }
+  return { follow, followYouTube, rename, unfollow, complete, addYouTubeCompleted, decide }
 }

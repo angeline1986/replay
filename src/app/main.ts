@@ -24,11 +24,12 @@ import { loadMarkedPage } from './marked-page.ts'
 import { makeVideoLoader } from './video-loading.ts'
 import { sequencePage } from './sequence-page.ts'
 import { loadUsage, usageView } from '../features/usage/index.ts'
+import { makeFindHandlers } from './find-handlers.ts'
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = '', authMessage = ''
-const channelPages = new ChannelPages()
-const loadMore = makeVideoLoader(channelPages, () => userId, render)
-const actions = makeActions({ render, act, userId: () => userId }), storyActions = makeStoryActions({ render, act, userId: () => userId })
+const channelPages = new ChannelPages(), loadMore = makeVideoLoader(channelPages, () => userId, render)
+const actions = makeActions({ render, act, userId: () => userId }), storyActions = makeStoryActions({ render, act, userId: () => userId }),
+  findHandlers = makeFindHandlers({ actions, storyActions, userId: () => userId, render })
 const auth = createAuthGate({
   load: async () => {
     const user = await currentUser()
@@ -137,7 +138,7 @@ function render(): void {
         sort: state.page === 'completed' ? state.completedSort : state.storySort, onSort: (value) => { if (state.page === 'completed') state.completedSort = value; else state.storySort = value; render() },
         onLookupYouTube: (input) => lookupYouTube(supabase!, userId, input, 'completed'), onSaveYouTube: (video) => { void storyActions.addYouTubeCompleted(video) },
         onOpenSequence: (story) => { location.hash = storySequenceRoute(story.id) },
-        onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels
+        onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels, finder: findHandlers.stories
       })) : state.page !== 'channels' ? (storySequenceId(location.hash)
       ? sequencePage(state.stories, storySequenceId(location.hash), actions, storyActions) : videoView({
       mode: state.page, videos: state.filter.status === 'marked' ? state.markedVideos
@@ -172,7 +173,7 @@ function render(): void {
       onSaveYouTube: (video, mode) => { void actions.addYouTubeVideo(video, mode) },
       onLookupYouTube: (input) => lookupYouTube(supabase!, userId, input, state.page as 'queue' | 'deprioritized'),
       onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) }, onRevealVideo: (id, mode) => actions.revealCollectionVideo(id, mode),
-      onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds
+      onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds, finder: state.page === 'favorites' ? findHandlers.favorites : undefined
     })) : channelView({
       channels: state.channels, requests: state.requests, videos: state.videos, topFilter: state.channelTopFilter, onTopFilter: (value) => { state.channelTopFilter = value; render() },
       busy: state.busy,
@@ -196,5 +197,4 @@ window.addEventListener('hashchange', () => {
   if (route.page === 'stories') discoverStories()
 })
 supabase?.auth.onAuthStateChange((event, session) => auth.handle(event, session?.user.id))
-if (!state.demo && configured) void auth.start()
-else render()
+if (!state.demo && configured) void auth.start(); else render()

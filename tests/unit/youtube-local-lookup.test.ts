@@ -55,6 +55,16 @@ test('só bloqueia quando o vídeo já está na fila', async () => {
   assert.equal(calls.includes('youtube'), false)
 })
 
+test('busca de Favoritos reconhece vídeo já marcado sem consultar o YouTube', async () => {
+  const { db, calls } = fakeDb({ videos: { id: 'video-1', channel_id: 'channel-1',
+    title: metadata.title, thumbnail_url: metadata.thumbnail_url, published_at: metadata.published_at },
+  channels: { youtube_channel_id: channelId, name: metadata.channel_name },
+  user_video_state: { is_favorite: true } })
+  const result = await lookupYouTube(db, 'owner', `https://www.youtube.com/watch?v=${id}`, 'favorites')
+  assert.equal(result.already_added, true)
+  assert.equal(calls.includes('youtube'), false)
+})
+
 test('vídeo ausente usa YouTube; link inválido não consome API nem consulta o banco', async () => {
   const { db, calls } = fakeDb({})
   const result = await lookupYouTube(db, 'owner', `https://www.youtube.com/watch?v=${id}`, 'queue')

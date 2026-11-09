@@ -3,6 +3,7 @@ import { filterVideos, validVideoUrl, type Channel, type Video, type VideoFilter
 import { iconButton } from './icons.ts'
 import { favoriteVideoGroups } from './favorites.ts'
 import { youtubeSearchView } from './youtube-search.ts'
+import { findVideoMenu, type FindVideoOptions } from './find-menu.ts'
 import { channelPicker } from '../../shared/channel-picker.ts'
 import type { YouTubeLookupResult, YouTubeResult } from '../../shared/saved-youtube.ts'
 
@@ -26,6 +27,7 @@ interface VideoViewOptions {
   onLookupYouTube?: (input: string) => Promise<YouTubeLookupResult>
   onToggleSaved?: (video: Video, key: 'is_queued' | 'is_deprioritized') => void
   onRevealVideo?: (youtubeId: string, mode: 'queue' | 'deprioritized') => void
+  finder?: FindVideoOptions
 }
 
 export function videoView(options: VideoViewOptions): HTMLElement {
@@ -96,6 +98,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   sort.value = options.sort
   sort.addEventListener('change', () => options.onSort(sort.value as VideoViewOptions['sort']))
   filters.append(sort)
+  if (favorites && options.finder) filters.append(findVideoMenu(options.finder))
   heading.append(filters)
   root.append(heading)
   if ((options.mode === 'queue' || options.mode === 'deprioritized') && options.onSaveYouTube && options.onLookupYouTube) {

@@ -2,10 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { videoId } from '../../supabase/functions/lookup-youtube-video/input.ts'
 import type { YouTubeLookupResult } from './saved-youtube.ts'
 
-type Collection = 'queue' | 'deprioritized' | 'completed'
+export type LookupCollection = 'queue' | 'deprioritized' | 'completed' | 'favorites' | 'stories'
 
 export async function localYouTubeVideo(
-  db: SupabaseClient, userId: string, input: string, collection: Collection
+  db: SupabaseClient, userId: string, input: string, collection: LookupCollection
 ): Promise<YouTubeLookupResult | null> {
   const id = videoId(input)
   if (!id) throw new Error('Cole um link válido de vídeo do YouTube.')
@@ -37,11 +37,12 @@ export async function localYouTubeVideo(
       .eq('seed_video_id', stored.data.id).not('completed_at', 'is', null).limit(1).maybeSingle()
     if (story.error) throw new Error(story.error.message)
     alreadyAdded = Boolean(story.data)
-  } else {
-    const state = await db.from('user_video_state').select('is_queued,is_deprioritized')
+  } else if (collection !== 'stories') {
+    const state = await db.from('user_video_state').select('is_queued,is_deprioritized,is_favorite')
       .eq('user_id', userId).eq('video_id', stored.data.id).maybeSingle()
     if (state.error) throw new Error(state.error.message)
-    alreadyAdded = Boolean(collection === 'queue' ? state.data?.is_queued : state.data?.is_deprioritized)
+    alreadyAdded = Boolean(collection === 'queue' ? state.data?.is_queued
+      : collection === 'deprioritized' ? state.data?.is_deprioritized : state.data?.is_favorite)
   }
   return {
     youtube_video_id: id, youtube_channel_id: channel.data.youtube_channel_id,

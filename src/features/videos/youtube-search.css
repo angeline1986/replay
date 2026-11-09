@@ -1,3 +1,4 @@
+@import './find-menu.css';
 .youtube-search { margin: -8px 0 22px; padding: 14px; border: 1px solid #e2e6ef;
   border-radius: 12px; background: #fff; box-shadow: 0 2px 8px #20283a08; }
 .youtube-search-form { display: flex; gap: 8px; }

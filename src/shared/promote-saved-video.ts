@@ -29,8 +29,8 @@ export async function promoteSavedVideo(
     if (!result.data?.video_id) throw new Error('Vídeo salvo não encontrado.')
     storedId = result.data.video_id
   }
-  const flag = video.state?.is_queued ? 'is_queued' : 'is_deprioritized'
-  await saveYouTubeToCollection(db, userId, {
+  const flag = video.state?.is_queued ? 'is_queued' : video.state?.is_deprioritized ? 'is_deprioritized' : null
+  if (flag) await saveYouTubeToCollection(db, userId, {
     youtube_video_id: video.youtube_video_id, youtube_channel_id: video.channel_id,
     channel_name: video.channel?.name ?? 'Canal', title: video.title,
     thumbnail_url: video.thumbnail_url, published_at: video.published_at

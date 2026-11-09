@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { validVideoUrl, type Video } from './model.ts'
-import { localYouTubeVideo } from './youtube-local.ts'
+import { localYouTubeVideo, type LookupCollection } from './youtube-local.ts'
 
 export interface YouTubeResult {
   youtube_video_id: string
@@ -53,7 +53,7 @@ export async function loadSavedYouTube(db: SupabaseClient, userId: string): Prom
 
 export async function lookupYouTube(
   db: SupabaseClient, userId: string, input: string,
-  collection: 'queue' | 'deprioritized' | 'completed'
+  collection: LookupCollection
 ): Promise<YouTubeLookupResult> {
   const local = await localYouTubeVideo(db, userId, input, collection)
   if (local) return local

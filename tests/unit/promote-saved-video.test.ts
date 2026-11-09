@@ -53,6 +53,15 @@ test('vídeo avulso fora dos 50 iniciais é salvo e mantém classificação', as
   assert.equal(calls.filter((call) => call === 'edge-save').length, 1)
 })
 
+test('vídeo avulso sem marcação não vira despriorizado ao ser favoritado', async () => {
+  const { db, calls } = fakeDb(true)
+  const result = await promoteSavedVideo(db, 'owner', { ...external,
+    state: { ...external.state, is_queued: false, is_deprioritized: false } })
+  assert.equal(result.state?.is_deprioritized, false)
+  assert.equal(calls.includes('user_video_state'), true)
+  assert.equal(calls.includes('saved_youtube_videos'), false)
+})
+
 test('cartão avulso mostra os cinco ícones e cada ação correta', () => {
   const original = globalThis.document
   const dom = new JSDOM('<!doctype html><html><body></body></html>')
