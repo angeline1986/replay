@@ -1,9 +1,9 @@
 import { button, element, notice } from '../../shared/dom.ts'
 import type { Channel, ChannelRequest, Video } from '../../shared/model.ts'
 import { channelPicker } from '../../shared/channel-picker.ts'
+import { channelCardMenu } from './card-menu.ts'
 
 const trophyUrl = new URL('../../assets/icons/trophy-solid-full.svg', import.meta.url).href
-const youtubeUrl = new URL('../../assets/icons/youtube-brands-solid-full.svg', import.meta.url).href
 
 interface ChannelViewOptions {
   channels: Channel[]
@@ -92,7 +92,12 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     const item = element('article', `channel-card compact-channel-card${count ? ' has-news' : ''}${channel.is_active ? '' : ' is-paused'}${channel.is_top ? ' is-top' : ''}`)
     cards.set(channel.id, item)
     const head = element('div', 'channel-card-head')
-    const avatar = element('div', 'avatar channel-card-avatar', channel.name.slice(0, 1).toUpperCase())
+    const avatar = element('a', 'avatar channel-card-avatar channel-avatar-link', channel.name.slice(0, 1).toUpperCase())
+    avatar.href = `https://www.youtube.com/channel/${channel.youtube_channel_id}`
+    avatar.target = '_blank'
+    avatar.rel = 'noopener noreferrer'
+    avatar.title = 'Ver canal no YouTube'
+    avatar.setAttribute('aria-label', `Ver ${channel.name} no YouTube`)
     if (channel.avatar_url) {
       const img = element('img')
       img.src = channel.avatar_url
@@ -105,42 +110,26 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     const name = element('h2', '', channel.name)
     name.title = channel.name
     detail.append(name)
-    const link = element('a', 'channel-link channel-youtube-link')
-    link.href = `https://www.youtube.com/channel/${channel.youtube_channel_id}`
-    link.target = '_blank'
-    link.rel = 'noopener noreferrer'
-    link.title = 'Ver canal no YouTube'
-    link.setAttribute('aria-label', `Ver ${channel.name} no YouTube`)
-    const youtubeIcon = element('span', 'channel-youtube-icon')
-    youtubeIcon.style.maskImage = `url("${youtubeUrl}")`
-    youtubeIcon.style.webkitMaskImage = `url("${youtubeUrl}")`
-    link.append(youtubeIcon)
-    detail.append(link)
-    const trophy = button('', () => options.onTop(channel), `channel-top-button${channel.is_top ? ' is-top' : ''}`)
-    trophy.title = channel.is_top ? 'Remover dos canais tops' : 'Marcar como canal top'
+    const trophy = element('span', `channel-top-indicator${channel.is_top ? ' is-top' : ''}`)
+    trophy.title = channel.is_top ? 'Canal Topzera' : 'Canal sem marcação Topzera'
     trophy.setAttribute('aria-label', trophy.title)
-    trophy.setAttribute('aria-pressed', String(channel.is_top))
     const trophyGlyph = element('span', 'channel-top-glyph')
     trophyGlyph.style.maskImage = `url("${trophyUrl}")`
     trophyGlyph.style.webkitMaskImage = `url("${trophyUrl}")`
     trophy.append(trophyGlyph)
     head.append(avatar, detail, trophy)
     const status = element('div', 'channel-card-status')
-    const badge = channel.is_active ? count ? `+${count} novo${count === 1 ? '' : 's'}` : '0 novas' : 'Pausado'
-    status.append(element('span', `channel-badge${channel.is_active ? count ? ' has-news' : '' : ' is-paused'}`, badge),
-      element('span', 'channel-checked', checkedLabel(channel.last_checked_at)))
+    if (!channel.is_active) status.append(element('span', 'channel-badge is-paused', 'Pausado'))
+    status.append(element('span', 'channel-checked', checkedLabel(channel.last_checked_at)))
     const marked = button('Ver marcados', () => options.onMarked(channel), 'channel-marked-videos')
     marked.title = 'Ver vídeos classificados deste canal'
     const actions = element('div', 'channel-actions channel-card-actions')
     const view = button(count ? `Ver vídeos (${count})` : 'Ver vídeos', () => options.onOpen(channel),
       `channel-view-videos${count ? ' has-news' : ''}`)
-    const toggle = button(channel.is_active ? '⏸' : '▶', () => options.onToggle(channel), 'channel-icon-button')
-    toggle.title = channel.is_active ? 'Pausar monitoramento' : 'Reativar monitoramento'
-    toggle.setAttribute('aria-label', toggle.title)
-    const remove = button('🗑', () => options.onRemove(channel), 'channel-icon-button danger')
-    remove.title = 'Remover canal'
-    remove.setAttribute('aria-label', remove.title)
-    actions.append(view, toggle, remove)
+    actions.append(view, channelCardMenu(channel, item, {
+      onTop: () => options.onTop(channel), onToggle: () => options.onToggle(channel),
+      onRemove: () => options.onRemove(channel)
+    }))
     item.append(head, status, marked, actions)
     list.append(item)
   }

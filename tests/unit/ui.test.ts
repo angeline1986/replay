@@ -30,13 +30,16 @@ test('tela de canais dispara cadastro, pausa e abertura', () => withDocument((wi
   const input = view.querySelector('input')!
   input.value = '@canal'
   view.querySelector('form')!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }))
-  const buttons = [...view.querySelectorAll<HTMLButtonElement>('.channel-card-actions button')]
-  buttons[0].click()
-  buttons[1].click()
-  buttons[2].click()
+  const card = view.querySelector('.channel-card')!
+  card.querySelector<HTMLButtonElement>('.channel-view-videos')!.click()
+  const trigger = card.querySelector<HTMLButtonElement>('.channel-options-trigger')!
+  for (const index of [0, 1, 2]) {
+    trigger.click()
+    card.querySelectorAll<HTMLButtonElement>('.channel-options-item')[index].click()
+  }
   assert.deepEqual(events, [
     'add:@canal', `open:${demoChannelIds[0]}`,
-    `toggle:${demoChannelIds[0]}`, `remove:${demoChannelIds[0]}`
+    `top:${demoChannelIds[0]}`, `toggle:${demoChannelIds[0]}`, `remove:${demoChannelIds[0]}`
   ])
 }))
 

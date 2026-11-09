@@ -15,14 +15,20 @@ test('troféu fornecido marca e desmarca canais tops no cartão', () => {
       onAdd: () => {}, onToggle: () => {}, onRemove: () => {}, onOpen: () => {}, onMarked: () => {},
       onTop: (channel) => marked.push(channel.id)
     })
-    const trophies = [...view.querySelectorAll<HTMLButtonElement>('.channel-top-button')]
+    const trophies = [...view.querySelectorAll<HTMLElement>('.channel-top-indicator')]
     assert.equal(trophies.length, 2)
-    assert.equal(trophies[0].getAttribute('aria-pressed'), 'true')
-    assert.equal(trophies[1].getAttribute('aria-pressed'), 'false')
+    assert.equal(trophies[0].classList.contains('is-top'), true)
+    assert.equal(trophies[1].classList.contains('is-top'), false)
     assert.match(trophies[0].querySelector<HTMLElement>('.channel-top-glyph')!.style.maskImage,
       /trophy-solid-full\.svg/)
-    trophies[0].click()
-    trophies[1].click()
+    const cards = [...view.querySelectorAll('.channel-card')]
+    for (const card of cards) {
+      const trigger = card.querySelector<HTMLButtonElement>('.channel-options-trigger')!
+      trigger.click()
+      assert.equal(trigger.getAttribute('aria-expanded'), 'true')
+      card.querySelector<HTMLButtonElement>('.channel-options-item')!.click()
+      assert.equal(trigger.getAttribute('aria-expanded'), 'false')
+    }
     assert.deepEqual(marked, demoChannelIds)
   } finally {
     globalThis.document = original
