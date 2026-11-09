@@ -1,5 +1,5 @@
 export interface Route {
-  page: 'favorites' | 'videos' | 'channels' | 'stories' | 'completed' | 'deprioritized' | 'queue' | 'usage'
+  page: 'favorites' | 'videos' | 'channels' | 'stories' | 'completed' | 'deprioritized' | 'queue' | 'summary' | 'usage'
   channelId: string
 }
 
@@ -12,6 +12,7 @@ export function routeFromHash(hash: string): Route {
   if (hash === '#completed') return { page: 'completed', channelId: '' }
   if (hash === '#deprioritized') return { page: 'deprioritized', channelId: '' }
   if (hash === '#queue') return { page: 'queue', channelId: '' }
+  if (hash === '#summary') return { page: 'summary', channelId: '' }
   if (hash === '#usage') return { page: 'usage', channelId: '' }
   if (storySequenceId(hash)) return { page: 'videos', channelId: '' }
   const channelId = hash.match(new RegExp(`^#videos/(${uuid})(?:/marked)?$`))?.[1] ?? ''

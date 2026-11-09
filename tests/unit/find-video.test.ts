@@ -55,7 +55,7 @@ test('menu escondido oferece buscas distintas e usa a ação da página', async 
   } finally { globalThis.document = original; dom.window.close() }
 })
 
-test('menu aparece em Favoritos e Minhas histórias, sem ocupar as outras páginas', () => {
+test('menu aparece em Favoritos e Minhas histórias, quando configurado', () => {
   const original = globalThis.document
   const dom = new JSDOM('<!doctype html><html><body></body></html>')
   globalThis.document = dom.window.document
@@ -66,8 +66,10 @@ test('menu aparece em Favoritos e Minhas histórias, sem ocupar as outras págin
     const videos = (mode: 'favorites' | 'videos') => videoView({ mode, videos: demoVideos,
       channels: demoChannels, filter: { query: '', status: 'all', channelId: '' }, sort: 'recent',
       hasMore: false, onFilter: () => {}, onSort: () => {}, onToggle: () => {},
-      onFollow: () => {}, trackedVideoIds: new Set(), onLoadMore: () => {}, finder })
+      onFollow: () => {}, trackedVideoIds: new Set(), onLoadMore: () => {},
+      finder: mode === 'favorites' ? finder : undefined })
     assert.ok(videos('favorites').querySelector('.find-video-trigger'))
+    assert.equal(videos('favorites').querySelector('.favorite-toolbar-controls > input'), null)
     assert.equal(videos('videos').querySelector('.find-video-trigger'), null)
     const stories = (mode: 'active' | 'completed') => storiesView({
       data: { groups: [], completed: [], pendingCount: 0 }, mode, channels: demoChannels,

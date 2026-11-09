@@ -25,6 +25,7 @@ import { makeVideoLoader } from './video-loading.ts'
 import { sequencePage } from './sequence-page.ts'
 import { loadUsage, usageView } from '../features/usage/index.ts'
 import { makeFindHandlers } from './find-handlers.ts'
+import { summaryPage } from './summary-page.ts'
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = '', authMessage = ''
 const channelPages = new ChannelPages(), loadMore = makeVideoLoader(channelPages, () => userId, render)
@@ -129,6 +130,7 @@ function render(): void {
       ...group.pending.map((item) => item.video_id)
     ]).filter((id): id is string => !!id))
     main.append(state.page === 'usage' ? usageView(state.demo ? undefined : () => loadUsage(supabase!, userId))
+      : state.page === 'summary' ? summaryPage(state, supabase, userId)
       : state.page === 'stories' || state.page === 'completed' ? (state.storiesError
       ? notice(state.storiesError, 'error') : storiesView({
         data: state.stories, mode: state.page === 'completed' ? 'completed' : 'active',
@@ -170,10 +172,11 @@ function render(): void {
         }
       },
       onToggle: (video, key) => { void actions.toggleVideo(video, key) },
-      onSaveYouTube: (video, mode) => { void actions.addYouTubeVideo(video, mode) },
-      onLookupYouTube: (input) => lookupYouTube(supabase!, userId, input, state.page as 'queue' | 'deprioritized'),
-      onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) }, onRevealVideo: (id, mode) => actions.revealCollectionVideo(id, mode),
-      onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds, finder: state.page === 'favorites' ? findHandlers.favorites : undefined
+      onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) },
+      onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds,
+      finder: state.page === 'favorites' ? findHandlers.favorites
+        : state.page === 'queue' ? findHandlers.queue
+          : state.page === 'deprioritized' ? findHandlers.deprioritized : undefined
     })) : channelView({
       channels: state.channels, requests: state.requests, videos: state.videos, topFilter: state.channelTopFilter, onTopFilter: (value) => { state.channelTopFilter = value; render() },
       busy: state.busy,
@@ -186,15 +189,12 @@ function render(): void {
   root.append(shell)
 }
 window.addEventListener('hashchange', () => {
-  const route = routeFromHash(location.hash)
-  state.page = route.page
+  const route = routeFromHash(location.hash); state.page = route.page
   state.filter = { query: '', status: isMarkedRoute(location.hash) ? 'marked' : 'all', channelId: route.channelId }
-  state.sort = 'recent'; channelPages.reset()
-  render()
+  state.sort = 'recent'; channelPages.reset(); render()
   if (route.page === 'videos' && route.channelId) {
     if (state.filter.status === 'marked') void act(() => loadMarkedPage(state, supabase!, userId), false)
     else void loadMore(true) }
-  if (route.page === 'stories') discoverStories()
-})
+  if (route.page === 'stories') discoverStories() })
 supabase?.auth.onAuthStateChange((event, session) => auth.handle(event, session?.user.id))
 if (!state.demo && configured) void auth.start(); else render()

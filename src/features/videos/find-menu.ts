@@ -3,7 +3,7 @@ import { validVideoUrl, type Video } from '../../shared/model.ts'
 import type { YouTubeResult } from '../../shared/saved-youtube.ts'
 
 export interface FindVideoOptions {
-  target: 'favorites' | 'stories'
+  target: 'favorites' | 'stories' | 'queue' | 'deprioritized'
   searchReplay: (input: string) => Promise<Video[]>
   searchYouTube: (input: string) => Promise<YouTubeResult>
   isAdded: (youtubeId: string) => boolean
@@ -121,7 +121,8 @@ function resultRow(
   const channel = 'channel_name' in video ? video.channel_name : video.channel?.name ?? 'Canal'
   info.append(element('strong', '', video.title), element('span', '', channel))
   const added = options.isAdded(video.youtube_video_id)
-  const label = added ? 'Mostrar na página' : options.target === 'favorites' ? 'Favoritar' : 'Acompanhar'
+  const label = added ? 'Mostrar na página' : options.target === 'favorites' ? 'Favoritar'
+    : options.target === 'stories' ? 'Acompanhar' : options.target === 'queue' ? 'Adicionar à fila' : 'Despriorizar'
   const action = button(label, () => {
     if (added) { options.showAdded(video.youtube_video_id); return }
     action.disabled = true

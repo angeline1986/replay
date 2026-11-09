@@ -2,10 +2,8 @@ import { button, element, notice } from '../../shared/dom.ts'
 import { filterVideos, validVideoUrl, type Channel, type Video, type VideoFilter } from '../../shared/model.ts'
 import { iconButton } from './icons.ts'
 import { favoriteVideoGroups } from './favorites.ts'
-import { youtubeSearchView } from './youtube-search.ts'
 import { findVideoMenu, type FindVideoOptions } from './find-menu.ts'
 import { channelPicker } from '../../shared/channel-picker.ts'
-import type { YouTubeLookupResult, YouTubeResult } from '../../shared/saved-youtube.ts'
 
 interface VideoViewOptions {
   mode: 'favorites' | 'videos' | 'deprioritized' | 'queue'
@@ -23,10 +21,7 @@ interface VideoViewOptions {
   onFollow: (video: Video) => void
   trackedVideoIds: Set<string>
   onLoadMore: () => void
-  onSaveYouTube?: (video: YouTubeResult, mode: 'queue' | 'deprioritized') => void
-  onLookupYouTube?: (input: string) => Promise<YouTubeLookupResult>
   onToggleSaved?: (video: Video, key: 'is_queued' | 'is_deprioritized') => void
-  onRevealVideo?: (youtubeId: string, mode: 'queue' | 'deprioritized') => void
   finder?: FindVideoOptions
 }
 
@@ -46,13 +41,15 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   heading.append(intro)
 
   const filters = element('div', 'favorite-toolbar-controls')
-  const search = element('input')
-  search.type = 'search'
-  search.placeholder = '⌕  Buscar vídeo...'
-  search.setAttribute('aria-label', 'Buscar vídeo')
-  search.value = options.filter.query
-  search.addEventListener('input', () => options.onFilter({ ...options.filter, query: search.value }))
-  filters.append(search)
+  if (options.mode === 'videos') {
+    const search = element('input')
+    search.type = 'search'
+    search.placeholder = '⌕  Buscar vídeo...'
+    search.setAttribute('aria-label', 'Buscar vídeo')
+    search.value = options.filter.query
+    search.addEventListener('input', () => options.onFilter({ ...options.filter, query: search.value }))
+    filters.append(search)
+  }
   if (options.mode === 'favorites' || options.mode === 'videos') {
     const status = element('select', 'favorite-status')
     status.setAttribute('aria-label', 'Filtrar vídeos por status')
@@ -98,14 +95,9 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   sort.value = options.sort
   sort.addEventListener('change', () => options.onSort(sort.value as VideoViewOptions['sort']))
   filters.append(sort)
-  if (favorites && options.finder) filters.append(findVideoMenu(options.finder))
+  if (options.finder) filters.append(findVideoMenu(options.finder))
   heading.append(filters)
   root.append(heading)
-  if ((options.mode === 'queue' || options.mode === 'deprioritized') && options.onSaveYouTube && options.onLookupYouTube) {
-    root.append(youtubeSearchView(options.mode, options.onLookupYouTube, (video) => options.onSaveYouTube?.(video,
-      options.mode as 'queue' | 'deprioritized'), options.onRevealVideo
-      ? (id) => options.onRevealVideo?.(id, options.mode as 'queue' | 'deprioritized') : undefined))
-  }
 
   // Com ambos os selects em "Todos", mostrar apenas o último vídeo de cada canal.
   const onePerChannel = !collection && options.filter.status === 'all' && !options.filter.channelId

@@ -16,7 +16,7 @@ export interface AppState {
   storiesError: string
   hasMore: boolean
   filter: VideoFilter
-  page: 'favorites' | 'videos' | 'channels' | 'stories' | 'completed' | 'deprioritized' | 'queue' | 'usage'
+  page: 'favorites' | 'videos' | 'channels' | 'stories' | 'completed' | 'deprioritized' | 'queue' | 'summary' | 'usage'
   sort: 'recent' | 'az'
   channelTopFilter: 'all' | 'top-first' | 'top-only'
   storyChannelId: string

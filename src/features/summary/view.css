@@ -1,0 +1,21 @@
+.summary-page .favorites-toolbar h1 { margin: 0; font-size: 20px; letter-spacing: -.55px; }
+.summary-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.summary-metric { display: flex; flex-direction: column; gap: 8px; padding: 16px;
+  border: 1px solid #e2e6ef; border-radius: 11px; background: #fff; color: #20283a;
+  text-decoration: none; box-shadow: 0 2px 8px #20283a08; }
+.summary-metric:hover { border-color: #8b80e8; }
+.summary-metric span { color: #66738d; font-size: 12px; }
+.summary-metric strong { font-size: 23px; line-height: 1; }
+.summary-table-section { padding: 16px; border: 1px solid #e2e6ef; border-radius: 12px; background: #fff; }
+.summary-table-section h2 { margin: 0 0 12px; font-size: 16px; }
+.summary-table-scroll { overflow-x: auto; }
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+.summary-table th { padding: 10px; border-bottom: 1px solid #dfe4ee; color: #66738d; font-weight: 650; white-space: nowrap; }
+.summary-table td { padding: 11px 10px; border-bottom: 1px solid #edf0f5; vertical-align: top; }
+.summary-table tr:last-child td { border-bottom: 0; }
+.summary-table td:nth-child(2) { min-width: 260px; max-width: 500px; }
+.summary-table td:nth-child(3) { white-space: nowrap; }
+.summary-table a { color: #5143d2; font-weight: 600; text-decoration: none; }
+.summary-table a:hover { text-decoration: underline; }
+.summary-mark { display: inline-block; margin: 0 5px 5px 0; padding: 3px 7px;
+  border-radius: 6px; background: #f0edff; color: #5143d2; font-size: 11px; white-space: nowrap; }

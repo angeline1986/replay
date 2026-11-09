@@ -33,7 +33,7 @@ test('Concluídos usa a mesma busca do YouTube com ação de adicionar', async (
   } finally { globalThis.document = original; dom.window.close() }
 })
 
-test('fila busca vídeo no YouTube e oferece adicioná-lo sem cadastrar canal', async () => {
+test('fila oferece busca no YouTube pelo menu compacto sem campos de busca visíveis', async () => {
   const original = globalThis.document
   const dom = new JSDOM('<!doctype html><html><body></body></html>')
   globalThis.document = dom.window.document
@@ -51,25 +51,49 @@ test('fila busca vídeo no YouTube e oferece adicioná-lo sem cadastrar canal', 
       filter: { query: '', status: 'all', channelId: '' }, sort: 'recent', hasMore: false,
       onFilter: () => {}, onSort: () => {}, onToggle: () => {}, onFollow: () => {},
       trackedVideoIds: new Set(), onLoadMore: () => {},
-      onLookupYouTube: async (input) => { searched = input; return result },
-      onSaveYouTube: (video) => { saved = video.youtube_video_id }
+      finder: { target: 'queue', searchReplay: async () => [],
+        searchYouTube: async (input: string) => { searched = input; return result },
+        isAdded: () => false, selectReplay: async () => {},
+        selectYouTube: async (video) => { saved = video.youtube_video_id }, showAdded: () => {} }
     })
     assert.equal(view.textContent?.includes('Add Canal'), false)
     assert.equal(view.querySelector('.favorite-status'), null)
-    assert.equal(view.querySelector('input[type="search"]')?.getAttribute('aria-label'), 'Buscar vídeo')
-    const input = view.querySelector<HTMLInputElement>('.youtube-search input')!
+    assert.equal(view.querySelector('.favorite-toolbar-controls > input'), null)
+    assert.equal(view.querySelector('.youtube-search'), null)
+    view.querySelector<HTMLButtonElement>('.find-video-trigger')!.click()
+    view.querySelectorAll<HTMLButtonElement>('.find-video-option')[1].click()
+    const input = view.querySelector<HTMLInputElement>('.find-video-form input')!
     input.value = 'https://www.youtube.com/watch?v=Hx2SPzq2h4Q'
-    view.querySelector<HTMLFormElement>('.youtube-search form')!
+    view.querySelector<HTMLFormElement>('.find-video-form')!
       .dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }))
     await new Promise((resolve) => setTimeout(resolve, 0))
     assert.equal(searched, input.value)
     assert.match(view.textContent ?? '', /Vídeo público/)
-    view.querySelector<HTMLButtonElement>('.youtube-preview button')!.click()
+    view.querySelector<HTMLButtonElement>('.find-video-result button')!.click()
     assert.equal(saved, 'Hx2SPzq2h4Q')
   } finally {
     globalThis.document = original
     dom.window.close()
   }
+})
+
+test('despriorizados também usa o menu compacto e remove as buscas visíveis', () => {
+  const original = globalThis.document
+  const dom = new JSDOM('<!doctype html><html><body></body></html>')
+  globalThis.document = dom.window.document
+  try {
+    const view = videoView({ mode: 'deprioritized', videos: demoVideos, collectionVideos: [],
+      channels: demoChannels, filter: { query: '', status: 'all', channelId: '' }, sort: 'recent',
+      hasMore: false, onFilter: () => {}, onSort: () => {}, onToggle: () => {},
+      onFollow: () => {}, trackedVideoIds: new Set(), onLoadMore: () => {},
+      finder: { target: 'deprioritized', searchReplay: async () => [],
+        searchYouTube: async () => { throw new Error('Busca não chamada') },
+        isAdded: () => false, selectReplay: async () => {},
+        selectYouTube: async () => {}, showAdded: () => {} } })
+    assert.ok(view.querySelector('.find-video-trigger'))
+    assert.equal(view.querySelector('.favorite-toolbar-controls > input'), null)
+    assert.equal(view.querySelector('.youtube-search'), null)
+  } finally { globalThis.document = original; dom.window.close() }
 })
 
 test('vídeo já na fila aparece sem ação duplicada', async () => {

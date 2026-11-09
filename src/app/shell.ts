@@ -21,6 +21,7 @@ export function sidebarView(
       ['completed', '✓', 'Concluídos'],
       ['queue', '', 'Fila de espera'],
       ['deprioritized', '', 'Despriorizados'],
+      ['summary', '▤', 'Resumo'],
       ['usage', '▥', 'Consumo']
     ] as const) {
       const link = element('a')

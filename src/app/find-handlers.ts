@@ -12,7 +12,8 @@ export function makeFindHandlers(hooks: {
   storyActions: ReturnType<typeof makeStoryActions>
   userId: () => string
   render: () => void
-}): { favorites: FindVideoOptions; stories: FindVideoOptions } {
+}): { favorites: FindVideoOptions; stories: FindVideoOptions;
+  queue: FindVideoOptions; deprioritized: FindVideoOptions } {
   const searchReplay: FindVideoOptions['searchReplay'] = (input) => {
     if (state.demo) {
       const term = input.trim().toLocaleLowerCase('pt-BR')
@@ -23,7 +24,7 @@ export function makeFindHandlers(hooks: {
     if (!supabase) return Promise.reject(new Error('RePlay indisponível.'))
     return findReplayVideos(supabase, hooks.userId(), input, state.channels)
   }
-  function searchYouTube(input: string, mode: 'favorites' | 'stories') {
+  function searchYouTube(input: string, mode: 'favorites' | 'stories' | 'queue' | 'deprioritized') {
     if (!supabase) return Promise.reject(new Error('Busca no YouTube indisponível no modo demonstração.'))
     return lookupYouTube(supabase, hooks.userId(), input, mode)
   }
@@ -62,5 +63,20 @@ export function makeFindHandlers(hooks: {
     },
     showAdded: showStory
   }
-  return { favorites, stories }
+  function collection(mode: 'queue' | 'deprioritized'): FindVideoOptions {
+    const flag = mode === 'queue' ? 'is_queued' : 'is_deprioritized'
+    const isAdded = (id: string) => (state.demo ? state.videos.filter((video) => video.state?.[flag])
+      : mode === 'queue' ? state.queuedVideos : state.deprioritizedVideos)
+      .some((video) => video.youtube_video_id === id)
+    return {
+      target: mode, searchReplay, searchYouTube: (input) => searchYouTube(input, mode), isAdded,
+      selectReplay: async (video) => {
+        if (!video.state?.[flag]) await hooks.actions.toggleVideo(video, flag)
+        if (!state.error) hooks.actions.revealCollectionVideo(video.youtube_video_id, mode)
+      },
+      selectYouTube: (video) => hooks.actions.addYouTubeVideo(video, mode),
+      showAdded: (id) => hooks.actions.revealCollectionVideo(id, mode)
+    }
+  }
+  return { favorites, stories, queue: collection('queue'), deprioritized: collection('deprioritized') }
 }
