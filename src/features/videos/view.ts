@@ -112,9 +112,9 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     .filter((video) => options.mode !== 'favorites' || video.state?.is_favorite)
     .filter((video) => options.mode !== 'deprioritized' || video.state?.is_deprioritized)
     .filter((video) => options.mode !== 'queue' || video.state?.is_queued)
+  const recentAt = (video: Video) => recentDate(video, options.mode)
   if (options.sort === 'az') filtered.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'))
-  else if (options.mode === 'queue') filtered.sort((a, b) =>
-    Date.parse(queueDate(b)) - Date.parse(queueDate(a)))
+  else filtered.sort((a, b) => Date.parse(recentAt(b)) - Date.parse(recentAt(a)))
   countBadge.textContent = String(filtered.length)
   if (!filtered.length) {
     const empty = options.mode === 'deprioritized' ? 'Nenhum vídeo despriorizado ainda.'
@@ -124,7 +124,7 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     root.append(notice(empty))
   } else if (collection) {
     root.append(favoriteVideoGroups(filtered, options.channels, options.sort,
-      (video) => videoCard(video, options), options.mode === 'queue' ? queueDate : undefined))
+      (video) => videoCard(video, options), recentAt))
   } else {
     const grid = element('div', 'video-grid')
     for (const video of filtered) grid.append(videoCard(video, options))
@@ -134,8 +134,11 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   return root
 }
 
-function queueDate(video: Video): string {
-  return video.state?.queued_at ?? video.published_at
+function recentDate(video: Video, mode: VideoViewOptions['mode']): string {
+  if (mode === 'queue') return video.state?.queued_at ?? video.published_at
+  if (mode === 'favorites') return video.state?.favorited_at ?? video.published_at
+  if (mode === 'deprioritized') return video.state?.deprioritized_at ?? video.published_at
+  return video.published_at
 }
 
 function videoCard(

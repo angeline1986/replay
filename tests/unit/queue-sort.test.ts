@@ -33,3 +33,32 @@ test('Recentes na fila ordena canais e vídeos pela data adicionada, não pela p
       ['Último adicionado', 'Primeiro na fila', 'Outro canal'])
   } finally { globalThis.document = original; dom.window.close() }
 })
+
+for (const [mode, flag, date] of [
+  ['favorites', 'is_favorite', 'favorited_at'],
+  ['deprioritized', 'is_deprioritized', 'deprioritized_at']
+] as const) {
+  test(`Recentes em ${mode} usa a data da classificação, inclusive entre canais`, () => {
+    const original = globalThis.document
+    const dom = new JSDOM('<!doctype html><html><body></body></html>')
+    globalThis.document = dom.window.document
+    try {
+      const videos = [
+        { ...demoVideos[0], id: 'older', title: 'Publicado ontem',
+          published_at: '2026-11-08T00:00:00Z',
+          state: { video_id: 'older', is_favorite: false, is_watched: false,
+            [flag]: true, [date]: '2026-11-08T10:00:00Z' } },
+        { ...demoVideos[1], id: 'newer', title: 'Marcado agora',
+          published_at: '2025-01-01T00:00:00Z',
+          state: { video_id: 'newer', is_favorite: false, is_watched: false,
+            [flag]: true, [date]: '2026-11-09T10:00:00Z' } }
+      ]
+      const view = videoView({ mode, videos: [], collectionVideos: videos,
+        channels: demoChannels, filter: { query: '', status: 'all', channelId: '' },
+        sort: 'recent', hasMore: false, onFilter: () => {}, onSort: () => {},
+        onToggle: () => {}, onFollow: () => {}, trackedVideoIds: new Set(), onLoadMore: () => {} })
+      assert.deepEqual([...view.querySelectorAll('.video-card h2')].map((node) => node.textContent),
+        ['Marcado agora', 'Publicado ontem'])
+    } finally { globalThis.document = original; dom.window.close() }
+  })
+}
