@@ -1,7 +1,7 @@
 import { button } from '../../shared/dom.ts'
 
 // Ícones fornecidos pelo usuário (Font Awesome Free).
-type IconName = 'star' | 'eye' | 'eye-slash' | 'runner' | 'heart-crack' | 'hourglass' | 'check-double'
+export type IconName = 'star' | 'eye' | 'eye-slash' | 'runner' | 'heart-crack' | 'hourglass' | 'check-double'
 const suppliedIcons: Partial<Record<IconName, string>> = {
   'heart-crack': new URL('../../assets/icons/heart-crack-solid-full.svg', import.meta.url).href,
   hourglass: new URL('../../assets/icons/hourglass-half-solid-full.svg', import.meta.url).href,

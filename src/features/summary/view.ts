@@ -2,6 +2,7 @@ import { element, notice } from '../../shared/dom.ts'
 import { validVideoUrl, type Channel, type Video } from '../../shared/model.ts'
 import type { StoryDashboard } from '../../shared/story-model.ts'
 import type { SummaryData, SummaryRow } from './data.ts'
+import { iconGlyph, type IconName } from '../videos/icons.ts'
 
 interface SummaryOptions {
   channels: Channel[]
@@ -27,25 +28,30 @@ function mergeStories(rows: SummaryRow[], stories: StoryDashboard): SummaryRow[]
   return [...merged.values()].sort((a, b) => Date.parse(b.addedAt) - Date.parse(a.addedAt))
 }
 
-function marks(video: Video, stories: StoryDashboard): string[] {
-  const labels: string[] = []
-  if (video.state?.is_favorite) labels.push('Favorito')
-  if (video.state?.is_watched) labels.push('Visto')
-  if (video.state?.is_queued) labels.push('Fila de espera')
-  if (video.state?.is_deprioritized) labels.push('Despriorizado')
+interface Mark { label: string; icon: IconName }
+
+function marks(video: Video, stories: StoryDashboard): Mark[] {
+  const labels: Mark[] = []
+  if (video.state?.is_favorite) labels.push({ label: 'Favorito', icon: 'star' })
+  if (video.state?.is_watched) labels.push({ label: 'Visto', icon: 'eye' })
   const includes = (group: StoryDashboard['groups'][number]) =>
     group.seed?.youtube_video_id === video.youtube_video_id ||
     group.confirmed.some((item) => item.video.youtube_video_id === video.youtube_video_id)
-  if (stories.groups.some(includes)) labels.push('Acompanhando')
-  if (stories.completed.some(includes)) labels.push('Concluído')
+  if (stories.groups.some(includes)) labels.push({ label: 'Acompanhando', icon: 'runner' })
+  if (video.state?.is_queued) labels.push({ label: 'Fila de espera', icon: 'hourglass' })
+  if (video.state?.is_deprioritized) labels.push({ label: 'Despriorizado', icon: 'heart-crack' })
+  if (stories.completed.some(includes)) labels.push({ label: 'Concluído', icon: 'check-double' })
   return labels
 }
 
 function metrics(options: SummaryOptions, launchCount: number): HTMLElement {
   const grid = element('div', 'summary-metrics')
+  const withContinuation = [...options.stories.groups, ...options.stories.completed]
+    .filter((group) => group.confirmed.length + group.pending.length > 0).length
   const items: [string, number, string][] = [
     ['Vídeos favoritos', options.favorites.length, '#favorites'],
     ['Minhas histórias', options.stories.groups.length, '#stories'],
+    ['Vídeos com continuação', withContinuation, '#stories'],
     ['Canais monitorados', options.channels.length, '#channels'],
     ['Lançamentos', launchCount, '#videos'],
     ['Concluídos', options.stories.completed.length, '#completed'],
@@ -85,7 +91,14 @@ function table(rows: SummaryRow[], options: SummaryOptions): HTMLElement {
     videoCell.append(link)
     row.append(videoCell, element('td', '', new Date(addedAt).toLocaleDateString('pt-BR')))
     const markCell = element('td')
-    for (const label of marks(video, options.stories)) markCell.append(element('span', 'summary-mark', label))
+    for (const mark of marks(video, options.stories)) {
+      const icon = element('span', `summary-mark-icon summary-mark-${mark.icon}`)
+      icon.title = mark.label
+      icon.setAttribute('role', 'img')
+      icon.setAttribute('aria-label', mark.label)
+      icon.append(iconGlyph(mark.icon))
+      markCell.append(icon)
+    }
     row.append(markCell)
     body.append(row)
   }

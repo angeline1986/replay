@@ -17,5 +17,11 @@
 .summary-table td:nth-child(3) { white-space: nowrap; }
 .summary-table a { color: #5143d2; font-weight: 600; text-decoration: none; }
 .summary-table a:hover { text-decoration: underline; }
-.summary-mark { display: inline-block; margin: 0 5px 5px 0; padding: 3px 7px;
-  border-radius: 6px; background: #f0edff; color: #5143d2; font-size: 11px; white-space: nowrap; }
+.summary-mark-icon { display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; margin: 0 5px 5px 0; border: 1px solid #e0e3eb;
+  border-radius: 8px; background: #f0edff; color: #5143d2; vertical-align: middle; }
+.summary-mark-icon svg { display: block; width: 17px; height: 17px; fill: currentColor; }
+.summary-mark-icon .supplied-svg-icon { width: 17px; height: 17px; }
+.summary-mark-star { color: #b47718; background: #fff8e9; }
+.summary-mark-hourglass { color: #bc7d1b; background: #fff7e8; }
+.summary-mark-heart-crack { color: #d64d64; background: #fff0f2; }

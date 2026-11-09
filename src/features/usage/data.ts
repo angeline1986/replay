@@ -44,7 +44,8 @@ export function summarizeUsage(runs: SyncRun[], attempts: Attempt[], now = new D
   const lower = channelCalls + playlistMinimum + todayAttempts.filter((row) => row.status === 'done').length
   const upper = channelCalls + todayRuns.length * 2 + todayAttempts.length * 2
   return { day, lower, upper, channels: todayRuns.length, attempts: todayAttempts.length,
-    lastCheck: todayRuns.at(-1)?.started_at ?? null }
+    lastCheck: runs.reduce<string | null>((latest, row) => !latest || row.started_at > latest
+      ? row.started_at : latest, null) }
 }
 
 export async function loadUsage(db: SupabaseClient, ownerId: string): Promise<UsageSummary> {

@@ -18,6 +18,17 @@ test('consumo usa o dia da cota no Pacífico e separa coleta de cadastros', () =
     channels: 2, attempts: 1, lastCheck: '2026-11-08T08:02:00Z' })
 })
 
+test('dia sem coleta mostra zero e preserva a data da última coleta registrada', () => {
+  const summary = summarizeUsage([
+    { started_at: '2026-11-08T23:24:00Z', status: 'success', item_count: 41 }
+  ], [], new Date('2026-11-09T17:15:00Z'))
+  assert.equal(summary.day, '2026-11-09')
+  assert.equal(summary.lower, 0)
+  assert.equal(summary.upper, 0)
+  assert.equal(summary.channels, 0)
+  assert.equal(summary.lastCheck, '2026-11-08T23:24:00Z')
+})
+
 test('página mostra estimativa identificável e link para o total oficial', async () => {
   const original = globalThis.document
   const dom = new JSDOM('<!doctype html><html><body></body></html>')

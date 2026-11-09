@@ -29,9 +29,9 @@ function details(summary: UsageSummary): HTMLElement {
   const day = summary.day.split('-').reverse().join('/')
   const last = summary.lastCheck ? new Date(summary.lastCheck).toLocaleString('pt-BR', {
     timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short'
-  }) : 'Nenhuma coleta registrada hoje'
+  }) : 'Nenhuma coleta registrada'
   const info = element('p', 'usage-note',
-    `Dia da cota: ${day} (horário do Pacífico). Última coleta: ${last}.`)
+    `Dia da cota: ${day} (horário do Pacífico). Última coleta registrada: ${last}.`)
   const caveat = element('p', 'usage-note',
     'Estimativa das coletas e cadastros registrados pelo RePlay. Buscas avulsas e outros usos da chave não entram neste cálculo; o total exato fica no Google Cloud.')
   const cloud = element('a', 'usage-cloud', 'Ver total exato no Google Cloud ↗')
