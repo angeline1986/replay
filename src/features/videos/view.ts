@@ -164,22 +164,18 @@ function videoCard(
   const follow = iconButton(following ? 'História já acompanhada' : 'Acompanhar esta história',
     'runner', () => options.onFollow(video), following)
   follow.disabled = following
-  if (video.external) actions.append(
-    iconButton(queued ? 'Remover da fila de espera' : 'Adicionar à fila de espera',
-      'hourglass', () => options.onToggleSaved?.(video, 'is_queued'), queued),
-    iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo',
-      'heart-crack', () => options.onToggleSaved?.(video, 'is_deprioritized'), deprioritized)
-  )
-  else actions.append(
+  actions.append(
     iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
       'star', () => options.onToggle(video, 'is_favorite'), favorite),
     iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto',
       watched ? 'eye' : 'eye-slash', () => options.onToggle(video, 'is_watched'), watched),
     follow,
     iconButton(queued ? 'Remover da fila de espera' : 'Adicionar à fila de espera',
-      'hourglass', () => options.onToggle(video, 'is_queued'), queued),
+      'hourglass', () => video.external ? options.onToggleSaved?.(video, 'is_queued')
+        : options.onToggle(video, 'is_queued'), queued),
     iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo',
-      'heart-crack', () => options.onToggle(video, 'is_deprioritized'), deprioritized)
+      'heart-crack', () => video.external ? options.onToggleSaved?.(video, 'is_deprioritized')
+        : options.onToggle(video, 'is_deprioritized'), deprioritized)
   )
   body.append(actions)
   card.append(body)

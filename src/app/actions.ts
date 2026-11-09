@@ -4,6 +4,7 @@ import { validChannelId, type Channel, type Video } from '../shared/model.ts'
 import { normalizeChannelInput } from '../features/channels/normalize.ts'
 import { importChannelNow } from '../shared/import-channel.ts'
 import { addYouTubeWithChannel, type YouTubeResult } from '../shared/saved-youtube.ts'
+import { promoteSavedVideo } from '../shared/promote-saved-video.ts'
 
 interface Hooks {
   render: () => void
@@ -13,6 +14,15 @@ interface Hooks {
 
 export function makeActions(hooks: Hooks) {
   async function toggleVideo(video: Video, key: 'is_favorite' | 'is_watched' | 'is_deprioritized' | 'is_queued'): Promise<void> {
+    const db = supabase
+    if (video.external && !state.demo && db) {
+      await hooks.act(async () => {
+        const stored = await promoteSavedVideo(db, hooks.userId(), video, importChannelNow)
+        stored.state![key] = !stored.state![key]
+        await saveVideoState(hooks.userId(), stored)
+      })
+      return
+    }
     video.state ??= { video_id: video.id, is_favorite: false, is_watched: false }
     video.state[key] = !video.state[key]
     if (state.demo) { hooks.render(); return }

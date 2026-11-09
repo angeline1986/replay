@@ -8,6 +8,7 @@ import { importChannelNow } from '../shared/import-channel.ts'
 import { distinctEnough } from '../shared/story-match.ts'
 import { scanStoryNow } from '../shared/story-discovery.ts'
 import { rememberStoryScan } from './story-snapshot.ts'
+import { promoteSavedVideo } from '../shared/promote-saved-video.ts'
 
 interface Hooks {
   act: (operation: () => Promise<void>) => Promise<void>
@@ -81,8 +82,9 @@ export function makeStoryActions(hooks: Hooks) {
     let completed = false
     let scanFailed = false
     await hooks.act(async () => {
-      const result = await followStory(client(), hooks.userId(), video.id, name, aliases)
-      if (result.existing) await attachStoryVideo(client(), result.id, video.id)
+      const stored = video.external ? await promoteSavedVideo(client(), hooks.userId(), video, importChannelNow) : video
+      const result = await followStory(client(), hooks.userId(), stored.id, name, aliases)
+      if (result.existing) await attachStoryVideo(client(), result.id, stored.id)
       try { await scanStoryNow(client(), result.id); rememberStoryScan(result.id) }
       catch { scanFailed = true }
       completed = true

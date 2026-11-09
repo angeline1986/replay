@@ -25,6 +25,27 @@ export default {
       ? (body as Record<string, unknown>).save === true : false
     const id = videoId(input)
     if (!id) return Response.json({ error: 'Cole um link válido de vídeo do YouTube.' }, { status: 400 })
+    if (save) {
+      const cached = await ctx.supabase.from('saved_youtube_videos')
+        .select('youtube_channel_id,channel_name,title,thumbnail_url,published_at')
+        .eq('user_id', ctx.userClaims.id).eq('youtube_video_id', id).maybeSingle()
+      if (cached.error) return Response.json({ error: 'Falha ao consultar vídeo salvo.' }, { status: 503 })
+      if (cached.data) {
+        const channel = await ctx.supabase.from('channels').select('id')
+          .eq('owner_id', ctx.userClaims.id).eq('youtube_channel_id', cached.data.youtube_channel_id).maybeSingle()
+        if (channel.error || !channel.data) {
+          return Response.json({ error: 'Cadastre o canal antes de salvar o vídeo.' }, { status: 409 })
+        }
+        if (!ctx.supabaseAdmin) return Response.json({ error: 'Backend não configurado.' }, { status: 503 })
+        const saved = await ctx.supabaseAdmin.from('videos').upsert({
+          channel_id: channel.data.id, youtube_video_id: id, title: cached.data.title,
+          url: `https://www.youtube.com/watch?v=${id}`, thumbnail_url: cached.data.thumbnail_url,
+          published_at: cached.data.published_at
+        }, { onConflict: 'channel_id,youtube_video_id' }).select('id').single()
+        if (saved.error || !saved.data) return Response.json({ error: 'Não foi possível salvar o vídeo.' }, { status: 503 })
+        return Response.json({ youtube_video_id: id, ...cached.data, video_id: saved.data.id })
+      }
+    }
     const key = Deno.env.get('YOUTUBE_API_KEY')
     if (!key) return Response.json({ error: 'Busca do YouTube não configurada.' }, { status: 503 })
     const url = new URL('https://www.googleapis.com/youtube/v3/videos')
