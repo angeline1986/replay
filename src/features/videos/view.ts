@@ -133,7 +133,12 @@ function videoCard(
   options: VideoViewOptions
 ): HTMLElement {
   const card = element('article', options.mode !== 'videos' ? 'video-card favorite-video-card' : 'video-card')
-  const image = element('div', 'video-art')
+  const image = element('a', 'video-art')
+  image.href = validVideoUrl(video.youtube_video_id)
+  image.target = '_blank'
+  image.rel = 'noopener noreferrer'
+  image.title = 'Abrir vídeo no YouTube'
+  image.setAttribute('aria-label', image.title)
   if (video.thumbnail_url) {
     const img = element('img')
     img.src = video.thumbnail_url
@@ -144,16 +149,11 @@ function videoCard(
     image.append(img)
   }
   image.append(element('span', 'play-mark', '▶'))
+  if (!video.state) image.append(element('span', 'new-badge', 'Novo'))
   card.append(image)
   const body = element('div', 'video-body')
   const meta = element('p', 'video-meta', `${video.channel?.name ?? 'Canal'} · ${new Date(video.published_at).toLocaleDateString('pt-BR')}`)
   const title = element('h2', '', video.title)
-  const link = element('a', 'video-link', '↗')
-  link.href = validVideoUrl(video.youtube_video_id)
-  link.target = '_blank'
-  link.rel = 'noopener noreferrer'
-  link.title = 'Abrir vídeo no YouTube'
-  link.setAttribute('aria-label', link.title)
   body.append(title, meta)
   const actions = element('div', 'card-actions')
   const following = options.trackedVideoIds.has(video.id)
@@ -181,10 +181,6 @@ function videoCard(
     iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo',
       'heart-crack', () => options.onToggle(video, 'is_deprioritized'), deprioritized)
   )
-  const open = element('span', 'video-open')
-  if (!video.state) open.append(element('span', 'new-badge', 'Novo'))
-  open.append(link)
-  actions.append(open)
   body.append(actions)
   card.append(body)
   return card

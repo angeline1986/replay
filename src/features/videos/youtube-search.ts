@@ -1,4 +1,5 @@
 import { button, element, notice } from '../../shared/dom.ts'
+import { validVideoUrl } from '../../shared/model.ts'
 import type { YouTubeLookupResult, YouTubeResult } from '../../shared/saved-youtube.ts'
 
 export function youtubeSearchView(
@@ -28,15 +29,25 @@ export function youtubeSearchView(
       image.src = video.thumbnail_url
       image.alt = ''
       image.referrerPolicy = 'no-referrer'
+      const imageLink = element('a', 'youtube-preview-link')
+      imageLink.href = validVideoUrl(video.youtube_video_id)
+      imageLink.target = '_blank'
+      imageLink.rel = 'noopener noreferrer'
+      imageLink.title = 'Abrir vídeo no YouTube'
+      imageLink.setAttribute('aria-label', imageLink.title)
+      imageLink.append(image)
       const info = element('div', 'youtube-preview-info')
       info.append(element('strong', '', video.title), element('span', '', video.channel_name))
+      if (video.from_replay && !video.already_added) {
+        info.append(element('span', 'youtube-local-note', 'Importado no RePlay; ainda fora desta lista.'))
+      }
       const action = button(video.already_added
-        ? 'Já está no RePlay'
+        ? mode === 'queue' ? 'Já está na fila' : mode === 'completed' ? 'Já está nos concluídos' : 'Já está despriorizado'
         : mode === 'queue' ? 'Adicionar à fila' : mode === 'completed' ? 'Adicionar aos concluídos' : 'Despriorizar vídeo',
       () => onSave(video), 'primary')
       action.disabled = Boolean(video.already_added)
       info.append(action)
-      preview.append(image, info)
+      preview.append(imageLink, info)
       result.replaceChildren(preview)
     }).catch((error: unknown) => {
       result.replaceChildren(notice(error instanceof Error ? error.message : 'Busca indisponível.', 'error'))

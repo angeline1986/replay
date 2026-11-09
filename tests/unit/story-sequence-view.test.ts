@@ -39,8 +39,9 @@ test('sequência abre em Lançamentos com cartões, ordem de partes e decisões'
     assert.equal(view.querySelectorAll('.video-badge-row').length, 0)
     assert.equal(view.querySelector('.sequence-section h2')?.textContent, 'Possíveis continuações')
     assert.equal(view.querySelector('.sequence-decision .video-meta')?.textContent, 'Confiança alta')
-    assert.equal(view.querySelector('.sequence-card .video-open .video-link')?.textContent, '↗')
-    assert.equal(view.querySelector('.sequence-card .video-open .new-badge')?.textContent, 'Novo')
+    const preview = view.querySelector<HTMLAnchorElement>('.sequence-card .video-art')!
+    assert.equal(preview.hostname, 'www.youtube.com')
+    assert.equal(preview.querySelector('.new-badge')?.textContent, 'Novo')
     assert.deepEqual([...view.querySelectorAll('.sequence-section:last-child .video-card h2')]
       .map((node) => node.textContent), [part40.title, part41.title])
     assert.equal(view.querySelector('.follow-sequence'), null)

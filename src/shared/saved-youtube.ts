@@ -13,6 +13,7 @@ export interface YouTubeResult {
 
 export interface YouTubeLookupResult extends YouTubeResult {
   already_added?: boolean
+  from_replay?: boolean
 }
 
 interface SavedVideo extends YouTubeResult {
@@ -48,9 +49,10 @@ export async function loadSavedYouTube(db: SupabaseClient, userId: string): Prom
 }
 
 export async function lookupYouTube(
-  db: SupabaseClient, userId: string, input: string
+  db: SupabaseClient, userId: string, input: string,
+  collection: 'queue' | 'deprioritized' | 'completed'
 ): Promise<YouTubeLookupResult> {
-  const local = await localYouTubeVideo(db, userId, input)
+  const local = await localYouTubeVideo(db, userId, input, collection)
   if (local) return local
   const { data, error } = await db.functions.invoke<YouTubeResult>('lookup-youtube-video', {
     body: { url: input }

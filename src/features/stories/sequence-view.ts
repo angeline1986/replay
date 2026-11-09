@@ -23,7 +23,12 @@ function byChapter(a: Video, b: Video): number {
 function sequenceCard(video: Video, options: SequenceOptions,
   candidate?: StoryCandidate): HTMLElement {
   const card = element('article', `video-card sequence-card${candidate ? ' is-pending' : ''}`)
-  const art = element('div', 'video-art')
+  const art = element('a', 'video-art')
+  art.href = validVideoUrl(video.youtube_video_id)
+  art.target = '_blank'
+  art.rel = 'noopener noreferrer'
+  art.title = 'Abrir vídeo no YouTube'
+  art.setAttribute('aria-label', art.title)
   if (video.thumbnail_url) {
     const image = element('img')
     image.src = video.thumbnail_url
@@ -34,6 +39,7 @@ function sequenceCard(video: Video, options: SequenceOptions,
     art.append(image)
   }
   art.append(element('span', 'play-mark', '▶'))
+  if (!video.state) art.append(element('span', 'new-badge', 'Novo'))
   const body = element('div', 'video-body')
   const title = element('h2', '', video.title)
   const meta = element('p', 'video-meta', `${video.channel?.name ?? 'Canal'} · ${new Date(video.published_at).toLocaleDateString('pt-BR')}`)
@@ -54,16 +60,6 @@ function sequenceCard(video: Video, options: SequenceOptions,
     iconButton(deprioritized ? 'Remover dos despriorizados' : 'Despriorizar vídeo', 'heart-crack',
       () => options.onToggle(video, 'is_deprioritized'), deprioritized)
   )
-  const link = element('a', 'video-link', '↗')
-  link.href = validVideoUrl(video.youtube_video_id)
-  link.target = '_blank'
-  link.rel = 'noopener noreferrer'
-  link.title = 'Abrir vídeo no YouTube'
-  link.setAttribute('aria-label', link.title)
-  const open = element('span', 'video-open')
-  if (!video.state) open.append(element('span', 'new-badge', 'Novo'))
-  open.append(link)
-  actions.append(open)
   body.append(title, meta, actions)
   card.append(art, body)
   if (candidate) {

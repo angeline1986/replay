@@ -72,10 +72,9 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   assert.equal(view.querySelectorAll('.video-card').length, 1)
   assert.equal(view.querySelector('.new-badge')?.textContent, 'Novo')
   assert.equal(view.querySelector('.favorite-status option')?.textContent, 'Tipo')
-  const open = view.querySelector('.video-open')!
+  const open = view.querySelector<HTMLAnchorElement>('.video-art')!
   assert.equal(open.querySelector('.new-badge')?.textContent, 'Novo')
-  assert.equal(open.querySelector('.video-link')?.textContent, '↗')
-  assert.equal(open.querySelector('.video-link')?.getAttribute('aria-label'), 'Abrir vídeo no YouTube')
+  assert.equal(open.getAttribute('aria-label'), 'Abrir vídeo no YouTube')
   const icons = [...view.querySelectorAll<HTMLButtonElement>('.card-actions .icon-action')]
   assert.equal(icons.length, 5)
   assert.deepEqual(icons.map((node) => node.getAttribute('aria-label')),
@@ -91,7 +90,7 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   assert.equal(icons[1].classList.contains('icon-eye-slash'), true)
   assert.equal(view.querySelector('script'), null)
   assert.match(view.textContent ?? '', /<script>alert\(1\)<\/script>/)
-  assert.equal(view.querySelector<HTMLAnchorElement>('.video-link')?.hostname, 'www.youtube.com')
+  assert.equal(open.hostname, 'www.youtube.com')
   assert.match(view.querySelector('[aria-label="Filtrar vídeos por canal"]')?.textContent ?? '', /Canais/)
   const actions = [...view.querySelectorAll<HTMLButtonElement>('.card-actions button')]
   actions.slice(0, 5).forEach((action) => action.click())

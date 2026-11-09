@@ -135,7 +135,7 @@ function render(): void {
         onChannelSelect: (id) => { if (state.page === 'completed') state.completedChannelId = id; else state.storyChannelId = id; render() },
         query: state.completedQuery, onQuery: (value) => { state.completedQuery = value; render() },
         sort: state.page === 'completed' ? state.completedSort : state.storySort, onSort: (value) => { if (state.page === 'completed') state.completedSort = value; else state.storySort = value; render() },
-        onLookupYouTube: (input) => lookupYouTube(supabase!, userId, input), onSaveYouTube: (video) => { void storyActions.addYouTubeCompleted(video) },
+        onLookupYouTube: (input) => lookupYouTube(supabase!, userId, input, 'completed'), onSaveYouTube: (video) => { void storyActions.addYouTubeCompleted(video) },
         onOpenSequence: (story) => { location.hash = storySequenceRoute(story.id) },
         onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels
       })) : state.page !== 'channels' ? (storySequenceId(location.hash)
@@ -170,7 +170,7 @@ function render(): void {
       },
       onToggle: (video, key) => { void actions.toggleVideo(video, key) },
       onSaveYouTube: (video, mode) => { void actions.addYouTubeVideo(video, mode) },
-      onLookupYouTube: (input) => lookupYouTube(supabase!, userId, input),
+      onLookupYouTube: (input) => lookupYouTube(supabase!, userId, input, state.page as 'queue' | 'deprioritized'),
       onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) },
       onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds
     })) : channelView({

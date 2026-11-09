@@ -11,6 +11,7 @@
 .youtube-search-result .notice { margin: 12px 0 0; }
 .youtube-preview { display: flex; align-items: center; gap: 14px; margin-top: 14px;
   padding-top: 14px; border-top: 1px solid #e6e9f0; }
+.youtube-preview-link { display: block; flex: none; width: 132px; }
 .youtube-preview img { width: 132px; aspect-ratio: 16/9; object-fit: cover; border-radius: 7px; }
 .youtube-preview-info { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
 .youtube-preview-info strong { font-size: 13px; line-height: 1.4; }
@@ -20,5 +21,6 @@
 .youtube-preview-info button:disabled { opacity: .65; cursor: default; }
 @media (max-width: 700px) {
   .youtube-search-form, .youtube-preview { align-items: stretch; flex-direction: column; }
+  .youtube-preview-link { width: 100%; }
   .youtube-preview img { width: 100%; }
 }

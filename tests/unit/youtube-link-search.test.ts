@@ -72,7 +72,7 @@ test('fila busca vídeo no YouTube e oferece adicioná-lo sem cadastrar canal', 
   }
 })
 
-test('vídeo já existente no RePlay aparece sem ação duplicada', async () => {
+test('vídeo já na fila aparece sem ação duplicada', async () => {
   const original = globalThis.document
   const dom = new JSDOM('<!doctype html><html><body></body></html>')
   globalThis.document = dom.window.document
@@ -87,9 +87,35 @@ test('vídeo já existente no RePlay aparece sem ação duplicada', async () => 
     view.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { cancelable: true }))
     await new Promise((resolve) => setTimeout(resolve, 0))
     const action = view.querySelector<HTMLButtonElement>('.youtube-preview button')!
-    assert.equal(action.textContent, 'Já está no RePlay')
+    assert.equal(action.textContent, 'Já está na fila')
     assert.equal(action.disabled, true)
     action.click()
     assert.equal(saved, false)
+  } finally { globalThis.document = original; dom.window.close() }
+})
+
+test('vídeo importado, mas fora da fila, pode ser adicionado sem nova busca no YouTube', async () => {
+  const original = globalThis.document
+  const dom = new JSDOM('<!doctype html><html><body></body></html>')
+  globalThis.document = dom.window.document
+  try {
+    let saved = false
+    const id = '3OWy1FHRLMo'
+    const view = youtubeSearchView('queue', async () => ({
+      youtube_video_id: id, youtube_channel_id: 'UC1234567890123456789012',
+      channel_name: 'Momo Manhwa', title: 'Gênio Militar Reencarnou', thumbnail_url: '',
+      published_at: '2026-01-26T00:00:00Z', already_added: false, from_replay: true
+    }), () => { saved = true })
+    view.querySelector<HTMLInputElement>('input')!.value = `https://www.youtube.com/watch?v=${id}&t=1123s`
+    view.querySelector('form')!.dispatchEvent(new dom.window.Event('submit', { cancelable: true }))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    const action = view.querySelector<HTMLButtonElement>('.youtube-preview button')!
+    assert.equal(action.textContent, 'Adicionar à fila')
+    assert.equal(action.disabled, false)
+    assert.match(view.textContent ?? '', /ainda fora desta lista/)
+    assert.equal(view.querySelector<HTMLAnchorElement>('.youtube-preview-link')?.href,
+      `https://www.youtube.com/watch?v=${id}`)
+    action.click()
+    assert.equal(saved, true)
   } finally { globalThis.document = original; dom.window.close() }
 })
