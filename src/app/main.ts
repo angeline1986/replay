@@ -23,6 +23,7 @@ import { lookupYouTube, toggleSavedYouTube } from '../shared/saved-youtube.ts'
 import { loadMarkedPage } from './marked-page.ts'
 import { makeVideoLoader } from './video-loading.ts'
 import { sequencePage } from './sequence-page.ts'
+import { loadUsage, usageView } from '../features/usage/index.ts'
 const root = document.querySelector<HTMLElement>('#app')!
 let userId = '', authMessage = ''
 const channelPages = new ChannelPages()
@@ -53,11 +54,9 @@ const auth = createAuthGate({
       if (state.filter.status === 'marked') void act(() => loadMarkedPage(state, supabase!, userId), false)
       else void loadMore(true) })
     if (value?.id && state.page === 'stories') queueMicrotask(discoverStories)
-    state.error = ''
-    authMessage = ''
+    state.error = ''; authMessage = ''
   },
-  onError: (error) => { state.error = message(error) },
-  onChange: render
+  onError: (error) => { state.error = message(error) }, onChange: render
 })
 async function refresh(): Promise<void> {
   if (state.demo || !userId) return
@@ -128,7 +127,8 @@ function render(): void {
       group.story.seed_video_id, ...group.confirmed.map((item) => item.video_id),
       ...group.pending.map((item) => item.video_id)
     ]).filter((id): id is string => !!id))
-    main.append(state.page === 'stories' || state.page === 'completed' ? (state.storiesError
+    main.append(state.page === 'usage' ? usageView(state.demo ? undefined : () => loadUsage(supabase!, userId))
+      : state.page === 'stories' || state.page === 'completed' ? (state.storiesError
       ? notice(state.storiesError, 'error') : storiesView({
         data: state.stories, mode: state.page === 'completed' ? 'completed' : 'active',
         selectedChannelId: state.page === 'completed' ? state.completedChannelId : state.storyChannelId,

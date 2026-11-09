@@ -1,4 +1,5 @@
 @import '../shared/channel-picker.css';
+@import '../features/usage/view.css';
 .filters { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 23px; }
 .filters input { flex: 1 1 230px; }
 .filters select { min-width: 145px; }

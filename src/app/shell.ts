@@ -19,6 +19,7 @@ export function sidebarView(
       ['channels', '▣', 'Canais monitorados'],
       ['videos', '▷', 'Lançamentos'],
       ['completed', '✓', 'Concluídos'],
+      ['usage', '▥', 'Consumo'],
       ['queue', '', 'Fila de espera'],
       ['deprioritized', '', 'Despriorizados']
     ] as const) {
