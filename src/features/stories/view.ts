@@ -23,6 +23,7 @@ interface StoryViewOptions {
   onToggleVideo: (video: Video, key: 'is_favorite' | 'is_watched') => void
   onOpenSequence: (story: TrackedStory) => void
   onComplete: (story: TrackedStory, completed: boolean) => void
+  onUnfollow?: (story: TrackedStory) => void
   finder?: FindVideoOptions
 }
 
@@ -81,6 +82,8 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
     () => options.onOpenSequence(group.story), 'follow-expand'))
   if (options.mode === 'completed') footer.append(button('Retomar',
     () => options.onComplete(group.story, false), 'follow-complete'))
+  else if (options.onUnfollow) footer.append(button('Deixar de acompanhar',
+    () => options.onUnfollow?.(group.story), 'follow-unfollow'))
   if (footer.childElementCount) card.append(footer)
   return card
 }

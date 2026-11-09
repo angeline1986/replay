@@ -129,6 +129,13 @@ export function makeStoryActions(hooks: Hooks) {
     await hooks.act(() => unfollowStory(client(), hooks.userId(), story.id))
   }
 
+  async function unfollowVideo(video: Video): Promise<void> {
+    const seed = state.stories.groups.find((group) => group.story.seed_video_id === video.id)
+    const group = seed ?? state.stories.groups.find((item) =>
+      item.confirmed.some((match) => match.video_id === video.id))
+    if (group) await unfollow(group.story)
+  }
+
   async function complete(story: TrackedStory, completed: boolean): Promise<void> {
     if (state.demo) {
       const from = completed ? state.stories.groups : state.stories.completed
@@ -158,5 +165,5 @@ export function makeStoryActions(hooks: Hooks) {
     await hooks.act(() => decideCandidate(client(), candidate.story_id, candidate.id, status))
   }
 
-  return { follow, followYouTube, rename, unfollow, complete, addYouTubeCompleted, decide }
+  return { follow, followYouTube, rename, unfollow, unfollowVideo, complete, addYouTubeCompleted, decide }
 }

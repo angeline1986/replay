@@ -20,6 +20,7 @@ interface VideoViewOptions {
   onSort: (next: 'recent' | 'az') => void
   onToggle: (video: Video, key: 'is_favorite' | 'is_watched' | 'is_deprioritized' | 'is_queued') => void
   onFollow: (video: Video) => void
+  onUnfollow?: (video: Video) => void
   trackedVideoIds: Set<string>
   onLoadMore: () => void
   onToggleSaved?: (video: Video, key: 'is_queued' | 'is_deprioritized') => void
@@ -158,9 +159,9 @@ function videoCard(
   const watched = Boolean(video.state?.is_watched)
   const deprioritized = Boolean(video.state?.is_deprioritized)
   const queued = Boolean(video.state?.is_queued)
-  const follow = iconButton(following ? 'História já acompanhada' : 'Acompanhar esta história',
-    'runner', () => options.onFollow(video), following)
-  follow.disabled = following
+  const follow = iconButton(following ? 'Deixar de acompanhar esta história' : 'Acompanhar esta história',
+    'runner', () => following ? options.onUnfollow?.(video) : options.onFollow(video), following)
+  follow.disabled = following && !options.onUnfollow
   actions.append(
     iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
       'star', () => options.onToggle(video, 'is_favorite'), favorite),

@@ -126,8 +126,7 @@ function render(): void {
     }, authMessage))
   } else {
     const trackedVideoIds = new Set(state.stories.groups.flatMap((group) => [
-      group.story.seed_video_id, ...group.confirmed.map((item) => item.video_id),
-      ...group.pending.map((item) => item.video_id)
+      group.story.seed_video_id, ...group.confirmed.map((item) => item.video_id)
     ]).filter((id): id is string => !!id))
     main.append(state.page === 'usage' ? usageView(state.demo ? undefined : () => loadUsage(supabase!, userId))
       : state.page === 'summary' ? summaryPage(state, supabase, userId)
@@ -140,7 +139,8 @@ function render(): void {
         sort: state.page === 'completed' ? state.completedSort : state.storySort, onSort: (value) => { if (state.page === 'completed' && value !== 'sequence') state.completedSort = value; else if (state.page !== 'completed') state.storySort = value; render() },
         onLookupYouTube: (input) => lookupYouTube(supabase!, userId, input, 'completed'), onSaveYouTube: (video) => { void storyActions.addYouTubeCompleted(video) },
         onOpenSequence: (story) => { location.hash = storySequenceRoute(story.id) },
-        onComplete: (story, completed) => { void storyActions.complete(story, completed) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels, finder: findHandlers.stories
+        onComplete: (story, completed) => { void storyActions.complete(story, completed) },
+        onUnfollow: (story) => { void storyActions.unfollow(story) }, onToggleVideo: (video, key) => { void actions.toggleVideo(video, key) }, channels: state.channels, finder: findHandlers.stories
       })) : state.page !== 'channels' ? (storySequenceId(location.hash)
       ? sequencePage(state.stories, storySequenceId(location.hash), actions, storyActions) : videoView({
       mode: state.page, videos: state.filter.status === 'marked' ? state.markedVideos
@@ -173,7 +173,7 @@ function render(): void {
       },
       onToggle: (video, key) => { void actions.toggleVideo(video, key) },
       onToggleSaved: (video, key) => { void act(() => toggleSavedYouTube(supabase!, video, key)) },
-      onFollow: (video) => { void storyActions.follow(video) }, trackedVideoIds,
+      onFollow: (video) => { void storyActions.follow(video) }, onUnfollow: (video) => { void storyActions.unfollowVideo(video) }, trackedVideoIds,
       finder: state.page === 'favorites' ? findHandlers.favorites
         : state.page === 'queue' ? findHandlers.queue
           : state.page === 'deprioritized' ? findHandlers.deprioritized : undefined

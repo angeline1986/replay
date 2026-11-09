@@ -43,7 +43,7 @@ export function storyToolbar(options: {
     label: options.completed ? 'Filtrar concluídos por canal' : 'Filtrar histórias por canal',
     className: 'favorite-channel-filter', onChange: options.onChannelSelect }))
   controls.append(selectPicker({
-    choices: [{ value: 'recent', label: 'Recentes' }, { value: 'az', label: 'A–Z' },
+    choices: [{ value: 'az', label: 'A–Z' }, { value: 'recent', label: 'Recentes' },
       ...(options.completed ? [] : [{ value: 'sequence' as const, label: 'Sequência' }])],
     value: options.sort,
     label: options.completed ? 'Ordenar histórias concluídas' : 'Ordenar minhas histórias',
