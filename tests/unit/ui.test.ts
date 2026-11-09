@@ -74,7 +74,7 @@ test('tela de vídeos filtra e escapa título externo', () => withDocument(() =>
   })
   assert.equal(view.querySelectorAll('.video-card').length, 1)
   assert.equal(view.querySelector('.new-badge')?.textContent, 'Novo')
-  assert.equal(view.querySelector('.favorite-status option')?.textContent, 'Tipo')
+  assert.equal(view.querySelector('.favorite-status .channel-picker-trigger')?.textContent, 'Tipo')
   const open = view.querySelector<HTMLAnchorElement>('.video-art')!
   assert.equal(open.querySelector('.new-badge')?.textContent, 'Novo')
   assert.equal(open.getAttribute('aria-label'), 'Abrir vídeo no YouTube')

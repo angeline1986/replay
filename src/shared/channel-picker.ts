@@ -11,6 +11,7 @@ export function channelPicker(options: {
   label: string
   className?: string
   disabled?: boolean
+  includePlaceholder?: boolean
   onChange: (id: string) => void
 }): HTMLDivElement {
   const root = element('div', `channel-picker ${options.className ?? ''}`)
@@ -24,7 +25,8 @@ export function channelPicker(options: {
   menu.setAttribute('role', 'listbox')
   menu.setAttribute('aria-label', options.label)
   menu.hidden = true
-  const choices = [{ id: '', name: options.placeholder, is_top: false }, ...options.channels]
+  const choices = options.includePlaceholder === false ? options.channels
+    : [{ id: '', name: options.placeholder, is_top: false }, ...options.channels]
   let selected = options.value
   const nodes: HTMLButtonElement[] = []
   const trophy = () => {

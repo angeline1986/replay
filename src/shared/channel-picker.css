@@ -23,4 +23,6 @@
   text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
 .channel-picker-option:hover, .channel-picker-option:focus-visible { background: #f0edff; outline: none; }
 .channel-picker-option[aria-selected='true'] { background: #f5f3ff; color: #4b3bcb; font-weight: 700; }
+.custom-select .channel-picker-menu { right: auto; left: 0; width: max(100%, 160px); }
+.custom-select.favorite-sort .channel-picker-menu { right: 0; left: auto; }
 @media (max-width: 700px) { .favorite-toolbar-controls .channel-picker { flex: 1 1 130px; } }

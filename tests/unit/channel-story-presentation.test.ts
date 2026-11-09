@@ -35,9 +35,8 @@ test('canais tops podem aparecer primeiro ou sozinhos sem mudar a marcação', (
   const all = channelView({ ...base, topFilter: 'all' })
   assert.deepEqual([...all.querySelectorAll('.channel-card h2')].map((node) => node.textContent),
     ['Álvaro', 'Bêta', 'Épico', 'Zeta'])
-  const filter = first.querySelector<HTMLSelectElement>('.channel-top-filter')!
-  filter.value = 'top-only'
-  filter.dispatchEvent(new window.Event('change'))
+  first.querySelector<HTMLButtonElement>('.channel-top-filter .channel-picker-trigger')!.click()
+  first.querySelector<HTMLButtonElement>('.channel-top-filter [data-channel-id="top-only"]')!.click()
   assert.deepEqual(selected, ['top-only'])
   const only = channelView({ ...base, topFilter: 'top-only' })
   assert.deepEqual([...only.querySelectorAll('.channel-card h2')].map((node) => node.textContent), ['Bêta', 'Épico'])
@@ -81,8 +80,8 @@ test('histórias têm filtro, divisores por canal e ações de favorito e visto'
   assert.equal(first.querySelector('.follow-footer'), null)
   assert.deepEqual(events, ['demo-v1:is_favorite', 'demo-v1:is_watched'])
   assert.deepEqual(opened, [])
-  const sort = view.querySelector<HTMLSelectElement>('select[aria-label="Ordenar minhas histórias"]')!
-  sort.value = 'az'; sort.dispatchEvent(new window.Event('change'))
+  view.querySelector<HTMLButtonElement>('[aria-label="Ordenar minhas histórias"]')!.click()
+  view.querySelector<HTMLButtonElement>('.favorite-sort [data-channel-id="az"]')!.click()
   assert.deepEqual(sorted, ['az'])
   const select = view.querySelector<HTMLButtonElement>(`.favorite-channel-filter .channel-picker-option[data-channel-id="${demoChannels[1].id}"]`)!
   select.click()
@@ -176,7 +175,7 @@ test('página Concluídos mostra apenas histórias encerradas e permite retomar'
   assert.equal(routeFromHash('#completed').page, 'completed')
   assert.match(view.textContent ?? '', /Concluídos/)
   assert.equal(view.querySelectorAll('.follow-card').length, 1)
-  assert.ok(view.querySelector('select[aria-label="Ordenar histórias concluídas"]'))
+  assert.ok(view.querySelector('.favorite-sort [aria-label="Ordenar histórias concluídas"]'))
   assert.ok(view.querySelector('input[aria-label="Buscar histórias concluídas"]'))
   assert.ok(view.querySelector('input[aria-label="Link de vídeo do YouTube"]'))
   view.querySelector<HTMLButtonElement>('.follow-complete')!.click()

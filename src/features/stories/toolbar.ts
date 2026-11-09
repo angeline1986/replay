@@ -1,5 +1,6 @@
 import { element } from '../../shared/dom.ts'
 import { channelPicker } from '../../shared/channel-picker.ts'
+import { selectPicker } from '../../shared/select-picker.ts'
 import type { Channel } from '../../shared/model.ts'
 import type { StoryGroup } from '../../shared/story-model.ts'
 import { storyChannelId } from './groups.ts'
@@ -41,15 +42,11 @@ export function storyToolbar(options: {
     placeholder: 'Canais',
     label: options.completed ? 'Filtrar concluídos por canal' : 'Filtrar histórias por canal',
     className: 'favorite-channel-filter', onChange: options.onChannelSelect }))
-  const sort = element('select', 'favorite-sort')
-  sort.setAttribute('aria-label', options.completed ? 'Ordenar histórias concluídas' : 'Ordenar minhas histórias')
-  for (const [value, label] of [['recent', 'Recentes'], ['az', 'A–Z']] as const) {
-    const option = element('option', '', label)
-    option.value = value
-    sort.append(option)
-  }
-  sort.value = options.sort
-  sort.addEventListener('change', () => options.onSort(sort.value as 'recent' | 'az'))
-  controls.append(sort)
+  controls.append(selectPicker({
+    choices: [{ value: 'recent', label: 'Recentes' }, { value: 'az', label: 'A–Z' }],
+    value: options.sort,
+    label: options.completed ? 'Ordenar histórias concluídas' : 'Ordenar minhas histórias',
+    className: 'favorite-sort', onChange: options.onSort
+  }))
   return controls
 }

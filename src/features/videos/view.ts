@@ -4,6 +4,7 @@ import { iconButton } from './icons.ts'
 import { favoriteVideoGroups } from './favorites.ts'
 import { findVideoMenu, type FindVideoOptions } from './find-menu.ts'
 import { channelPicker } from '../../shared/channel-picker.ts'
+import { selectPicker, type SelectChoice } from '../../shared/select-picker.ts'
 
 interface VideoViewOptions {
   mode: 'favorites' | 'videos' | 'deprioritized' | 'queue'
@@ -51,22 +52,14 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     filters.append(search)
   }
   if (options.mode === 'favorites' || options.mode === 'videos') {
-    const status = element('select', 'favorite-status')
-    status.setAttribute('aria-label', 'Filtrar vídeos por status')
-    const statuses = favorites
-      ? [['all', 'Favoritos'], ['unwatched', 'Não vistos']]
-      : [['all', 'Tipo'], ['new', 'Novos'], ['unwatched', 'Não vistos'],
-        ['favorites', 'Favoritos'], ...(options.filter.channelId ? [['marked', 'Marcados']] : [])]
-    for (const [value, label] of statuses) {
-      const option = element('option', '', label)
-      option.value = value
-      status.append(option)
-    }
-    status.value = options.filter.status
-    status.addEventListener('change', () => options.onFilter({
-      ...options.filter, status: status.value as VideoFilter['status']
-    }))
-    filters.append(status)
+    const statuses: SelectChoice<VideoFilter['status']>[] = favorites
+      ? [{ value: 'all', label: 'Favoritos' }, { value: 'unwatched', label: 'Não vistos' }]
+      : [{ value: 'all', label: 'Tipo' }, { value: 'new', label: 'Novos' },
+        { value: 'unwatched', label: 'Não vistos' }, { value: 'favorites', label: 'Favoritos' },
+        ...(options.filter.channelId ? [{ value: 'marked' as const, label: 'Marcados' }] : [])]
+    filters.append(selectPicker({ choices: statuses, value: options.filter.status,
+      label: 'Filtrar vídeos por status', className: 'favorite-status',
+      onChange: (status) => options.onFilter({ ...options.filter, status }) }))
   }
   const channelSource = options.collectionVideos ?? favoriteSource
   const favoriteChannelIds = new Set(channelSource.map((video) => video.channel_id))
@@ -84,17 +77,12 @@ export function videoView(options: VideoViewOptions): HTMLElement {
   filters.append(channelPicker({ channels: choices, value: options.filter.channelId,
     placeholder: 'Canais', label: 'Filtrar vídeos por canal', className: 'favorite-channel-filter',
     onChange: (id) => options.onFilter({ ...options.filter, channelId: id }) }))
-  const sort = element('select', 'favorite-sort')
-  sort.setAttribute('aria-label', 'Ordenar vídeos')
-  if (options.mode === 'queue') sort.title = 'Recentes = adicionados por último à fila'
-  for (const [value, label] of [['recent', 'Recentes'], ['az', 'Título A–Z']]) {
-    const option = element('option', '', label)
-    option.value = value
-    sort.append(option)
-  }
-  sort.value = options.sort
-  sort.addEventListener('change', () => options.onSort(sort.value as VideoViewOptions['sort']))
-  filters.append(sort)
+  filters.append(selectPicker({
+    choices: [{ value: 'recent', label: 'Recentes' }, { value: 'az', label: 'Título A–Z' }],
+    value: options.sort, label: 'Ordenar vídeos', className: 'favorite-sort',
+    title: options.mode === 'queue' ? 'Recentes = adicionados por último à fila' : undefined,
+    onChange: options.onSort
+  }))
   if (options.finder) filters.append(findVideoMenu(options.finder))
   heading.append(filters)
   root.append(heading)

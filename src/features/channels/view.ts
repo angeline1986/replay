@@ -1,6 +1,7 @@
 import { button, element, notice } from '../../shared/dom.ts'
 import type { Channel, ChannelRequest, Video } from '../../shared/model.ts'
 import { channelPicker } from '../../shared/channel-picker.ts'
+import { selectPicker } from '../../shared/select-picker.ts'
 import { channelCardMenu } from './card-menu.ts'
 
 const trophyUrl = new URL('../../assets/icons/trophy-solid-full.svg', import.meta.url).href
@@ -34,15 +35,11 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     element('span', 'favorite-total', String(visible.length)))
   heading.append(intro)
   const form = element('form', 'favorite-toolbar-controls channel-toolbar-form')
-  const topFilter = element('select', 'channel-top-filter')
-  topFilter.setAttribute('aria-label', 'Filtrar canais tops')
-  for (const [value, label] of [['all', 'Todos'], ['top-first', '+ Topzera'], ['top-only', 'Só Topzera']] as const) {
-    const option = element('option', '', label)
-    option.value = value
-    topFilter.append(option)
-  }
-  topFilter.value = options.topFilter ?? 'all'
-  topFilter.addEventListener('change', () => options.onTopFilter?.(topFilter.value as 'all' | 'top-first' | 'top-only'))
+  const topFilter = selectPicker({ choices: [
+    { value: 'all', label: 'Todos' }, { value: 'top-first', label: '+ Topzera' },
+    { value: 'top-only', label: 'Só Topzera' }
+  ], value: options.topFilter ?? 'all', label: 'Filtrar canais tops',
+  className: 'channel-top-filter', onChange: (value) => options.onTopFilter?.(value) })
   const cards = new Map<string, HTMLElement>()
   const jump = channelPicker({ channels: visible, value: '', placeholder: 'Canais',
     label: 'Ir para canal cadastrado', className: 'channel-jump', disabled: visible.length === 0,

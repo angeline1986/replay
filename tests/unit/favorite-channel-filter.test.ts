@@ -38,7 +38,8 @@ test('favoritos lista somente canais com vídeos favoritos', () => {
     const compound = feedSelect[2] as HTMLButtonElement
     assert.equal(compound.title, 'Ciência em Casa')
     compound.click()
-    assert.equal(feed.querySelector<HTMLButtonElement>('.channel-picker-trigger')?.title, 'Ciência em Casa')
+    assert.equal(feed.querySelector<HTMLButtonElement>('.favorite-channel-filter .channel-picker-trigger')?.title,
+      'Ciência em Casa')
     assert.ok(feed.querySelector('.favorite-channel-filter .channel-picker-trophy'))
   } finally {
     globalThis.document = original
