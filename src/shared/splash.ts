@@ -4,10 +4,8 @@ const STORAGE_KEY = 'replay_has_visited'
 let overlay: HTMLElement | null = null
 let requestLoading = false
 let introActive = false
-let progress = 0
 let showTimer = 0
 let finishTimer = 0
-let progressTimer = 0
 let originalOverflow = ''
 
 function showOverlay(): void {
@@ -16,25 +14,20 @@ function showOverlay(): void {
   const content = template?.content.firstElementChild
   if (!content) return
   overlay = content.cloneNode(true) as HTMLElement
-  const bar = overlay.querySelector<HTMLElement>('.progress-fill')
-  const counter = overlay.querySelector<HTMLElement>('.progress-counter')
+  overlay.classList.add('is-loading')
   originalOverflow = document.body.style.overflow
   document.body.style.overflow = 'hidden'
   document.body.append(overlay)
-  progressTimer = window.setInterval(() => {
-    progress = Math.min(90, progress + 3)
-    if (bar) bar.style.width = `${progress}%`
-    if (counter) counter.textContent = `${progress}%`
-  }, 70)
 }
 
 function finishIfIdle(): void {
   if (requestLoading || introActive || !overlay) return
-  window.clearInterval(progressTimer)
+  overlay.classList.remove('is-loading')
   const bar = overlay.querySelector<HTMLElement>('.progress-fill')
   const counter = overlay.querySelector<HTMLElement>('.progress-counter')
   if (bar) bar.style.width = '100%'
-  if (counter) counter.textContent = '100%'
+  if (bar) bar.style.transform = 'translateX(0)'
+  if (counter) counter.textContent = 'Pronto'
   finishTimer = window.setTimeout(() => {
     if (requestLoading || introActive || !overlay) return
     overlay.classList.add('fade-out')
@@ -53,7 +46,14 @@ export function syncRequestLoader(loading: boolean): void {
   if (loading) {
     window.clearTimeout(showTimer)
     window.clearTimeout(finishTimer)
-    if (overlay) overlay.classList.remove('fade-out')
+    if (overlay) {
+      overlay.classList.remove('fade-out')
+      overlay.classList.add('is-loading')
+      const bar = overlay.querySelector<HTMLElement>('.progress-fill')
+      if (bar) { bar.style.width = ''; bar.style.transform = '' }
+      const counter = overlay.querySelector<HTMLElement>('.progress-counter')
+      if (counter) counter.textContent = 'Carregando…'
+    }
     else showTimer = window.setTimeout(showOverlay, 350)
     return
   }

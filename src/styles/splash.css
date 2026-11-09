@@ -54,11 +54,13 @@
 }
 .brand-play-svg { width: 22px; height: 22px; margin-left: 2px; fill: #818cf8; }
 .brand-name { color: #fff; font: 800 28px 'Plus Jakarta Sans', sans-serif; letter-spacing: -.8px; }
-.progress-wrapper { display: flex; align-items: center; gap: 16px; width: min(240px, calc(100vw - 64px)); margin-top: 36px; }
+.progress-wrapper { display: flex; align-items: center; gap: 16px; width: min(280px, calc(100vw - 64px)); margin-top: 36px; }
 .progress-track { position: relative; flex: 1; height: 3px; overflow: hidden; border-radius: 3px; background: rgba(255, 255, 255, .1); }
-.progress-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, #6366f1, #a855f7); box-shadow: 0 0 10px #8b5cf6; transition: width .08s linear; }
-.progress-counter { width: 42px; color: #94a3b8; font: 700 13px 'JetBrains Mono', monospace; text-align: right; }
+.progress-fill { position: absolute; inset: 0 auto 0 0; width: 38%; background: linear-gradient(90deg, #6366f1, #a855f7); box-shadow: 0 0 10px #8b5cf6; transition: width .2s ease; }
+.replay-loader-overlay.is-loading .progress-fill { animation: replayLoading 1.35s ease-in-out infinite alternate; }
+@keyframes replayLoading { to { transform: translateX(165%); } }
+.progress-counter { width: 82px; color: #94a3b8; font: 700 12px 'JetBrains Mono', monospace; text-align: right; }
 @media (prefers-reduced-motion: reduce) {
-  .aurora-blob { animation: none; }
+  .aurora-blob, .replay-loader-overlay.is-loading .progress-fill { animation: none; }
   .replay-loader-overlay, .progress-fill { transition-duration: .01ms; }
 }

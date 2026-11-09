@@ -63,9 +63,13 @@ export async function loadDashboard(userId: string): Promise<{
   channels: Channel[]; requests: ChannelRequest[]; videos: Video[]; highlights: Video[];
   favorites: Video[]; deprioritized: Video[]; queued: Video[]; hasMore: boolean
 }> {
-  const channels = unwrap(await client().from('channels').select('*').order('name')) as Channel[]
-  const requests = unwrap(await client().from('channel_requests')
-    .select('id,handle,status,error_message').order('created_at', { ascending: false }).limit(20)) as ChannelRequest[]
+  const [channelResult, requestResult] = await Promise.all([
+    client().from('channels').select('*').order('name'),
+    client().from('channel_requests').select('id,handle,status,error_message')
+      .order('created_at', { ascending: false }).limit(20)
+  ])
+  const channels = unwrap(channelResult) as Channel[]
+  const requests = unwrap(requestResult) as ChannelRequest[]
   const [videos, highlights, favorites, deprioritized, queued, saved] = await Promise.all([
     loadVideoPage(userId, channels, 0), loadLatestChannelVideos(userId, channels),
     loadVideoCollection(client(), userId, channels, 'is_favorite'),
@@ -96,26 +100,19 @@ export async function loadVideoPage(userId: string, channels: Channel[], offset:
   }))
 }
 
-// Consulta um vídeo por canal: a paginação geral de 50 vídeos não é suficiente.
-export async function loadLatestChannelVideos(userId: string, channels: Channel[]): Promise<Video[]> {
-  const videos: Video[] = []
-  for (let offset = 0; offset < channels.length; offset += 8) {
-    const page = await Promise.all(channels.slice(offset, offset + 8).map(async (channel) => {
-      const result = await client().from('videos')
-        .select('id,channel_id,youtube_video_id,title,url,thumbnail_url,published_at,discovered_at')
-        .eq('channel_id', channel.id)
-        .order('published_at', { ascending: false }).limit(1)
-      const matches = unwrap(result) as Video[]
-      return matches[0] ? { ...matches[0], channel: { id: channel.id, name: channel.name } } : null
-    }))
-    for (const video of page) if (video) videos.push(video)
-  }
+// Um vídeo por canal em uma chamada, inclusive quando não está na primeira página geral.
+export async function loadLatestChannelVideos(
+  userId: string, channels: Channel[], db: SupabaseClient = client()
+): Promise<Video[]> {
+  const videos = unwrap(await db.rpc('latest_channel_videos')) as Video[]
   if (!videos.length) return []
-  const states = unwrap(await client().from('user_video_state')
+  const states = unwrap(await db.from('user_video_state')
     .select('video_id,is_favorite,is_watched,is_deprioritized,is_queued').eq('user_id', userId)
     .in('video_id', videos.map((video) => video.id))) as VideoState[]
+  const byChannel = new Map(channels.map((item) => [item.id, item]))
   const byVideo = new Map(states.map((item) => [item.video_id, item]))
-  return videos.map((video) => ({ ...video, state: byVideo.get(video.id) }))
+  return videos.map((video) => ({ ...video, channel: byChannel.get(video.channel_id),
+    state: byVideo.get(video.id) }))
     .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))
 }
 
