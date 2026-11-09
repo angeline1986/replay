@@ -131,7 +131,7 @@ test('Minhas histórias abre a sequência em Lançamentos sem expandir o cartão
   view.querySelector<HTMLButtonElement>('.follow-expand')!.click()
   view.querySelector<HTMLButtonElement>('.icon-check-double')!.click()
   assert.deepEqual(events, ['open:story', 'complete:story:true'])
-  assert.match(sidebarView('stories', true, 1).textContent ?? '', /Minhas histórias \(1\)/)
+  assert.equal(sidebarView('stories', true).querySelector('a[href="#stories"] span:last-child')?.textContent, 'Minhas histórias')
 }))
 
 test('página de favoritos mostra somente marcados e ordena pelo título', () => withDocument(() => {

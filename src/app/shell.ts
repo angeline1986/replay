@@ -3,7 +3,7 @@ import { iconGlyph } from '../features/videos/icons.ts'
 import type { Route } from './route.ts'
 
 export function sidebarView(
-  page: Route['page'], showNav: boolean, pendingStories = 0, onSignOut?: () => void
+  page: Route['page'], showNav: boolean, onSignOut?: () => void
 ): HTMLElement {
   const sidebar = element('aside', 'sidebar')
   const brand = element('a', 'brand')
@@ -23,13 +23,12 @@ export function sidebarView(
       ['deprioritized', '', 'Despriorizados'],
       ['usage', '▥', 'Consumo']
     ] as const) {
-      const count = route === 'stories' && pendingStories ? ` (${pendingStories})` : ''
       const link = element('a')
       const icon = element('span', 'nav-icon', symbol)
       icon.setAttribute('aria-hidden', 'true')
       if (route === 'queue') icon.append(iconGlyph('hourglass'))
       if (route === 'deprioritized') icon.append(iconGlyph('heart-crack'))
-      link.append(icon, element('span', '', `${label}${count}`))
+      link.append(icon, element('span', '', label))
       link.href = `#${route}`
       if (page === route) link.setAttribute('aria-current', 'page')
       nav.append(link)

@@ -98,7 +98,7 @@ function render(): void {
   syncRequestLoader(state.busy || (!state.demo && configured && auth.phase === 'initializing'))
   const shell = element('div', 'app-shell')
   const signedIn = state.demo || auth.phase === 'signed_in'
-  shell.append(sidebarView(state.page, signedIn, state.stories.pendingCount, !state.demo && signedIn
+  shell.append(sidebarView(state.page, signedIn, !state.demo && signedIn
     ? () => { void act(async () => { await signOut(); location.reload() }, false) }
     : undefined))
   const workspace = element('div', 'workspace')
