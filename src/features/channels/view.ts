@@ -4,6 +4,8 @@ import { channelPicker } from '../../shared/channel-picker.ts'
 import { channelCardMenu } from './card-menu.ts'
 
 const trophyUrl = new URL('../../assets/icons/trophy-solid-full.svg', import.meta.url).href
+const youtubeUrl = new URL('../../assets/icons/youtube-brands-solid-full.svg', import.meta.url).href
+const thumbtackUrl = new URL('../../assets/icons/thumbtack-solid-full.svg', import.meta.url).href
 
 interface ChannelViewOptions {
   channels: Channel[]
@@ -121,16 +123,33 @@ export function channelView(options: ChannelViewOptions): HTMLElement {
     const status = element('div', 'channel-card-status')
     if (!channel.is_active) status.append(element('span', 'channel-badge is-paused', 'Pausado'))
     status.append(element('span', 'channel-checked', checkedLabel(channel.last_checked_at)))
-    const marked = button('Ver marcados', () => options.onMarked(channel), 'channel-marked-videos')
-    marked.title = 'Ver vídeos classificados deste canal'
     const actions = element('div', 'channel-actions channel-card-actions')
     const view = button(count ? `Ver vídeos (${count})` : 'Ver vídeos', () => options.onOpen(channel),
       `channel-view-videos${count ? ' has-news' : ''}`)
-    actions.append(view, channelCardMenu(channel, item, {
+    const youtube = element('a', 'channel-card-shortcut channel-youtube-link')
+    youtube.href = avatar.href
+    youtube.target = '_blank'
+    youtube.rel = 'noopener noreferrer'
+    youtube.title = 'Ver canal no YouTube'
+    youtube.setAttribute('aria-label', `Ver ${channel.name} no YouTube`)
+    const youtubeIcon = element('span', 'channel-shortcut-icon')
+    youtubeIcon.setAttribute('aria-hidden', 'true')
+    youtubeIcon.style.maskImage = `url("${youtubeUrl}")`
+    youtubeIcon.style.webkitMaskImage = `url("${youtubeUrl}")`
+    youtube.append(youtubeIcon)
+    const marked = button('', () => options.onMarked(channel), 'channel-card-shortcut channel-marked-videos')
+    marked.title = 'Ver vídeos classificados deste canal'
+    marked.setAttribute('aria-label', `Ver vídeos marcados de ${channel.name}`)
+    const markedIcon = element('span', 'channel-shortcut-icon')
+    markedIcon.setAttribute('aria-hidden', 'true')
+    markedIcon.style.maskImage = `url("${thumbtackUrl}")`
+    markedIcon.style.webkitMaskImage = `url("${thumbtackUrl}")`
+    marked.append(markedIcon)
+    actions.append(view, youtube, marked, channelCardMenu(channel, item, {
       onTop: () => options.onTop(channel), onToggle: () => options.onToggle(channel),
       onRemove: () => options.onRemove(channel)
     }))
-    item.append(head, status, marked, actions)
+    item.append(head, status, actions)
     list.append(item)
   }
   root.append(list)

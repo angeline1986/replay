@@ -50,9 +50,14 @@ test('botão do cartão abre os vídeos marcados do canal correto', () => {
     const youtube = cards[1].querySelector<HTMLAnchorElement>('.channel-avatar-link')!
     assert.equal(youtube.hostname, 'www.youtube.com')
     assert.equal(youtube.getAttribute('aria-label'), `Ver ${demoChannels[1].name} no YouTube`)
-    assert.equal(cards[1].querySelector('.channel-youtube-link'), null)
+    const youtubeShortcut = cards[1].querySelector<HTMLAnchorElement>('.channel-youtube-link')!
+    assert.equal(youtubeShortcut.href, youtube.href)
+    assert.match(youtubeShortcut.querySelector<HTMLElement>('.channel-shortcut-icon')?.style.maskImage ?? '',
+      /youtube-brands-solid-full\.svg/)
+    assert.match(cards[1].querySelector<HTMLElement>('.channel-marked-videos .channel-shortcut-icon')?.style.maskImage ?? '',
+      /thumbtack-solid-full\.svg/)
     assert.doesNotMatch(cards[1].textContent ?? '', /\+\d+ novos?/)
-    assert.equal(cards[0].querySelectorAll('.channel-card-head, .channel-card-status, .channel-marked-videos, .channel-card-actions').length, 4)
+    assert.equal(cards[0].querySelectorAll(':scope > .channel-card-head, :scope > .channel-card-status, :scope > .channel-card-actions').length, 3)
   } finally { globalThis.document = original; dom.window.close() }
 })
 
