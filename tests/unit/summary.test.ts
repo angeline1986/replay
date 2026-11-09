@@ -41,3 +41,38 @@ test('Resumo fica antes de Consumo e mostra contagens e vídeos marcados', async
     assert.match(row.textContent ?? '', /09\/11\/2026/)
   } finally { globalThis.document = previous; dom.window.close() }
 })
+
+test('Resumo filtra a tabela por canal e marcação sem recarregar dados', () => {
+  const previous = globalThis.document
+  const dom = new JSDOM('<!doctype html><html><body></body></html>')
+  globalThis.document = dom.window.document
+  try {
+    const favorite = { ...demoVideos[0], state: { video_id: demoVideos[0].id,
+      is_favorite: true, is_watched: false } }
+    const queued = { ...demoVideos[1], state: { video_id: demoVideos[1].id,
+      is_favorite: false, is_watched: false, is_queued: true } }
+    const view = summaryView({ channels: demoChannels, launchCount: 2,
+      favorites: [favorite], queued: [queued], deprioritized: [],
+      stories: { groups: [], completed: [], pendingCount: 0 },
+      demoVideos: [favorite, queued] })
+    dom.window.document.body.append(view)
+    assert.equal(view.querySelector('.summary-table-section h2'), null)
+    assert.equal(view.querySelectorAll('tbody tr').length, 2)
+    const channelFilter = view.querySelector('.summary-channel-filter')!
+    assert.ok(channelFilter.querySelector('[title="Ateliê Criativo"] .channel-picker-trophy'))
+    const markFilter = view.querySelector('.summary-mark-filter')!
+    const select = (filter: Element, id: string) => {
+      (filter.querySelector(`[data-channel-id="${id}"]`) as HTMLElement).click()
+    }
+    select(channelFilter, demoChannels[0].id)
+    const rows = [...view.querySelectorAll<HTMLTableRowElement>('tbody tr')]
+    assert.deepEqual(rows.map((row) => row.hidden), [false, true])
+    select(markFilter, 'hourglass')
+    assert.equal(view.querySelector('.summary-table-scroll')?.hasAttribute('hidden'), true)
+    assert.match(view.querySelector('.summary-table-section .notice')?.textContent ?? '',
+      /Nenhum vídeo corresponde aos filtros/)
+    select(channelFilter, demoChannels[1].id)
+    assert.deepEqual(rows.map((row) => row.hidden), [true, false])
+    assert.equal(view.querySelector('.summary-table-scroll')?.hasAttribute('hidden'), false)
+  } finally { globalThis.document = previous; dom.window.close() }
+})

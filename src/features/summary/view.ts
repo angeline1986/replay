@@ -3,6 +3,8 @@ import { validVideoUrl, type Channel, type Video } from '../../shared/model.ts'
 import type { StoryDashboard } from '../../shared/story-model.ts'
 import type { SummaryData, SummaryRow } from './data.ts'
 import { iconGlyph, type IconName } from '../videos/icons.ts'
+import { channelPicker } from '../../shared/channel-picker.ts'
+import { selectPicker, type SelectChoice } from '../../shared/select-picker.ts'
 
 interface SummaryOptions {
   channels: Channel[]
@@ -69,8 +71,32 @@ function metrics(options: SummaryOptions, launchCount: number): HTMLElement {
 
 function table(rows: SummaryRow[], options: SummaryOptions): HTMLElement {
   const section = element('section', 'summary-table-section')
-  section.append(element('h2', '', 'Vídeos marcados'))
-  if (!rows.length) { section.append(notice('Nenhum vídeo marcado ainda.')); return section }
+  const toolbar = element('div', 'summary-table-toolbar')
+  toolbar.setAttribute('aria-label', 'Filtros dos vídeos')
+  const channels = new Map<string, Pick<Channel, 'id' | 'name' | 'is_top'>>()
+  for (const { video } of rows) {
+    const monitored = options.channels.find((item) => item.id === video.channel_id ||
+      item.youtube_channel_id === video.channel_id)
+    const id = monitored?.id ?? video.channel_id
+    channels.set(id, { id, name: monitored?.name ?? video.channel?.name ?? 'Canal',
+      is_top: Boolean(monitored?.is_top) })
+  }
+  let selectedChannel = '', selectedMark: 'all' | IconName = 'all'
+  const markChoices: SelectChoice<'all' | IconName>[] = [
+    { value: 'all', label: 'Marcações' }, { value: 'star', label: 'Favoritos' },
+    { value: 'eye', label: 'Vistos' }, { value: 'runner', label: 'Acompanhando' },
+    { value: 'hourglass', label: 'Fila de espera' },
+    { value: 'heart-crack', label: 'Despriorizados' },
+    { value: 'check-double', label: 'Concluídos' }
+  ]
+  toolbar.append(channelPicker({ channels: [...channels.values()].sort((a, b) =>
+    a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })),
+  value: '', placeholder: 'Canais', label: 'Filtrar tabela por canal',
+  className: 'summary-channel-filter', disabled: !rows.length,
+  onChange: (id) => { selectedChannel = id; applyFilters() } }),
+  selectPicker({ choices: markChoices, value: 'all', label: 'Filtrar tabela por marcação',
+    className: 'summary-mark-filter', onChange: (value) => { selectedMark = value; applyFilters() } }))
+  section.append(toolbar)
   const scroll = element('div', 'summary-table-scroll')
   const table = element('table', 'summary-table')
   const head = element('thead')
@@ -78,6 +104,7 @@ function table(rows: SummaryRow[], options: SummaryOptions): HTMLElement {
   for (const label of ['Canal', 'Vídeo', 'Data da adição', 'Marcações']) header.append(element('th', '', label))
   head.append(header)
   const body = element('tbody')
+  const entries: { row: HTMLTableRowElement; channelId: string; icons: IconName[] }[] = []
   for (const { video, addedAt } of rows) {
     const row = element('tr')
     const channel = options.channels.find((item) => item.id === video.channel_id ||
@@ -91,7 +118,8 @@ function table(rows: SummaryRow[], options: SummaryOptions): HTMLElement {
     videoCell.append(link)
     row.append(videoCell, element('td', '', new Date(addedAt).toLocaleDateString('pt-BR')))
     const markCell = element('td')
-    for (const mark of marks(video, options.stories)) {
+    const videoMarks = marks(video, options.stories)
+    for (const mark of videoMarks) {
       const icon = element('span', `summary-mark-icon summary-mark-${mark.icon}`)
       icon.title = mark.label
       icon.setAttribute('role', 'img')
@@ -101,10 +129,24 @@ function table(rows: SummaryRow[], options: SummaryOptions): HTMLElement {
     }
     row.append(markCell)
     body.append(row)
+    entries.push({ row, channelId: channel?.id ?? video.channel_id,
+      icons: videoMarks.map((mark) => mark.icon) })
   }
   table.append(head, body)
   scroll.append(table)
-  section.append(scroll)
+  const empty = notice(rows.length ? 'Nenhum vídeo corresponde aos filtros.' : 'Nenhum vídeo marcado ainda.')
+  function applyFilters(): void {
+    let visible = 0
+    for (const entry of entries) {
+      entry.row.hidden = Boolean((selectedChannel && entry.channelId !== selectedChannel) ||
+        (selectedMark !== 'all' && !entry.icons.includes(selectedMark)))
+      if (!entry.row.hidden) visible++
+    }
+    scroll.hidden = visible === 0
+    empty.hidden = visible > 0
+  }
+  section.append(scroll, empty)
+  applyFilters()
   return section
 }
 
