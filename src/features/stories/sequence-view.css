@@ -1,10 +1,10 @@
 .sequence-toolbar-actions .ghost { padding: 8px 12px; font-size: 12px; white-space: nowrap; }
-.sequence-toolbar-actions .sequence-unfollow { color: #b73445; }
+.sequence-toolbar-actions .sequence-unfollow { color: var(--fm-danger); }
 .sequence-section { margin-top: 22px; }
 .sequence-section .section-title { margin-bottom: 13px; }
-.sequence-card.is-pending { border-color: #eddbaf; }
+.sequence-card.is-pending { border-color: var(--fm-warning-border); }
 .sequence-decision { display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-  padding: 12px 13px; border-top: 1px solid #edf0f5; }
+  padding: 12px 13px; border-top: 1px solid var(--fm-border); }
 .sequence-decision p { flex-basis: 100%; }
 .sequence-decision button { padding: 7px 10px; font-size: 12px; }
-.sequence-decision .ghost { color: #bd3c4f; }
+.sequence-decision .ghost { color: var(--fm-danger); }

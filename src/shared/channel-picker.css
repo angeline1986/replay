@@ -1,28 +1,31 @@
 .channel-picker { position: relative; flex: 0 1 185px; min-width: 0; font-family: inherit; }
 .channel-picker-trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  width: 100%; height: 38px; padding: 8px 10px; border: 1px solid #e1e5ed; border-radius: 8px;
-  background: #fff; color: #303a4f; font-family: inherit; font-size: 13px;
+  width: 100%; height: 38px; padding: 8px 10px; border: 1px solid var(--fm-border-control); border-radius: 8px;
+  background: var(--fm-surface); color: var(--fm-text); font-family: inherit; font-size: 13px;
   font-weight: 500; line-height: 1.4; text-align: left; }
-.channel-picker-trigger:focus-visible { outline: 2px solid #8b80e8; outline-offset: 1px; }
+.channel-picker-trigger:focus-visible { outline: 2px solid var(--fm-primary); outline-offset: 1px; box-shadow: var(--fm-focus-ring); }
+.channel-picker-trigger::after { content: ''; flex: none; width: 7px; height: 7px;
+  margin-right: 3px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-2px); opacity: .8; }
 .channel-picker-trigger:disabled { opacity: .6; cursor: default; }
 .channel-picker-label { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .channel-picker-label > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .channel-picker-trophy { display: inline-block; flex: 0 0 13px; width: 13px; height: 13px;
-  background: #ac791a; mask-size: contain; mask-position: center; mask-repeat: no-repeat;
+  background: var(--fm-warning); mask-size: contain; mask-position: center; mask-repeat: no-repeat;
   -webkit-mask-size: contain; -webkit-mask-position: center; -webkit-mask-repeat: no-repeat; }
 .channel-picker-menu { position: absolute; z-index: 40; top: calc(100% + 5px); left: 0;
   width: max(100%, 260px); max-width: min(320px, calc(100vw - 32px));
   max-height: 280px; overflow-y: auto;
-  padding: 5px; border: 1px solid #dfe3ed; border-radius: 9px; background: #fff;
-  box-shadow: 0 10px 30px #20283a26; }
+  padding: 5px; border: 1px solid var(--fm-border-control); border-radius: 9px; background: var(--fm-surface);
+  box-shadow: 0 10px 30px var(--fm-shadow-medium); }
 .channel-picker-menu[hidden] { display: none; }
 .channel-picker-option { display: block; width: 100%; padding: 8px; border: 0; border-radius: 6px;
-  background: transparent; color: #303a4f; font-family: inherit; font-size: 13px;
+  background: transparent; color: var(--fm-text); font-family: inherit; font-size: 13px;
   font-weight: 500; line-height: 1.4; text-align: left; }
 .channel-picker-option .channel-picker-label > span:last-child { overflow: visible;
   text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
-.channel-picker-option:hover, .channel-picker-option:focus-visible { background: #f0edff; outline: none; }
-.channel-picker-option[aria-selected='true'] { background: #f5f3ff; color: #4b3bcb; font-weight: 700; }
+.channel-picker-option:hover, .channel-picker-option:focus-visible { background: var(--fm-primary-soft); outline: none; }
+.channel-picker-option[aria-selected='true'] { background: var(--fm-primary-soft); color: var(--fm-primary-hover); font-weight: 700; }
 .custom-select .channel-picker-menu { right: auto; left: 0; width: max(100%, 160px); }
 .custom-select.favorite-sort .channel-picker-menu { right: 0; left: auto; }
 @media (max-width: 700px) { .favorite-toolbar-controls .channel-picker { flex: 1 1 130px; } }

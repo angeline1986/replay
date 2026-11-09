@@ -4,12 +4,12 @@
 .follow-grid { align-items: stretch; margin-top: 18px; }
 .favorite-channel-group .follow-grid { margin-top: 0; }
 .follow-card { display: flex; flex-direction: column; min-width: 0; overflow: hidden;
-  border: 1px solid #e0e3eb; border-radius: 15px; background: #fff; }
+  border: 1px solid var(--fm-border-control); border-radius: 15px; background: var(--fm-surface); }
 .follow-hero { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9;
-  background: linear-gradient(115deg, #6675ad, #adb8db); overflow: hidden; text-decoration: none; }
+  background: linear-gradient(115deg, var(--fm-primary-hover), var(--fm-primary-soft-strong)); overflow: hidden; text-decoration: none; }
 .follow-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .follow-play { position: relative; z-index: 1; padding: 8px 13px; border-radius: 100%;
-  background: #14141ab5; color: white; font-size: 17px; }
+  background: var(--fm-play-overlay); color: var(--fm-surface); font-size: 17px; }
 .follow-info { flex: 1; padding: 13px 14px 12px; min-height: 135px; }
 .follow-info h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; margin: 0 0 9px;
@@ -18,13 +18,13 @@
 .follow-tags { display: flex; flex-wrap: nowrap; gap: 7px; margin-top: 12px; }
 .follow-tags .follow-video-actions { flex-wrap: nowrap; margin: 0; }
 .follow-tag { padding: 5px 8px; border-radius: 7px; font-size: 11px;
-  color: #5545cb; background: #efedff; font-weight: 700; }
+  color: var(--fm-primary); background: var(--fm-primary-soft); font-weight: 700; }
 
-.follow-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 12px 14px; border-top: 1px solid #edf0f5; }
+.follow-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 12px 14px; border-top: 1px solid var(--fm-border); }
 .follow-expand { cursor: pointer; padding: 0; border: 0; background: transparent;
-  font-size: 12px; color: #33435f; font-weight: 650; }
-.follow-expand:hover { color: #5545cb; }
-.follow-complete { padding: 0; border: 0; background: transparent; color: #5545cb;
+  font-size: 12px; color: var(--fm-text); font-weight: 650; }
+.follow-expand:hover { color: var(--fm-primary); }
+.follow-complete { padding: 0; border: 0; background: transparent; color: var(--fm-primary);
   font-family: inherit; font-size: 12px; font-weight: 700; }
 .follow-complete:hover { text-decoration: underline; }
 @media (max-width: 700px) {

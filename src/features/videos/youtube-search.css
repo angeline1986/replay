@@ -1,27 +1,27 @@
 @import './find-menu.css';
-.youtube-search { margin: -8px 0 22px; padding: 14px; border: 1px solid #e2e6ef;
-  border-radius: 12px; background: #fff; box-shadow: 0 2px 8px #20283a08; }
+.youtube-search { margin: -8px 0 22px; padding: 14px; border: 1px solid var(--fm-border);
+  border-radius: 12px; background: var(--fm-surface); box-shadow: 0 2px 8px var(--fm-shadow-soft); }
 .youtube-search-form { display: flex; gap: 8px; }
 .youtube-search-form input { flex: 1; min-width: 0; height: 40px; padding: 8px 12px;
-  border: 1px solid #e1e5ed; border-radius: 8px; background: #f7f8fa;
-  color: #303a4f; font-family: inherit; font-size: 13px; font-weight: 500; }
+  border: 1px solid var(--fm-border-control); border-radius: 8px; background: var(--fm-surface);
+  color: var(--fm-text); font-family: inherit; font-size: 13px; font-weight: 500; }
 .youtube-search-form button { flex: none; padding: 8px 14px; border: 0; border-radius: 8px;
   font-family: inherit; font-size: 13px; font-weight: 650; }
 .youtube-search-form button:disabled { opacity: .65; cursor: wait; }
 .youtube-search-result:empty { display: none; }
 .youtube-search-result .notice { margin: 12px 0 0; }
 .youtube-preview { display: flex; align-items: center; gap: 14px; margin-top: 14px;
-  padding-top: 14px; border-top: 1px solid #e6e9f0; }
+  padding-top: 14px; border-top: 1px solid var(--fm-border); }
 .youtube-preview-link { display: block; flex: none; width: 132px; }
 .youtube-preview img { width: 132px; aspect-ratio: 16/9; object-fit: cover; border-radius: 7px; }
 .youtube-preview-info { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
 .youtube-preview-info strong { font-size: 13px; line-height: 1.4; }
-.youtube-preview-info span { color: #778095; font-size: 12px; }
+.youtube-preview-info span { color: var(--fm-text-muted); font-size: 12px; }
 .youtube-preview-info button { margin-top: 3px; padding: 8px 12px; border: 0;
   border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 650; }
 .youtube-preview-info button:disabled { opacity: .65; cursor: default; }
-.favorite-video-card.just-added-video { outline: 3px solid #5545cb;
-  outline-offset: 3px; box-shadow: 0 8px 24px #5545cb30; }
+.favorite-video-card.just-added-video { outline: 3px solid var(--fm-primary);
+  outline-offset: 3px; box-shadow: 0 8px 24px var(--fm-primary-shadow); }
 @media (max-width: 700px) {
   .youtube-search-form, .youtube-preview { align-items: stretch; flex-direction: column; }
   .youtube-preview-link { width: 100%; }

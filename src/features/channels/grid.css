@@ -2,24 +2,24 @@
 .channel-toolbar-form .channel-top-filter { flex: 0 0 130px; }
 .compact-channel-card { display: grid; grid-template-rows: 56px 24px minmax(0, 1fr); overflow: visible;
   align-items: stretch; gap: 8px; min-width: 0; height: 177px; padding: 14px;
-  box-shadow: 0 2px 8px #20283a08; }
-.compact-channel-card:hover { border-color: #c8c5e5; box-shadow: 0 5px 16px #20283a12; }
-.compact-channel-card.has-news { border-color: #c6c2f7; }
-.compact-channel-card.is-top { border-color: #ead9a6; box-shadow: 0 2px 9px #b8872430; }
-.compact-channel-card.is-paused { border-color: #d7dce7; border-style: dashed; background: #fafbfe; opacity: .76; }
-.compact-channel-card.channel-card-selected { border-color: #4532cf; outline: 3px solid #6254e8;
-  outline-offset: 2px; background: #f0edff; box-shadow: 0 10px 24px #5545cb40; opacity: 1; }
-.compact-channel-card.channel-card-selected .channel-card-identity h2 { color: #3826b8; }
+  box-shadow: 0 2px 8px var(--fm-shadow-soft); }
+.compact-channel-card:hover { border-color: var(--fm-primary-soft-strong); box-shadow: 0 5px 16px var(--fm-shadow-medium); }
+.compact-channel-card.has-news { border-color: var(--fm-primary-soft-strong); }
+.compact-channel-card.is-top { border-color: var(--fm-warning-border); box-shadow: 0 2px 9px var(--fm-warning-shadow); }
+.compact-channel-card.is-paused { border-color: var(--fm-border); border-style: dashed; background: var(--fm-background); opacity: .76; }
+.compact-channel-card.channel-card-selected { border-color: var(--fm-primary-hover); outline: 3px solid var(--fm-primary);
+  outline-offset: 2px; background: var(--fm-primary-soft); box-shadow: 0 10px 24px var(--fm-primary-shadow); opacity: 1; }
+.compact-channel-card.channel-card-selected .channel-card-identity h2 { color: var(--fm-primary-hover); }
 .compact-channel-card.menu-open { position: relative; z-index: 10; opacity: 1; }
 .channel-card-head { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
 .channel-card-avatar { position: relative; flex: 0 0 44px; width: 44px; height: 44px; font-size: 17px; }
 .channel-card-avatar img { position: absolute; inset: 0; }
 .channel-avatar-link { text-decoration: none; }
-.channel-avatar-link:hover { box-shadow: 0 0 0 3px #6151dc33; }
+.channel-avatar-link:hover { box-shadow: 0 0 0 3px var(--fm-primary-shadow); }
 .channel-top-indicator { display: grid; place-items: center; flex: 0 0 24px; width: 24px; height: 24px;
   margin: -3px -3px 0 0; padding: 0; border: 1px solid transparent; border-radius: 7px;
-  background: transparent; color: #a3adbd; }
-.channel-top-indicator.is-top { color: #a56c0c; background: #fff0c4; border-color: #f0d68d; }
+  background: transparent; color: var(--fm-text-muted); }
+.channel-top-indicator.is-top { color: var(--fm-warning); background: var(--fm-warning-soft); border-color: var(--fm-warning-border); }
 .channel-top-glyph { display: block; width: 14px; height: 14px; background: currentColor;
   mask-size: contain; mask-position: center; mask-repeat: no-repeat;
   -webkit-mask-size: contain; -webkit-mask-position: center; -webkit-mask-repeat: no-repeat; }
@@ -27,38 +27,38 @@
 .channel-card-identity h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
   line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; margin: 0 0 3px; font-size: 14px; line-height: 1.25; }
 .channel-card-status { display: flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }
-.channel-badge { flex: none; padding: 3px 6px; border-radius: 999px; background: #f0f2f6;
-  color: #667085; font-size: 11px; font-weight: 700; white-space: nowrap; }
-.channel-badge.is-paused { background: #fff3df; color: #94620d; }
+.channel-badge { flex: none; padding: 3px 6px; border-radius: 999px; background: var(--fm-background);
+  color: var(--fm-text-muted); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.channel-badge.is-paused { background: var(--fm-warning-soft); color: var(--fm-warning); }
 .channel-checked { min-width: 0; overflow: hidden; text-overflow: ellipsis;
-  white-space: nowrap; color: #8490a5; font-size: 11px; }
+  white-space: nowrap; color: var(--fm-text-muted); font-size: 11px; }
 .channel-card-actions { display: flex; align-items: center; gap: 7px; width: 100%;
-  align-self: end; padding-top: 9px; border-top: 1px solid #edf0f5; }
+  align-self: end; padding-top: 9px; border-top: 1px solid var(--fm-border); }
 .channel-card-actions .channel-card-shortcut { display: inline-grid; place-items: center;
-  flex: 0 0 36px; width: 36px; height: 36px; padding: 0; border: 1px solid #e0e3eb;
-  border-radius: 8px; background: #fff; text-decoration: none; cursor: pointer; }
-.channel-card-actions .channel-view-videos { color: #e53549; }
-.channel-card-actions .channel-view-videos.has-news { border-color: #5143d2; background: #5143d2; color: #fff; }
-.compact-channel-card.is-paused .channel-view-videos.has-news { border-color: #e0e3eb;
-  background: #f0edff; color: #5143d2; }
-.channel-card-actions .channel-marked-videos { color: #5143d2; }
-.channel-card-actions .channel-card-shortcut:hover { border-color: #c9c3f5; background: #f7f6fd; }
-.channel-card-actions .channel-view-videos.has-news:hover { background: #4031bd; color: #fff; }
+  flex: 0 0 36px; width: 36px; height: 36px; padding: 0; border: 1px solid var(--fm-border-control);
+  border-radius: 8px; background: var(--fm-surface); text-decoration: none; cursor: pointer; }
+.channel-card-actions .channel-view-videos { color: var(--fm-youtube-brand); }
+.channel-card-actions .channel-view-videos.has-news { border-color: var(--fm-primary-hover); background: var(--fm-primary-hover); color: var(--fm-surface); }
+.compact-channel-card.is-paused .channel-view-videos.has-news { border-color: var(--fm-border-control);
+  background: var(--fm-primary-soft); color: var(--fm-primary); }
+.channel-card-actions .channel-marked-videos { color: var(--fm-primary); }
+.channel-card-actions .channel-card-shortcut:hover { border-color: var(--fm-primary-soft-strong); background: var(--fm-primary-soft); }
+.channel-card-actions .channel-view-videos.has-news:hover { background: var(--fm-text); color: var(--fm-surface); }
 .channel-shortcut-icon { display: block; width: 16px; height: 16px; background: currentColor;
   mask: center / contain no-repeat; -webkit-mask: center / contain no-repeat; }
 .channel-options { position: relative; flex: 0 0 36px; margin-left: auto; }
 .channel-options .channel-options-trigger { width: 36px; height: 36px; padding: 0;
-  border: 1px solid #e0e3eb; background: #fff; color: #66738a; font-size: 20px; line-height: 1; }
-.channel-options-trigger:hover, .channel-options-trigger[aria-expanded='true'] { background: #f0edff; color: #5143d2; }
+  border: 1px solid var(--fm-border-control); background: var(--fm-surface); color: var(--fm-text-muted); font-size: 20px; line-height: 1; }
+.channel-options-trigger:hover, .channel-options-trigger[aria-expanded='true'] { background: var(--fm-primary-soft); color: var(--fm-primary); }
 .channel-options-menu { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 20;
-  display: grid; gap: 2px; width: 210px; padding: 6px; border: 1px solid #e1e5ed;
-  border-radius: 10px; background: #fff; box-shadow: 0 12px 28px #20283a24; }
+  display: grid; gap: 2px; width: 210px; padding: 6px; border: 1px solid var(--fm-border-control);
+  border-radius: 10px; background: var(--fm-surface); box-shadow: 0 12px 28px var(--fm-shadow-medium); }
 .channel-options-menu[hidden] { display: none; }
 .channel-options .channel-options-item { display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 10px; border: 0; border-radius: 6px; background: transparent; color: #303a4f;
+  padding: 10px; border: 0; border-radius: 6px; background: transparent; color: var(--fm-text);
   font: inherit; font-size: 12px; font-weight: 500; text-align: left; white-space: nowrap; }
-.channel-options-item:hover, .channel-options-item:focus-visible { background: #f5f3ff; }
-.channel-options .channel-options-item.danger { color: #bf4353; }
+.channel-options-item:hover, .channel-options-item:focus-visible { background: var(--fm-primary-soft); }
+.channel-options .channel-options-item.danger { color: var(--fm-danger); }
 .channel-options-icon { display: inline-grid; place-items: center; flex: 0 0 16px; width: 16px; height: 16px;
   background: currentColor; mask: center / contain no-repeat;
   -webkit-mask: center / contain no-repeat; }

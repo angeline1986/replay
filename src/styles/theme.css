@@ -1,0 +1,53 @@
+:root {
+  --fm-primary: #188AB4;
+  --fm-primary-hover: #126887;
+  --fm-primary-soft: #E9F7FC;
+  --fm-primary-soft-strong: #D2EFF9;
+  --fm-background: #F5FBFE;
+  --fm-sidebar: #E9F7FC;
+  --fm-surface: #FFFFFF;
+  --fm-comparison-background: #26333C;
+  --fm-text: #0C455A;
+  --fm-text-secondary: #188AB4;
+  --fm-text-muted: #126887;
+  --fm-border: #D8EEF7;
+  --fm-border-control: #C8EAF5;
+  --fm-success: #168361;
+  --fm-success-soft: #E2F4EB;
+  --fm-warning: #9A5B00;
+  --fm-warning-soft: #FFF1D9;
+  --fm-focus-ring: 0 0 0 3px rgba(24, 138, 180, 0.12);
+  --fm-danger: #A92E45;
+  --fm-danger-soft: #FFF0F2;
+  --fm-danger-border: #E6B6C0;
+  --fm-warning-border: #E7CE9C;
+  --fm-icon-muted: #597D97;
+  --fm-youtube-brand: #E62140;
+  --fm-shadow-soft: rgb(12 69 90 / .04);
+  --fm-shadow-medium: rgb(12 69 90 / .10);
+  --fm-shadow-strong: rgb(12 69 90 / .18);
+  --fm-primary-shadow: rgb(24 138 180 / .20);
+  --fm-warning-shadow: rgb(154 91 0 / .18);
+  --fm-play-overlay: rgb(38 51 60 / .72);
+  --fm-splash-muted: #B9D5E2;
+  --fm-splash-border: rgb(255 255 255 / .15);
+  --fm-splash-glass: rgb(255 255 255 / .08);
+  --fm-splash-track: rgb(255 255 255 / .10);
+}
+
+[data-fominha-theme="fluxo"] {
+  --fm-primary: #246589;
+  --fm-primary-hover: #1B4F6D;
+  --fm-primary-soft: #EAF4FB;
+  --fm-background: #E9F2F8;
+  --fm-sidebar: #F4F9FD;
+  --fm-surface: #FFFFFF;
+  --fm-text: #18374D;
+  --fm-text-secondary: #246589;
+  --fm-text-muted: #597D97;
+  --fm-border: #D9E9F4;
+  --fm-border-control: #D3E5F2;
+  --fm-step-line: #C6E0F2;
+  background-color: var(--fm-background);
+  color: var(--fm-text);
+}
