@@ -1,5 +1,5 @@
 import { button, element, notice } from '../../shared/dom.ts'
-import { iconButton, iconGlyph } from '../videos/icons.ts'
+import { iconButton } from '../videos/icons.ts'
 import { validVideoUrl, type Channel, type Video } from '../../shared/model.ts'
 import { storyChannelGroups, storyChannelId } from './groups.ts'
 import { storyToolbar } from './toolbar.ts'
@@ -27,14 +27,22 @@ interface StoryViewOptions {
   finder?: FindVideoOptions
 }
 
-function videoActions(video: Video, story: TrackedStory, options: StoryViewOptions): HTMLElement {
+function videoActions(video: Video | null, story: TrackedStory, options: StoryViewOptions): HTMLElement {
   const actions = element('div', 'card-actions follow-video-actions')
-  const favorite = Boolean(video.state?.is_favorite)
-  const watched = Boolean(video.state?.is_watched)
-  actions.append(iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos', 'star',
-    () => options.onToggleVideo(video, 'is_favorite'), favorite),
-    iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto', watched ? 'eye' : 'eye-slash',
-      () => options.onToggleVideo(video, 'is_watched'), watched))
+  if (options.mode !== 'completed') {
+    const runner = iconButton('Deixar de acompanhar esta história', 'runner',
+      () => options.onUnfollow?.(story), true)
+    runner.disabled = !options.onUnfollow
+    actions.append(runner)
+  }
+  if (video) {
+    const favorite = Boolean(video.state?.is_favorite)
+    const watched = Boolean(video.state?.is_watched)
+    actions.append(iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos', 'star',
+      () => options.onToggleVideo(video, 'is_favorite'), favorite),
+      iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto', watched ? 'eye' : 'eye-slash',
+        () => options.onToggleVideo(video, 'is_watched'), watched))
+  }
   if (options.mode !== 'completed') actions.append(iconButton('Concluir história', 'check-double',
     () => options.onComplete(story, true)))
   return actions
@@ -69,11 +77,8 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   info.append(element('p', 'video-meta',
     `${cover?.channel?.name ?? 'Canal'} · ${cover ? new Date(cover.published_at).toLocaleDateString('pt-BR') : 'Sem vídeo'}`))
   const tags = element('div', 'follow-tags')
-  const following = element('span', 'follow-tag follow-tag-icon')
-  if (options.mode === 'completed') following.textContent = 'Concluída'
-  else { following.append(iconGlyph('runner')); following.title = 'Acompanhando esta história' }
-  tags.append(following)
-  if (cover) tags.append(videoActions(cover, group.story, options))
+  if (options.mode === 'completed') tags.append(element('span', 'follow-tag', 'Concluída'))
+  if (cover || options.mode !== 'completed') tags.append(videoActions(cover, group.story, options))
   info.append(tags)
   card.append(info)
   const footer = element('div', 'follow-footer')
@@ -82,8 +87,6 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
     () => options.onOpenSequence(group.story), 'follow-expand'))
   if (options.mode === 'completed') footer.append(button('Retomar',
     () => options.onComplete(group.story, false), 'follow-complete'))
-  else if (options.onUnfollow) footer.append(button('Deixar de acompanhar',
-    () => options.onUnfollow?.(group.story), 'follow-unfollow'))
   if (footer.childElementCount) card.append(footer)
   return card
 }

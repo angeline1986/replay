@@ -1,5 +1,4 @@
 .sequence-toolbar-actions .ghost { padding: 8px 12px; font-size: 12px; white-space: nowrap; }
-.sequence-toolbar-actions .sequence-unfollow { color: var(--fm-danger); }
 .sequence-section { margin-top: 22px; }
 .sequence-section .section-title { margin-bottom: 13px; }
 .sequence-card.is-pending { border-color: var(--fm-warning-border); }

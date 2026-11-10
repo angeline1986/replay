@@ -156,11 +156,12 @@
 }
 .card-actions .icon-action svg { display: block; width: 18px; height: 18px; fill: currentColor; }
 .card-actions .icon-action:hover:not(:disabled) { color: var(--fm-primary); background: var(--fm-primary-soft); }
+.card-actions .icon-action:not(.icon-star) { color: var(--fm-primary); background: var(--fm-primary-soft); }
 .card-actions .icon-star.is-active { color: var(--fm-warning); background: var(--fm-warning-soft); }
-.card-actions .icon-eye.is-active { color: var(--fm-primary); background: var(--fm-primary-soft); }
-.card-actions .icon-heart-crack.is-active { color: var(--fm-danger); background: var(--fm-danger-soft); }
-.card-actions .icon-hourglass.is-active { color: var(--fm-warning); background: var(--fm-warning-soft); }
-.card-actions .icon-runner.is-active { color: var(--fm-primary); background: var(--fm-primary-soft); }
+.card-actions .icon-action.is-active:not(.icon-star) { border-color: var(--fm-primary-hover);
+  color: var(--fm-surface); background: var(--fm-primary-hover); }
+.card-actions .icon-action.is-active:not(.icon-star):hover:not(:disabled) { border-color: var(--fm-text);
+  color: var(--fm-surface); background: var(--fm-text); }
 .card-actions .icon-action:disabled { opacity: .75; cursor: default; }
 .card-actions .icon-action { position: relative; }
 .card-actions .icon-action::after { content: attr(data-tooltip); position: absolute; z-index: 10;

@@ -29,7 +29,7 @@ test('sequência abre em Lançamentos com cartões, ordem de partes e decisões'
       data: { groups: [{ story, seed, confirmed: [match('m39', part39, 'confirmed')],
         pending: [match('m41', part41, 'pending'), match('m40', part40, 'pending')] }],
       completed: [], pendingCount: 2 },
-      onBack: () => events.push('back'), onUnfollow: () => events.push('unfollow'),
+      onBack: () => events.push('back'), onUnfollow: () => events.push('unfollow'), onResume: () => events.push('resume'),
       onToggle: (_video, key) => events.push(key),
       onDecide: (item, status) => events.push(`${item.id}:${status}`) })
     assert.equal(view.querySelector('h1')?.textContent, 'Lançamentos')
@@ -49,13 +49,23 @@ test('sequência abre em Lançamentos com cartões, ordem de partes e decisões'
     view.querySelector<HTMLButtonElement>('.sequence-decision .primary')!.click()
     view.querySelector<HTMLButtonElement>('.sequence-decision .ghost')!.click()
     view.querySelector<HTMLButtonElement>('.sequence-toolbar-actions .ghost')!.click()
-    view.querySelector<HTMLButtonElement>('.sequence-unfollow')!.click()
+    assert.equal(view.querySelector('.sequence-unfollow'), null)
+    view.querySelector<HTMLButtonElement>('.sequence-card .icon-runner')!.click()
     assert.deepEqual(events, ['is_favorite', 'm40:confirmed', 'm40:rejected', 'back', 'unfollow'])
     const withoutPending = sequenceView({ id: story.id,
       data: { groups: [{ story, seed, confirmed: [], pending: [] }], completed: [], pendingCount: 0 },
-      onBack: () => {}, onUnfollow: () => {}, onToggle: () => {}, onDecide: () => {} })
+      onBack: () => {}, onUnfollow: () => {}, onResume: () => {}, onToggle: () => {}, onDecide: () => {} })
     assert.equal(withoutPending.querySelectorAll('.video-card').length, 1)
     assert.equal(withoutPending.querySelector('.sequence-section'), null)
     assert.doesNotMatch(withoutPending.textContent ?? '', /Nenhuma continuação pendente/)
+    const completed = sequenceView({ id: story.id,
+      data: { groups: [], completed: [{ story: { ...story, is_followed: false,
+        completed_at: '2026-11-09T12:00:00Z' }, seed, confirmed: [], pending: [] }], pendingCount: 0 },
+      onBack: () => {}, onUnfollow: () => events.push('unfollow-again'),
+      onResume: () => events.push('resume'), onToggle: () => {}, onDecide: () => {} })
+    const runner = completed.querySelector<HTMLButtonElement>('.sequence-card .icon-runner')!
+    assert.equal(runner.getAttribute('aria-pressed'), 'false')
+    runner.click()
+    assert.equal(events.at(-1), 'resume')
   } finally { globalThis.document = original; dom.window.close() }
 })

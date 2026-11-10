@@ -34,7 +34,7 @@ test('vídeo despriorizado permite parar o acompanhamento sem mudar sua classifi
   assert.equal(video.state.is_deprioritized, true)
 }))
 
-test('história sem sequência oferece parar acompanhamento e ordenação pedida', () => withDocument(() => {
+test('história sem sequência usa o corredor para parar acompanhamento', () => withDocument(() => {
   const story = { id: 's1', owner_id: 'owner', seed_video_id: demoVideos[0].id,
     name: 'Obra', canonical_key: 'obra', aliases: [], is_followed: true,
     completed_at: null, last_scanned_at: null, created_at: '2026-11-09T12:00:00Z' }
@@ -47,8 +47,10 @@ test('história sem sequência oferece parar acompanhamento e ordenação pedida
     onToggleVideo: () => {}, onOpenSequence: () => {}, onComplete: () => {},
     onUnfollow: (item) => events.push(item.id) })
   assert.equal(view.querySelector('.follow-expand'), null)
-  const stop = view.querySelector<HTMLButtonElement>('.follow-unfollow')!
-  assert.equal(stop.textContent, 'Deixar de acompanhar')
+  assert.equal(view.querySelector('.follow-footer'), null)
+  const stop = view.querySelector<HTMLButtonElement>('.follow-video-actions .icon-runner')!
+  assert.equal(stop.getAttribute('aria-label'), 'Deixar de acompanhar esta história')
+  assert.equal(stop.getAttribute('aria-pressed'), 'true')
   stop.click()
   assert.deepEqual(events, ['s1'])
   assert.deepEqual([...view.querySelectorAll('.favorite-sort [role="option"]')]

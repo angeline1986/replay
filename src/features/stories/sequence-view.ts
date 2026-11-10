@@ -9,6 +9,7 @@ interface SequenceOptions {
   id: string
   onBack: () => void
   onUnfollow: (story: TrackedStory) => void
+  onResume: (story: TrackedStory) => void
   onToggle: (video: Video, key: 'is_favorite' | 'is_watched' | 'is_queued' | 'is_deprioritized') => void
   onDecide: (candidate: StoryCandidate, status: 'confirmed' | 'rejected') => void
 }
@@ -20,7 +21,7 @@ function byChapter(a: Video, b: Video): number {
   return Date.parse(a.published_at) - Date.parse(b.published_at)
 }
 
-function sequenceCard(video: Video, options: SequenceOptions,
+function sequenceCard(video: Video, options: SequenceOptions, story: TrackedStory,
   candidate?: StoryCandidate): HTMLElement {
   const card = element('article', `video-card sequence-card${candidate ? ' is-pending' : ''}`)
   const art = element('a', 'video-art')
@@ -48,8 +49,8 @@ function sequenceCard(video: Video, options: SequenceOptions,
   const watched = Boolean(video.state?.is_watched)
   const queued = Boolean(video.state?.is_queued)
   const deprioritized = Boolean(video.state?.is_deprioritized)
-  const follow = iconButton('História já acompanhada', 'runner', () => {}, true)
-  follow.disabled = true
+  const follow = iconButton(story.is_followed ? 'Deixar de acompanhar esta história' : 'Retomar acompanhamento',
+    'runner', () => story.is_followed ? options.onUnfollow(story) : options.onResume(story), story.is_followed)
   actions.append(
     iconButton(favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos', 'star',
       () => options.onToggle(video, 'is_favorite'), favorite),
@@ -92,20 +93,18 @@ export function sequenceView(options: SequenceOptions): HTMLElement {
   intro.append(element('h1', '', 'Lançamentos'), element('span', 'favorite-total', String(total)))
   const controls = element('div', 'favorite-toolbar-controls sequence-toolbar-actions')
   controls.append(button('← Minhas histórias', options.onBack, 'ghost'))
-  if (group?.story.is_followed) controls.append(button('Deixar de acompanhar',
-    () => options.onUnfollow(group.story), 'ghost sequence-unfollow'))
   heading.append(intro, controls)
   root.append(heading)
   if (!group) { root.append(notice('História não encontrada. Volte para Minhas histórias.')); return root }
   const confirmed = [group.seed, ...group.confirmed.map((item) => item.video)]
     .filter((video): video is Video => Boolean(video)).sort(byChapter)
   const confirmedGrid = element('div', 'video-grid')
-  confirmedGrid.append(...confirmed.map((video) => sequenceCard(video, options)))
+  confirmedGrid.append(...confirmed.map((video) => sequenceCard(video, options, group.story)))
   root.append(confirmedGrid)
   if (group.story.is_followed) {
     const pending = [...group.pending].sort((a, b) => byChapter(a.video, b.video))
     if (pending.length) root.append(groupSection('Possíveis continuações', pending.map((item) =>
-      sequenceCard(item.video, options, item))))
+      sequenceCard(item.video, options, group.story, item))))
   }
   return root
 }

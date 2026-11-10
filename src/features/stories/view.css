@@ -27,22 +27,7 @@
 .follow-complete { padding: 0; border: 0; background: transparent; color: var(--fm-primary);
   font-family: inherit; font-size: 12px; font-weight: 700; }
 .follow-complete:hover { text-decoration: underline; }
-.follow-unfollow { margin-left: auto; padding: 0; border: 0; background: transparent;
-  color: var(--fm-danger); font-family: inherit; font-size: 12px; font-weight: 650; }
-.follow-unfollow:hover { text-decoration: underline; }
 @media (max-width: 700px) {
   .follow-heading { align-items: flex-start; }
   .follow-info { min-height: 0; }
-}
-
-.follow-tag-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 30px;
-}
-.follow-tag-icon svg {
-  width: 15px;
-  height: 15px;
-  fill: currentColor;
 }
