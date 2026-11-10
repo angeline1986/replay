@@ -79,7 +79,7 @@ test('menu aparece em Favoritos e Minhas histórias, quando configurado', () => 
       onComplete: () => {}, finder: { ...finder, target: 'stories' }
     })
     assert.ok(stories('active').querySelector('.find-video-trigger'))
-    assert.equal(stories('completed').querySelector('.find-video-trigger'), null)
+    assert.ok(stories('completed').querySelector('.find-video-trigger'))
   } finally { globalThis.document = original; dom.window.close() }
 })
 

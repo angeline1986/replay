@@ -1,4 +1,5 @@
 @import './sequence-view.css';
+@import './completed-search-menu.css';
 /* Histórias: mesmo grid e formato de cards do feed principal */
 .follow-heading { margin: 24px 0 15px; }
 .follow-grid { align-items: stretch; margin-top: 18px; }

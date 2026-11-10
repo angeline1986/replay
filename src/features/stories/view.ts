@@ -3,7 +3,7 @@ import { iconButton } from '../videos/icons.ts'
 import { validVideoUrl, type Channel, type Video } from '../../shared/model.ts'
 import { storyChannelGroups, storyChannelId } from './groups.ts'
 import { storyToolbar } from './toolbar.ts'
-import { youtubeSearchView } from '../videos/youtube-search.ts'
+import { completedSearchMenu } from './completed-search-menu.ts'
 import { findVideoMenu, type FindVideoOptions } from '../videos/find-menu.ts'
 import type { YouTubeLookupResult, YouTubeResult } from '../../shared/saved-youtube.ts'
 import type { StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
@@ -113,9 +113,9 @@ export function storiesView(options: StoryViewOptions): HTMLElement {
   heading.append(storyToolbar({ source, channels: options.channels ?? [], completed: options.mode === 'completed',
     selectedChannelId: options.selectedChannelId, onChannelSelect: options.onChannelSelect,
     query: options.query, onQuery: options.onQuery, sort: options.sort, onSort: options.onSort }))
-  if (options.mode !== 'completed' && options.finder) heading.append(findVideoMenu(options.finder))
+  if (options.mode === 'completed') heading.append(completedSearchMenu(options.onLookupYouTube, options.onSaveYouTube))
+  else if (options.finder) heading.append(findVideoMenu(options.finder))
   root.append(heading)
-  if (options.mode === 'completed') root.append(youtubeSearchView('completed', options.onLookupYouTube, options.onSaveYouTube))
   if (!source.length) {
     root.append(notice(options.mode === 'completed' ? 'Nenhuma história concluída.' :
       'Você ainda não acompanha histórias. Use “Acompanhar esta história” em um vídeo.'))

@@ -4,6 +4,7 @@ import { JSDOM } from 'jsdom'
 import { videoId } from '../../supabase/functions/lookup-youtube-video/input.ts'
 import { videoView } from '../../src/features/videos/view.ts'
 import { youtubeSearchView } from '../../src/features/videos/youtube-search.ts'
+import { completedSearchMenu } from '../../src/features/stories/completed-search-menu.ts'
 import { demoChannels, demoVideos } from '../../src/shared/demo.ts'
 
 test('aceita links comuns do YouTube e rejeita domínios parecidos', () => {
@@ -30,6 +31,33 @@ test('Concluídos usa a mesma busca do YouTube com ação de adicionar', async (
     assert.equal(button.textContent, 'Adicionar aos concluídos')
     button.click()
     assert.equal(saved, true)
+  } finally { globalThis.document = original; dom.window.close() }
+})
+
+test('Concluídos esconde a busca do YouTube no menu de três pontos', async () => {
+  const original = globalThis.document
+  const dom = new JSDOM('<!doctype html><html><body></body></html>')
+  globalThis.document = dom.window.document
+  try {
+    let searched = ''
+    const view = completedSearchMenu(async (input) => {
+      searched = input
+      return { youtube_video_id: 'Hx2SPzq2h4Q', youtube_channel_id: 'UC1234567890123456789012',
+        channel_name: 'Canal público', title: 'Vídeo público', thumbnail_url: '',
+        published_at: '2026-11-01T00:00:00Z' }
+    }, () => {})
+    const panel = view.querySelector<HTMLElement>('.find-video-panel')!
+    assert.equal(panel.hidden, true)
+    view.querySelector<HTMLButtonElement>('.find-video-trigger')!.click()
+    view.querySelector<HTMLButtonElement>('.find-video-option')!.click()
+    assert.equal(panel.hidden, false)
+    const input = panel.querySelector<HTMLInputElement>('input')!
+    input.value = 'https://www.youtube.com/watch?v=Hx2SPzq2h4Q'
+    panel.querySelector<HTMLFormElement>('form')!
+      .dispatchEvent(new dom.window.Event('submit', { cancelable: true }))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    assert.equal(searched, input.value)
+    assert.match(panel.textContent ?? '', /Vídeo público/)
   } finally { globalThis.document = original; dom.window.close() }
 })
 

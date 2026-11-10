@@ -177,7 +177,7 @@ test('página Concluídos mostra apenas histórias encerradas e permite retomar'
   assert.equal(view.querySelectorAll('.follow-card').length, 1)
   assert.ok(view.querySelector('.favorite-sort [aria-label="Ordenar histórias concluídas"]'))
   assert.ok(view.querySelector('input[aria-label="Buscar histórias concluídas"]'))
-  assert.ok(view.querySelector('input[aria-label="Link de vídeo do YouTube"]'))
+  assert.equal(view.querySelector<HTMLElement>('.completed-search-menu .find-video-panel')?.hidden, true)
   assert.equal(view.querySelector('.follow-tag'), null)
   assert.equal(view.querySelector('.follow-complete'), null)
   const completeIcon = view.querySelector<HTMLElement>('.follow-video-actions .icon-check-double')!
