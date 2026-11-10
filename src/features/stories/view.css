@@ -17,16 +17,11 @@
 .follow-info .video-meta { margin: 0; }
 .follow-tags { display: flex; flex-wrap: nowrap; gap: 7px; margin-top: 12px; }
 .follow-tags .follow-video-actions { flex-wrap: nowrap; margin: 0; }
-.follow-tag { padding: 5px 8px; border-radius: 7px; font-size: 11px;
-  color: var(--fm-primary); background: var(--fm-primary-soft); font-weight: 700; }
 
 .follow-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 12px 14px; border-top: 1px solid var(--fm-border); }
 .follow-expand { cursor: pointer; padding: 0; border: 0; background: transparent;
   font-size: 12px; color: var(--fm-text); font-weight: 650; }
 .follow-expand:hover { color: var(--fm-primary); }
-.follow-complete { padding: 0; border: 0; background: transparent; color: var(--fm-primary);
-  font-family: inherit; font-size: 12px; font-weight: 700; }
-.follow-complete:hover { text-decoration: underline; }
 @media (max-width: 700px) {
   .follow-heading { align-items: flex-start; }
   .follow-info { min-height: 0; }

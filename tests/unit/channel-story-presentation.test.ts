@@ -178,7 +178,12 @@ test('página Concluídos mostra apenas histórias encerradas e permite retomar'
   assert.ok(view.querySelector('.favorite-sort [aria-label="Ordenar histórias concluídas"]'))
   assert.ok(view.querySelector('input[aria-label="Buscar histórias concluídas"]'))
   assert.ok(view.querySelector('input[aria-label="Link de vídeo do YouTube"]'))
-  view.querySelector<HTMLButtonElement>('.follow-complete')!.click()
+  assert.equal(view.querySelector('.follow-tag'), null)
+  assert.equal(view.querySelector('.follow-complete'), null)
+  const completeIcon = view.querySelector<HTMLElement>('.follow-video-actions .icon-check-double')!
+  assert.equal(completeIcon.getAttribute('aria-pressed'), 'true')
+  assert.match(completeIcon.querySelector<HTMLElement>('.supplied-svg-icon')?.style.maskImage ?? '', /check-double-solid-full\.svg/)
+  view.querySelector<HTMLButtonElement>('.follow-video-actions .icon-runner')!.click()
   assert.deepEqual(resumed, ['s1:false'])
   assert.equal(storiesView({ ...options, query: 'sem correspondência', sort: 'recent' }).querySelectorAll('.follow-card').length, 0)
   const other = { ...story, id: 's2', seed_video_id: demoVideos[1].id,

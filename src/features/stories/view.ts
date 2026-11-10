@@ -29,12 +29,11 @@ interface StoryViewOptions {
 
 function videoActions(video: Video | null, story: TrackedStory, options: StoryViewOptions): HTMLElement {
   const actions = element('div', 'card-actions follow-video-actions')
-  if (options.mode !== 'completed') {
-    const runner = iconButton('Deixar de acompanhar esta história', 'runner',
-      () => options.onUnfollow?.(story), true)
-    runner.disabled = !options.onUnfollow
-    actions.append(runner)
-  }
+  const completed = options.mode === 'completed'
+  const runner = iconButton(completed ? 'Retomar acompanhamento' : 'Deixar de acompanhar esta história',
+    'runner', () => completed ? options.onComplete(story, false) : options.onUnfollow?.(story), !completed)
+  runner.disabled = !completed && !options.onUnfollow
+  actions.append(runner)
   if (video) {
     const favorite = Boolean(video.state?.is_favorite)
     const watched = Boolean(video.state?.is_watched)
@@ -43,8 +42,8 @@ function videoActions(video: Video | null, story: TrackedStory, options: StoryVi
       iconButton(watched ? 'Marcar como não visto' : 'Marcar como visto', watched ? 'eye' : 'eye-slash',
         () => options.onToggleVideo(video, 'is_watched'), watched))
   }
-  if (options.mode !== 'completed') actions.append(iconButton('Concluir história', 'check-double',
-    () => options.onComplete(story, true)))
+  actions.append(iconButton(completed ? 'Desmarcar conclusão' : 'Concluir história', 'check-double',
+    () => options.onComplete(story, !completed), completed))
   return actions
 }
 
@@ -77,16 +76,13 @@ function storyCard(group: StoryDashboard['groups'][number], options: StoryViewOp
   info.append(element('p', 'video-meta',
     `${cover?.channel?.name ?? 'Canal'} · ${cover ? new Date(cover.published_at).toLocaleDateString('pt-BR') : 'Sem vídeo'}`))
   const tags = element('div', 'follow-tags')
-  if (options.mode === 'completed') tags.append(element('span', 'follow-tag', 'Concluída'))
-  if (cover || options.mode !== 'completed') tags.append(videoActions(cover, group.story, options))
+  tags.append(videoActions(cover, group.story, options))
   info.append(tags)
   card.append(info)
   const footer = element('div', 'follow-footer')
   const continuations = group.confirmed.length + group.pending.length
   if (continuations) footer.append(button(`Ver sequência (+${continuations})`,
     () => options.onOpenSequence(group.story), 'follow-expand'))
-  if (options.mode === 'completed') footer.append(button('Retomar',
-    () => options.onComplete(group.story, false), 'follow-complete'))
   if (footer.childElementCount) card.append(footer)
   return card
 }
