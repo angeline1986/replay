@@ -4,11 +4,14 @@ import { selectPicker } from '../../shared/select-picker.ts'
 import type { Channel } from '../../shared/model.ts'
 import type { StoryGroup } from '../../shared/story-model.ts'
 import { storyChannelId } from './groups.ts'
+import { topFilterPicker, type TopFilter } from '../../shared/top-filter.ts'
 
 export function storyToolbar(options: {
   source: StoryGroup[]
   channels: Channel[]
   completed: boolean
+  topFilter?: TopFilter
+  onTopFilter?: (value: TopFilter) => void
   selectedChannelId: string
   onChannelSelect: (id: string) => void
   query: string
@@ -32,6 +35,8 @@ export function storyToolbar(options: {
     })
     controls.append(search)
   }
+  if (!options.completed) controls.append(topFilterPicker(options.topFilter ?? 'all',
+    (value) => options.onTopFilter?.(value)))
   const choices = [...new Set(options.source.map(storyChannelId))].map((id) => {
     const group = options.source.find((item) => storyChannelId(item) === id)!
     const channel = options.channels.find((item) => item.id === id)

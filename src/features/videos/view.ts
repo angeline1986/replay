@@ -5,6 +5,7 @@ import { favoriteVideoGroups } from './favorites.ts'
 import { findVideoMenu, type FindVideoOptions } from './find-menu.ts'
 import { channelPicker } from '../../shared/channel-picker.ts'
 import { selectPicker, type SelectChoice } from '../../shared/select-picker.ts'
+import { isTopVideo, topFilterPicker, type TopFilter } from '../../shared/top-filter.ts'
 
 interface VideoViewOptions {
   mode: 'favorites' | 'videos' | 'deprioritized' | 'queue'
@@ -13,6 +14,8 @@ interface VideoViewOptions {
   favoriteVideos?: Video[]
   collectionVideos?: Video[]
   channels: Channel[]
+  topFilter?: TopFilter
+  onTopFilter?: (value: TopFilter) => void
   filter: VideoFilter
   sort: 'recent' | 'az'
   hasMore: boolean
@@ -62,6 +65,9 @@ export function videoView(options: VideoViewOptions): HTMLElement {
       label: 'Filtrar vídeos por status', className: 'favorite-status',
       onChange: (status) => options.onFilter({ ...options.filter, status }) }))
   }
+  if (options.mode === 'videos' || options.mode === 'queue') {
+    filters.append(topFilterPicker(options.topFilter ?? 'all', (value) => options.onTopFilter?.(value)))
+  }
   const channelSource = options.collectionVideos ?? favoriteSource
   const favoriteChannelIds = new Set(channelSource.map((video) => video.channel_id))
   const availableChannels = collection
@@ -96,19 +102,26 @@ export function videoView(options: VideoViewOptions): HTMLElement {
     .filter((video) => options.mode !== 'favorites' || video.state?.is_favorite)
     .filter((video) => options.mode !== 'deprioritized' || video.state?.is_deprioritized)
     .filter((video) => options.mode !== 'queue' || video.state?.is_queued)
+    .filter((video) => options.topFilter !== 'top-only' ||
+      (options.mode !== 'videos' && options.mode !== 'queue') || isTopVideo(video, options.channels))
   const recentAt = (video: Video) => recentDate(video, options.mode)
-  if (options.sort === 'az') filtered.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'))
-  else filtered.sort((a, b) => Date.parse(recentAt(b)) - Date.parse(recentAt(a)))
+  filtered.sort((a, b) => (options.topFilter === 'top-first' &&
+    (options.mode === 'videos' || options.mode === 'queue')
+    ? Number(isTopVideo(b, options.channels)) - Number(isTopVideo(a, options.channels)) : 0)
+    || (options.sort === 'az' ? a.title.localeCompare(b.title, 'pt-BR')
+      : Date.parse(recentAt(b)) - Date.parse(recentAt(a))))
   countBadge.textContent = String(filtered.length)
   if (!filtered.length) {
     const empty = options.mode === 'deprioritized' ? 'Nenhum vídeo despriorizado ainda.'
-      : options.mode === 'queue' ? 'Sua fila de espera está vazia.'
+      : options.mode === 'queue' ? (channelSource.length ? 'Nenhum vídeo encontrado. Ajuste os filtros.'
+        : 'Sua fila de espera está vazia.')
         : favorites ? 'Nenhum favorito encontrado. Marque um vídeo no feed para vê-lo aqui.'
           : 'Nenhum vídeo encontrado. Ajuste os filtros ou cadastre um canal.'
     root.append(notice(empty))
   } else if (collection) {
     root.append(favoriteVideoGroups(filtered, options.channels, options.sort,
-      (video) => videoCard(video, options), recentAt))
+      (video) => videoCard(video, options), recentAt,
+      options.mode === 'queue' && options.topFilter === 'top-first'))
   } else {
     const grid = element('div', 'video-grid')
     for (const video of filtered) grid.append(videoCard(video, options))

@@ -2,6 +2,7 @@ import type { Channel, ChannelRequest, Video, VideoFilter } from '../shared/mode
 import { demoChannels, demoVideos } from '../shared/demo.ts'
 import { routeFromHash } from './route.ts'
 import type { StoryDashboard } from '../shared/story-model.ts'
+import type { TopFilter } from '../shared/top-filter.ts'
 
 export interface AppState {
   channels: Channel[]
@@ -18,7 +19,10 @@ export interface AppState {
   filter: VideoFilter
   page: 'favorites' | 'videos' | 'channels' | 'stories' | 'completed' | 'deprioritized' | 'queue' | 'summary' | 'usage'
   sort: 'recent' | 'az'
-  channelTopFilter: 'all' | 'top-first' | 'top-only'
+  channelTopFilter: TopFilter
+  storyTopFilter: TopFilter
+  launchTopFilter: TopFilter
+  queueTopFilter: TopFilter
   storyChannelId: string
   storySort: 'recent' | 'az' | 'sequence'
   completedChannelId: string
@@ -47,6 +51,9 @@ export const state: AppState = {
   page: routeFromHash(location.hash).page,
   sort: 'recent',
   channelTopFilter: 'all',
+  storyTopFilter: 'all',
+  launchTopFilter: 'all',
+  queueTopFilter: 'all',
   storyChannelId: '',
   storySort: 'recent',
   completedChannelId: '',

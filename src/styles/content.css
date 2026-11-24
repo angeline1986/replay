@@ -20,6 +20,7 @@
 .favorite-toolbar-controls input { flex: 1 1 160px; max-width: 240px; background: var(--fm-surface); }
 .favorite-toolbar-controls select { flex: 0 1 145px; }
 .favorite-toolbar-controls .favorite-status { flex-basis: 110px; }
+.favorite-toolbar-controls .channel-top-filter { flex: 0 0 130px; }
 .favorite-toolbar-controls .favorite-channel-filter { flex-basis: 185px; }
 .favorite-toolbar-controls .favorite-sort { flex-basis: 125px; }
 .favorite-toolbar-controls .header-action { display: inline-flex; align-items: center; justify-content: center; flex: none; min-height: 38px; padding: 8px 13px; font-family: inherit; font-size: 13px; font-weight: 650; line-height: 1.4; white-space: nowrap; }

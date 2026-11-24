@@ -7,11 +7,14 @@ import { completedSearchMenu } from './completed-search-menu.ts'
 import { findVideoMenu, type FindVideoOptions } from '../videos/find-menu.ts'
 import type { YouTubeLookupResult, YouTubeResult } from '../../shared/saved-youtube.ts'
 import type { StoryDashboard, TrackedStory } from '../../shared/story-model.ts'
+import { isTopChannel, type TopFilter } from '../../shared/top-filter.ts'
 
 interface StoryViewOptions {
   data: StoryDashboard
   mode?: 'active' | 'completed'
   channels?: Channel[]
+  topFilter?: TopFilter
+  onTopFilter?: (value: TopFilter) => void
   selectedChannelId: string
   onChannelSelect: (id: string) => void
   query: string
@@ -95,15 +98,20 @@ export function storiesView(options: StoryViewOptions): HTMLElement {
       group.confirmed.length + group.pending.length === 0) return false
     if (options.selectedChannelId && storyChannelId(group) !== options.selectedChannelId) return false
     const channel = options.channels?.find((item) => item.id === storyChannelId(group))
+    if (options.mode !== 'completed' && options.topFilter === 'top-only' &&
+      !isTopChannel(storyChannelId(group), options.channels ?? [])) return false
     const titles = [group.seed?.title, ...group.confirmed.map((item) => item.video.title)].filter(Boolean)
     return !query || `${group.story.name} ${channel?.name ?? ''} ${titles.join(' ')}`.toLocaleLowerCase('pt-BR').includes(query)
   })
   const latest = (group: StoryDashboard['groups'][number]) => Math.max(
     Date.parse(group.seed?.published_at ?? '') || 0,
     ...group.confirmed.map((item) => Date.parse(item.video.published_at) || 0))
-  visible.sort((a, b) => options.sort === 'az' ? a.story.name.localeCompare(b.story.name, 'pt-BR')
+  visible.sort((a, b) => (options.mode !== 'completed' && options.topFilter === 'top-first'
+    ? Number(isTopChannel(storyChannelId(b), options.channels ?? [])) -
+      Number(isTopChannel(storyChannelId(a), options.channels ?? [])) : 0)
+    || (options.sort === 'az' ? a.story.name.localeCompare(b.story.name, 'pt-BR')
     : options.mode === 'completed' ? Date.parse(b.story.completed_at ?? '') - Date.parse(a.story.completed_at ?? '')
-      : latest(b) - latest(a) || Date.parse(b.story.created_at) - Date.parse(a.story.created_at))
+      : latest(b) - latest(a) || Date.parse(b.story.created_at) - Date.parse(a.story.created_at)))
   const root = element('section', 'content')
   const heading = element('div', 'favorites-toolbar')
   const title = element('div', 'favorite-page-title')
@@ -111,6 +119,7 @@ export function storiesView(options: StoryViewOptions): HTMLElement {
     element('span', 'favorite-total', String(visible.length)))
   heading.append(title)
   heading.append(storyToolbar({ source, channels: options.channels ?? [], completed: options.mode === 'completed',
+    topFilter: options.topFilter, onTopFilter: options.onTopFilter,
     selectedChannelId: options.selectedChannelId, onChannelSelect: options.onChannelSelect,
     query: options.query, onQuery: options.onQuery, sort: options.sort, onSort: options.onSort }))
   if (options.mode === 'completed') heading.append(completedSearchMenu(options.onLookupYouTube, options.onSaveYouTube))

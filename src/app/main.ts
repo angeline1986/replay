@@ -133,6 +133,7 @@ function render(): void {
       : state.page === 'stories' || state.page === 'completed' ? (state.storiesError
       ? notice(state.storiesError, 'error') : storiesView({
         data: state.stories, mode: state.page === 'completed' ? 'completed' : 'active',
+        topFilter: state.storyTopFilter, onTopFilter: (value) => { state.storyTopFilter = value; render() },
         selectedChannelId: state.page === 'completed' ? state.completedChannelId : state.storyChannelId,
         onChannelSelect: (id) => { if (state.page === 'completed') state.completedChannelId = id; else state.storyChannelId = id; render() },
         query: state.completedQuery, onQuery: (value) => { state.completedQuery = value; render() },
@@ -151,8 +152,8 @@ function render(): void {
         : state.demo && state.page === 'queue' ? state.videos.filter((v) => v.state?.is_queued)
           : state.page === 'deprioritized' ? state.deprioritizedVideos
             : state.page === 'queue' ? state.queuedVideos : undefined,
-      channels: state.channels,
-      filter: state.filter, sort: state.sort,
+      channels: state.channels, topFilter: state.page === 'queue' ? state.queueTopFilter : state.launchTopFilter,
+      onTopFilter: (value) => { if (state.page === 'queue') state.queueTopFilter = value; else state.launchTopFilter = value; render() }, filter: state.filter, sort: state.sort,
       hasMore: state.filter.status === 'marked' ? false : state.filter.channelId
         ? channelPages.hasMore(state.filter.channelId) : state.hasMore, onLoadMore: () => { void loadMore() },
       onSort: (sort) => { state.sort = sort; render() },
@@ -179,8 +180,7 @@ function render(): void {
           : state.page === 'deprioritized' ? findHandlers.deprioritized : undefined
     })) : channelView({
       channels: state.channels, requests: state.requests, videos: state.videos, topFilter: state.channelTopFilter, onTopFilter: (value) => { state.channelTopFilter = value; render() },
-      busy: state.busy,
-      onAdd: (input) => { void actions.createChannel(input) },
+      busy: state.busy, onAdd: (input) => { void actions.createChannel(input) },
       onToggle: (channel) => { void actions.toggleChannel(channel) }, onTop: (channel) => { void actions.toggleTop(channel) },
       onRemove: (channel) => { void actions.deleteChannel(channel) }, onOpen: (channel) => { location.hash = channelRoute(channel.id) },
       onMarked: (channel) => { location.hash = markedRoute(channel.id) }
